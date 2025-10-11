@@ -33,6 +33,7 @@ export const createUser = mutation({
     name: v.string(),
     username: v.string(),
     userAddress: v.string(),
+    email: v.optional(v.string()),
     // The storage ID of the uploaded profile image is passed from the client
     profileImageId: v.optional(v.id("_storage")),
   },
@@ -72,6 +73,7 @@ export const createUser = mutation({
       name: args.name,
       username: args.username,
       userAddress: args.userAddress,
+      email: args.email,
       profileImageUrl: profileImageUrl,
     });
   },
