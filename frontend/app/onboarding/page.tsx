@@ -32,9 +32,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Loader2, UserRound } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
+import { toast } from "sonner";
+import { UserRound } from "lucide-react";
 
-// 1. Define the validation schema with Zod. This is our single source of truth for form data.
+// Define the validation schema with Zod. This is our single source of truth for form data.
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
   username: z
@@ -59,9 +61,10 @@ type FormValues = z.infer<typeof formSchema>;
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { address, isConnected, status } = useAppKitAccount();
+  const { address, isConnected, status, embeddedWalletInfo } =
+    useAppKitAccount();
 
-  // 2. Gatekeeping Logic: Check for existing users and handle loading states
+  // Gatekeeping Logic: Check for existing users and handle loading states
   const user = useQuery(api.users.getUser, {
     // Skip the query until we have an address to check
     userAddress: address ?? "",
@@ -81,13 +84,13 @@ export default function OnboardingPage() {
     }
   }, [status, router]);
 
-  // 3. Connect to Convex backend functions
+  // Connect to Convex backend functions
   const createUser = useMutation(api.users.createUser);
   const generateUploadUrl = useMutation(api.storage.generateUploadUrl);
 
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
-  // 4. Initialize React Hook Form using the shadcn/ui pattern
+  // Initialize React Hook Form using the shadcn/ui pattern
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -97,7 +100,7 @@ export default function OnboardingPage() {
     },
   });
 
-  // 5. Handle form submission
+  // Handle form submission
   const onSubmit = async (data: FormValues) => {
     if (!address) return;
 
@@ -115,17 +118,24 @@ export default function OnboardingPage() {
         profileImageId = storageId;
       }
 
+      const userEmail = embeddedWalletInfo?.user?.email ?? undefined;
+
       await createUser({
         name: data.name,
         username: data.username.toLowerCase(),
         userAddress: address,
+        email: userEmail,
         profileImageId: profileImageId,
       });
 
       router.push("/home");
+      toast.success("Profile created successfully!");
     } catch (error) {
       console.error("Onboarding failed", error);
-      alert("Failed to create profile. The username might be taken.");
+      toast.error("Failed to create profile.", {
+        description:
+          "The username might already be taken. Please try another one.",
+      });
     }
   };
 
@@ -133,7 +143,7 @@ export default function OnboardingPage() {
   if (status === "connecting" || (isConnected && user === undefined)) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center">
-        <Loader2 className="h-12 w-12 animate-spin" />
+        <Spinner className="size-6" />
       </div>
     );
   }
@@ -143,7 +153,6 @@ export default function OnboardingPage() {
     return null;
   }
 
-  // 6. Build the form with shadcn/ui's <Form> components
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-gray-50 p-4 dark:bg-gray-950">
       <Card className="w-full max-w-md">
@@ -236,9 +245,7 @@ export default function OnboardingPage() {
                 className="w-full"
                 disabled={form.formState.isSubmitting}
               >
-                {form.formState.isSubmitting && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
+                {form.formState.isSubmitting && <Spinner className="size-6" />}
                 Save and Continue
               </Button>
             </CardFooter>

@@ -1,4 +1,3 @@
-// app/page.tsx
 "use client";
 
 import { useEffect } from "react";
@@ -6,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useAppKitAccount } from "@reown/appkit/react";
-import { Loader2 } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function RootPage() {
   const router = useRouter();
@@ -43,7 +42,7 @@ export default function RootPage() {
   if (isConnected && user === undefined) {
     return (
       <div className="flex min-h-screen w-full items-center justify-center">
-        <Loader2 className="h-12 w-12 animate-spin" />
+        <Spinner className="size-6" />
       </div>
     );
   }
