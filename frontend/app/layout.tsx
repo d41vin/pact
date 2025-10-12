@@ -6,6 +6,8 @@ import { Toaster } from "@/components/ui/sonner";
 import { headers } from "next/headers"; // added
 import ContextProvider from "@/context";
 import { ConvexClientProvider } from "./ConvexClientProvider";
+import { BottomNav } from "@/components/bottom-nav";
+import { TopNav } from "@/components/top-nav";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -43,7 +45,9 @@ export default async function RootLayout({
       >
         <ContextProvider cookies={cookies}>
           <ConvexClientProvider>
+            <TopNav />
             {children}
+            <BottomNav />
             <Toaster richColors />
           </ConvexClientProvider>
         </ContextProvider>
