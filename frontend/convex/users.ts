@@ -27,6 +27,18 @@ export const checkUsername = query({
   },
 });
 
+// Query to get a user by their username
+export const getUserByUsername = query({
+  args: { username: v.string() },
+  handler: async (ctx, args) => {
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_username", (q) => q.eq("username", args.username))
+      .unique();
+    return user;
+  },
+});
+
 // Mutation to create a new user in the database
 export const createUser = mutation({
   args: {
