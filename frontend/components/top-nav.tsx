@@ -1,7 +1,10 @@
+// test two buttons theory, log in and sign up
+// other labels = join or log in / continue / log in/sign up
+
 "use client";
 
-import UserSearch from "@/components/user-search"; 
-import Notifications from "@/components/notifications"; 
+import UserSearch from "@/components/user-search";
+import Notifications from "@/components/notifications";
 
 export function TopNav() {
   return (
@@ -17,7 +20,7 @@ export function TopNav() {
           <div className="flex items-center gap-3">
             <UserSearch />
             <Notifications />
-            <appkit-button />
+            <appkit-button balance="hide" label="Log In or Sign Up" />
           </div>
         </div>
       </div>
