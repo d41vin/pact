@@ -1,3 +1,4 @@
+// convex/schema.ts
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
@@ -9,10 +10,55 @@ export default defineSchema({
     profileImageUrl: v.optional(v.string()),
     userAddress: v.string(),
   })
-    // Index to quickly query for a user by their wallet/smart account address.
     .index("by_userAddress", ["userAddress"])
-    // Index to quickly query for a user by their username.
     .index("by_username", ["username"])
-    // Index to quickly query for a user by their email.
     .index("by_email", ["email"]),
+
+  friendships: defineTable({
+    requesterId: v.id("users"),
+    addresseeId: v.id("users"),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("accepted"),
+      v.literal("declined"),
+    ),
+    updatedAt: v.number(), // Track when status changed
+  })
+    .index("by_requester", ["requesterId"])
+    .index("by_addressee", ["addresseeId"])
+    .index("by_status", ["status"])
+    .index("by_addressee_status", ["addresseeId", "status"])
+    .index("by_users", ["requesterId", "addresseeId"]), // Check if friendship exists
+
+  blocks: defineTable({
+    blockerId: v.id("users"),
+    blockedId: v.id("users"),
+  })
+    .index("by_blocker", ["blockerId"])
+    .index("by_blocked", ["blockedId"])
+    .index("by_both", ["blockerId", "blockedId"]),
+
+  notifications: defineTable({
+    userId: v.id("users"),
+    type: v.union(
+      v.literal("friend_request"),
+      v.literal("friend_accepted"),
+      v.literal("group_invite"),
+      v.literal("group_joined"),
+      v.literal("payment_request"),
+      v.literal("payment_received"),
+    ),
+    isRead: v.boolean(),
+
+    // Polymorphic fields based on type
+    fromUserId: v.optional(v.id("users")),
+    friendshipId: v.optional(v.id("friendships")),
+    groupId: v.optional(v.id("groups")),
+    paymentId: v.optional(v.id("payments")),
+    amount: v.optional(v.number()),
+    message: v.optional(v.string()),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_unread", ["userId", "isRead"])
+    .index("by_user_type", ["userId", "type"]),
 });
