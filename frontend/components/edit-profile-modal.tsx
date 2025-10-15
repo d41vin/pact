@@ -14,12 +14,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
-// import { useMutation, useQuery } from 'convex/react'
-// import { api } from '@/convex/_generated/api'
+import { useMutation, useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
 
 interface EditProfileModalProps {
   user: {
-    _id: string;
+    _id: Id<"users">;
     name: string;
     username: string;
     profileImageUrl?: string;
@@ -44,11 +45,17 @@ export default function EditProfileModal({
   const [checkingUsername, setCheckingUsername] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // TODO: Replace with Convex queries/mutations
-  // const checkUsername = useQuery(api.users.checkUsername, { username })
-  // const updateProfile = useMutation(api.users.updateProfile)
+  // Convex mutations
+  const updateProfile = useMutation(api.users.updateProfile);
+  const generateUploadUrl = useMutation(api.storage.generateUploadUrl);
 
-  const handleUsernameChange = async (newUsername: string) => {
+  // Check username availability
+  const usernameCheck = useQuery(
+    api.users.checkUsername,
+    username !== user.username ? { username } : "skip",
+  );
+
+  const handleUsernameChange = (newUsername: string) => {
     setUsername(newUsername);
 
     if (newUsername === user.username) {
@@ -61,24 +68,19 @@ export default function EditProfileModal({
       return;
     }
 
-    // TODO: Implement real-time username validation with Convex
-    setCheckingUsername(true);
-    // Simulate API call
-    setTimeout(() => {
-      // const isTaken = checkUsername
-      const isTaken = false; // Mock value
-      setUsernameError(isTaken ? "Username is already taken" : null);
-      setCheckingUsername(false);
-    }, 500);
+    // Check will happen via useQuery
+    if (usernameCheck) {
+      setUsernameError("Username is already taken");
+    } else if (usernameCheck === false) {
+      setUsernameError(null);
+    }
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
-        toast.error("File too large", {
-          description: "Profile image must be less than 5MB",
-        });
+        toast.error("Profile image must be less than 5MB");
         return;
       }
       setProfileImage(file);
@@ -100,24 +102,37 @@ export default function EditProfileModal({
     setIsLoading(true);
 
     try {
-      // TODO: Implement with Convex
-      // 1. Upload profile image if changed
-      // 2. Update user profile with new data
+      let profileImageId: any | undefined = undefined;
 
-      console.log("Saving profile:", { name, username, profileImage });
+      // Upload profile image if changed
+      if (profileImage) {
+        const postUrl = await generateUploadUrl();
+        const result = await fetch(postUrl, {
+          method: "POST",
+          headers: { "Content-Type": profileImage.type },
+          body: profileImage,
+        });
+        const { storageId } = await result.json();
+        profileImageId = storageId;
+      }
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      toast.success("Profile updated", {
-        description: "Your profile has been successfully updated",
+      // Update profile
+      await updateProfile({
+        userId: user._id,
+        name,
+        username: username.toLowerCase(),
+        profileImageId,
       });
 
+      toast.success("Profile updated successfully");
       onOpenChange(false);
-    } catch (error) {
-      toast.error("Update failed", {
-        description: "Could not update profile. Please try again.",
-      });
+
+      // Reload page to show updated data
+      window.location.reload();
+    } catch (error: any) {
+      toast.error(
+        error.message || "Could not update profile. Please try again.",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -204,6 +219,13 @@ export default function EditProfileModal({
             {usernameError && (
               <p className="text-sm text-red-500">{usernameError}</p>
             )}
+            {usernameCheck === undefined &&
+              username !== user.username &&
+              username.length >= 3 && (
+                <p className="text-sm text-slate-500">
+                  Checking availability...
+                </p>
+              )}
           </div>
         </div>
 
