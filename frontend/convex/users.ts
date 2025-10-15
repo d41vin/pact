@@ -90,3 +90,47 @@ export const createUser = mutation({
     });
   },
 });
+
+// Mutation to update user profile
+export const updateProfile = mutation({
+  args: {
+    userId: v.id("users"),
+    name: v.string(),
+    username: v.string(),
+    profileImageId: v.optional(v.id("_storage")),
+  },
+  handler: async (ctx, args) => {
+    // Check if username is taken by another user
+    if (args.username) {
+      const existingUser = await ctx.db
+        .query("users")
+        .withIndex("by_username", (q) => q.eq("username", args.username))
+        .unique();
+
+      if (existingUser && existingUser._id !== args.userId) {
+        throw new ConvexError("Username is already taken.");
+      }
+    }
+
+    let profileImageUrl: string | undefined = undefined;
+    if (args.profileImageId) {
+      const url = await ctx.storage.getUrl(args.profileImageId);
+      if (!url) {
+        throw new ConvexError("Could not get profile image URL.");
+      }
+      profileImageUrl = url;
+    }
+
+    // Get current user to preserve existing image if not updating
+    const currentUser = await ctx.db.get(args.userId);
+    
+    // Update the user
+    await ctx.db.patch(args.userId, {
+      name: args.name,
+      username: args.username.toLowerCase(),
+      ...(profileImageUrl && { profileImageUrl }),
+    });
+
+    return true;
+  },
+});
