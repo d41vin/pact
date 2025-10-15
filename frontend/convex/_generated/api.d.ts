@@ -8,13 +8,17 @@
  * @module
  */
 
+import type * as blocks from "../blocks.js";
+import type * as friendships from "../friendships.js";
+import type * as notifications from "../notifications.js";
+import type * as storage from "../storage.js";
+import type * as users from "../users.js";
+
 import type {
   ApiFromModules,
   FilterApi,
   FunctionReference,
 } from "convex/server";
-import type * as storage from "../storage.js";
-import type * as users from "../users.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -25,14 +29,21 @@ import type * as users from "../users.js";
  * ```
  */
 declare const fullApi: ApiFromModules<{
+  blocks: typeof blocks;
+  friendships: typeof friendships;
+  notifications: typeof notifications;
   storage: typeof storage;
   users: typeof users;
 }>;
+declare const fullApiWithMounts: typeof fullApi;
+
 export declare const api: FilterApi<
-  typeof fullApi,
+  typeof fullApiWithMounts,
   FunctionReference<any, "public">
 >;
 export declare const internal: FilterApi<
-  typeof fullApi,
+  typeof fullApiWithMounts,
   FunctionReference<any, "internal">
 >;
+
+export declare const components: {};
