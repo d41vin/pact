@@ -8,15 +8,30 @@ import {
   UserPlus,
   MessageCircle,
   Settings,
+  UserMinus,
+  UserX,
+  Clock,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { useAppKitAccount } from "@reown/appkit/react";
+import { Id } from "@/convex/_generated/dataModel";
 import EditProfileModal from "@/components/edit-profile-modal";
+import FriendsListModal from "@/components/friends-list-modal";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 
 interface ProfileCardProps {
   user: {
-    _id: string;
+    _id: Id<"users">;
     name: string;
     username: string;
     userAddress: string;
@@ -25,59 +40,265 @@ interface ProfileCardProps {
   isOwnProfile: boolean;
 }
 
-// Truncate wallet address: 0x1234...5678
 const truncateAddress = (address: string) => {
   if (address.length <= 10) return address;
-  return `${address.slice(0, 4)}...${address.slice(-6)}`;
+  return `${address.slice(0, 6)}...${address.slice(-4)}`;
 };
 
 export default function ProfileCard({ user, isOwnProfile }: ProfileCardProps) {
   const [copied, setCopied] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [friendsModalOpen, setFriendsModalOpen] = useState(false);
+  const { address } = useAppKitAccount();
 
-  // TODO: Replace with actual Convex queries
-  const friendsCount = 0; // useQuery(api.friends.count, { userId: user._id })
-  const groupsCount = 0; // useQuery(api.groups.countPublic, { userId: user._id })
+  // Get current user
+  const currentUser = useQuery(
+    api.users.getUser,
+    address ? { userAddress: address } : "skip",
+  );
+
+  // Get friendship status
+  const friendshipStatus = useQuery(
+    api.friendships.getFriendshipStatus,
+    currentUser && !isOwnProfile
+      ? { userId: currentUser._id, otherUserId: user._id }
+      : "skip",
+  );
+
+  // Get friend count
+  const friendCount = useQuery(api.friendships.getFriendCount, {
+    userId: user._id,
+  });
+
+  // Mutations
+  const sendFriendRequest = useMutation(api.friendships.sendFriendRequest);
+  const cancelFriendRequest = useMutation(api.friendships.cancelFriendRequest);
+  const acceptFriendRequest = useMutation(api.friendships.acceptFriendRequest);
+  const unfriend = useMutation(api.friendships.unfriend);
+  const blockUser = useMutation(api.blocks.blockUser);
+
+  // TODO: Replace with actual group count query
+  const groupsCount = 0;
+
+  // Determine if current user can view friends list
+  const canViewFriendsList =
+    isOwnProfile || friendshipStatus?.status === "accepted";
 
   const handleCopyAddress = async () => {
     try {
       await navigator.clipboard.writeText(user.userAddress);
       setCopied(true);
-      toast.success("Address copied!", {
-        description: "Wallet address copied to clipboard",
-      });
+      toast.success("Address copied to clipboard");
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
-      toast.error("Failed to copy", {
-        description: "Could not copy address to clipboard",
-      });
+      toast.error("Failed to copy address");
     }
   };
 
-  const handleAddFriend = () => {
-    console.log("Add friend:", user.username);
-    // TODO: Implement with Convex mutation
-    toast.success("Friend request sent", {
-      description: `Sent friend request to ${user.name}`,
-    });
+  const handleAddFriend = async () => {
+    if (!currentUser) return;
+    try {
+      await sendFriendRequest({
+        requesterId: currentUser._id,
+        addresseeId: user._id,
+      });
+      toast.success(`Friend request sent to ${user.name}`);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to send friend request");
+    }
+  };
+
+  const handleCancelRequest = async () => {
+    if (!friendshipStatus?.friendshipId || !currentUser) return;
+    try {
+      await cancelFriendRequest({
+        userId: currentUser._id,
+        friendshipId: friendshipStatus.friendshipId,
+      });
+      toast.success("Friend request cancelled");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to cancel request");
+    }
+  };
+
+  const handleAcceptRequest = async () => {
+    if (!friendshipStatus?.friendshipId || !currentUser) return;
+    try {
+      await acceptFriendRequest({
+        userId: currentUser._id,
+        friendshipId: friendshipStatus.friendshipId,
+      });
+      toast.success(`You are now friends with ${user.name}`);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to accept request");
+    }
+  };
+
+  const handleUnfriend = async () => {
+    if (!friendshipStatus?.friendshipId || !currentUser) return;
+    try {
+      await unfriend({
+        userId: currentUser._id,
+        friendshipId: friendshipStatus.friendshipId,
+      });
+      toast.success(`Removed ${user.name} from friends`);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to unfriend");
+    }
+  };
+
+  const handleBlock = async () => {
+    if (!currentUser) return;
+    try {
+      await blockUser({
+        blockerId: currentUser._id,
+        blockedId: user._id,
+      });
+      toast.success(`Blocked ${user.name}`);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to block user");
+    }
   };
 
   const handleMessage = () => {
     console.log("Message user:", user.username);
     // TODO: Navigate to messages or open chat modal
+    toast.info("Messaging feature coming soon");
+  };
+
+  const renderActionButtons = () => {
+    if (isOwnProfile) {
+      return (
+        <Button
+          onClick={() => setEditModalOpen(true)}
+          className="w-full"
+          variant="outline"
+        >
+          <Settings className="mr-2 h-4 w-4" />
+          Edit Profile
+        </Button>
+      );
+    }
+
+    if (!friendshipStatus) return null;
+
+    switch (friendshipStatus.status) {
+      case "none":
+        // No relationship - show Add Friend
+        return (
+          <div className="grid grid-cols-2 gap-3">
+            <Button onClick={handleAddFriend} className="w-full">
+              <UserPlus className="mr-2 h-4 w-4" />
+              Add Friend
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="w-full">
+                  More
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={handleBlock}>
+                  <UserX className="mr-2 h-4 w-4" />
+                  Block User
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        );
+
+      case "pending":
+        if (friendshipStatus.isRequester) {
+          // Current user sent the request - show Request Sent
+          return (
+            <Button
+              onClick={handleCancelRequest}
+              variant="outline"
+              className="w-full"
+            >
+              <Clock className="mr-2 h-4 w-4" />
+              Request Sent
+            </Button>
+          );
+        } else {
+          // Other user sent the request - show Accept/Decline
+          return (
+            <div className="grid grid-cols-2 gap-3">
+              <Button onClick={handleAcceptRequest} className="w-full">
+                Accept Request
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="w-full">
+                    More
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={handleBlock}>
+                    <UserX className="mr-2 h-4 w-4" />
+                    Block User
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          );
+        }
+
+      case "accepted":
+        // Friends - show Message and Friends dropdown
+        return (
+          <div className="grid grid-cols-2 gap-3">
+            <Button onClick={handleMessage} className="w-full">
+              <MessageCircle className="mr-2 h-4 w-4" />
+              Message
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="w-full">
+                  <Check className="mr-2 h-4 w-4" />
+                  Friends
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={handleUnfriend}>
+                  <UserMinus className="mr-2 h-4 w-4" />
+                  Unfriend
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={handleBlock}
+                  className="text-red-600"
+                >
+                  <UserX className="mr-2 h-4 w-4" />
+                  Block User
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        );
+
+      case "blocked":
+        return (
+          <div className="rounded-lg bg-slate-100 p-4 text-center">
+            <p className="text-sm text-slate-600">This user is not available</p>
+          </div>
+        );
+
+      default:
+        return null;
+    }
   };
 
   return (
     <>
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        {/* Profile Info Section */}
         <div className="p-8">
           {/* Avatar */}
           <div className="mb-4 flex justify-center">
             <div className="relative">
               <Avatar className="h-24 w-24 border-4 border-white shadow-lg ring-2 ring-slate-200">
                 <AvatarImage src={user.profileImageUrl} alt={user.name} />
-                <AvatarFallback className="bg-gradient-to-br from-teal-400 to-blue-500 text-2xl font-semibold text-white">
+                <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-500 text-2xl font-semibold text-white">
                   {user.name.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
@@ -111,13 +332,21 @@ export default function ProfileCard({ user, isOwnProfile }: ProfileCardProps) {
 
           {/* Stats */}
           <div className="mb-6 grid grid-cols-2 gap-4">
-            <div className="rounded-lg bg-slate-50 p-3 text-center">
+            <button
+              onClick={() => setFriendsModalOpen(true)}
+              disabled={!canViewFriendsList}
+              className={`rounded-lg bg-slate-50 p-3 text-center transition-all ${
+                canViewFriendsList
+                  ? "cursor-pointer hover:bg-slate-100"
+                  : "cursor-not-allowed opacity-60"
+              }`}
+            >
               <div className="text-2xl font-bold text-slate-900">
-                {friendsCount}
+                {friendCount ?? 0}
               </div>
               <div className="text-sm text-slate-500">Friends</div>
-            </div>
-            <div className="rounded-lg bg-slate-50 p-3 text-center">
+            </button>
+            <div className="cursor-not-allowed rounded-lg bg-slate-50 p-3 text-center opacity-60">
               <div className="text-2xl font-bold text-slate-900">
                 {groupsCount}
               </div>
@@ -126,31 +355,7 @@ export default function ProfileCard({ user, isOwnProfile }: ProfileCardProps) {
           </div>
 
           {/* Action Buttons */}
-          {isOwnProfile ? (
-            <Button
-              onClick={() => setEditModalOpen(true)}
-              className="w-full"
-              variant="outline"
-            >
-              <Settings className="mr-2 h-4 w-4" />
-              Edit Profile
-            </Button>
-          ) : (
-            <div className="grid grid-cols-2 gap-3">
-              <Button onClick={handleAddFriend} className="w-full">
-                <UserPlus className="mr-2 h-4 w-4" />
-                Add Friend
-              </Button>
-              <Button
-                onClick={handleMessage}
-                variant="outline"
-                className="w-full"
-              >
-                <MessageCircle className="mr-2 h-4 w-4" />
-                Message
-              </Button>
-            </div>
-          )}
+          {renderActionButtons()}
         </div>
       </div>
 
@@ -162,6 +367,14 @@ export default function ProfileCard({ user, isOwnProfile }: ProfileCardProps) {
           onOpenChange={setEditModalOpen}
         />
       )}
+
+      {/* Friends List Modal */}
+      <FriendsListModal
+        userId={user._id}
+        open={friendsModalOpen}
+        onOpenChange={setFriendsModalOpen}
+        canViewList={canViewFriendsList}
+      />
     </>
   );
 }
