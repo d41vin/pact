@@ -2,6 +2,20 @@ import { ConvexError, v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { Id } from "./_generated/dataModel";
 
+// Helper function to verify and get user by wallet address
+async function verifyUser(ctx: any, userAddress: string) {
+  const user = await ctx.db
+    .query("users")
+    .withIndex("by_userAddress", (q: any) => q.eq("userAddress", userAddress))
+    .unique();
+
+  if (!user) {
+    throw new ConvexError("User not found or not authenticated");
+  }
+
+  return user;
+}
+
 // Check if user A has blocked user B
 export const isBlocked = query({
   args: {
@@ -51,19 +65,17 @@ export const checkBlockStatus = query({
   },
 });
 
-// Block a user
+// Block a user - SECURE
 export const blockUser = mutation({
   args: {
-    blockerId: v.id("users"),
-    blockedId: v.id("users"),
+    userAddress: v.string(), // Caller's wallet address
+    blockedId: v.id("users"), // User to block
   },
   handler: async (ctx, args) => {
-    const user = await ctx.db.get(args.blockerId);
-    if (!user) {
-      throw new ConvexError("User not found");
-    }
+    // Verify the caller's identity
+    const user = await verifyUser(ctx, args.userAddress);
 
-    if (args.blockerId === args.blockedId) {
+    if (user._id === args.blockedId) {
       throw new ConvexError("Cannot block yourself");
     }
 
@@ -77,7 +89,7 @@ export const blockUser = mutation({
     const existingBlock = await ctx.db
       .query("blocks")
       .withIndex("by_both", (q) =>
-        q.eq("blockerId", args.blockerId).eq("blockedId", args.blockedId),
+        q.eq("blockerId", user._id).eq("blockedId", args.blockedId),
       )
       .first();
 
@@ -87,7 +99,7 @@ export const blockUser = mutation({
 
     // Create block
     await ctx.db.insert("blocks", {
-      blockerId: args.blockerId,
+      blockerId: user._id,
       blockedId: args.blockedId,
     });
 
@@ -95,7 +107,7 @@ export const blockUser = mutation({
     const friendship1 = await ctx.db
       .query("friendships")
       .withIndex("by_users", (q) =>
-        q.eq("requesterId", args.blockerId).eq("addresseeId", args.blockedId),
+        q.eq("requesterId", user._id).eq("addresseeId", args.blockedId),
       )
       .first();
 
@@ -106,7 +118,7 @@ export const blockUser = mutation({
     const friendship2 = await ctx.db
       .query("friendships")
       .withIndex("by_users", (q) =>
-        q.eq("requesterId", args.blockedId).eq("addresseeId", args.blockerId),
+        q.eq("requesterId", args.blockedId).eq("addresseeId", user._id),
       )
       .first();
 
@@ -117,7 +129,7 @@ export const blockUser = mutation({
     // Delete any notifications from blocked user to current user
     const notifications = await ctx.db
       .query("notifications")
-      .withIndex("by_user", (q) => q.eq("userId", args.blockerId))
+      .withIndex("by_user", (q) => q.eq("userId", user._id))
       .filter((q) => q.eq(q.field("fromUserId"), args.blockedId))
       .collect();
 
@@ -129,22 +141,20 @@ export const blockUser = mutation({
   },
 });
 
-// Unblock a user
+// Unblock a user - SECURE
 export const unblockUser = mutation({
   args: {
-    blockerId: v.id("users"),
-    blockedId: v.id("users"),
+    userAddress: v.string(), // Caller's wallet address
+    blockedId: v.id("users"), // User to unblock
   },
   handler: async (ctx, args) => {
-    const user = await ctx.db.get(args.blockerId);
-    if (!user) {
-      throw new ConvexError("User not found");
-    }
+    // Verify the caller's identity
+    const user = await verifyUser(ctx, args.userAddress);
 
     const block = await ctx.db
       .query("blocks")
       .withIndex("by_both", (q) =>
-        q.eq("blockerId", args.blockerId).eq("blockedId", args.blockedId),
+        q.eq("blockerId", user._id).eq("blockedId", args.blockedId),
       )
       .first();
 
