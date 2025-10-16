@@ -27,6 +27,20 @@ export const checkUsername = query({
   },
 });
 
+// Helper function to verify and get user by wallet address
+async function verifyUser(ctx: any, userAddress: string) {
+  const user = await ctx.db
+    .query("users")
+    .withIndex("by_userAddress", (q: any) => q.eq("userAddress", userAddress))
+    .unique();
+
+  if (!user) {
+    throw new ConvexError("User not found or not authenticated");
+  }
+
+  return user;
+}
+
 // Query to get a user by their username
 export const getUserByUsername = query({
   args: { username: v.string() },
@@ -91,15 +105,18 @@ export const createUser = mutation({
   },
 });
 
-// Mutation to update user profile
+// Mutation to update user profile - SECURE
 export const updateProfile = mutation({
   args: {
-    userId: v.id("users"),
+    userAddress: v.string(), // Caller's wallet address
     name: v.string(),
     username: v.string(),
     profileImageId: v.optional(v.id("_storage")),
   },
   handler: async (ctx, args) => {
+    // Verify the caller's identity
+    const user = await verifyUser(ctx, args.userAddress);
+
     // Check if username is taken by another user
     if (args.username) {
       const existingUser = await ctx.db
@@ -107,7 +124,7 @@ export const updateProfile = mutation({
         .withIndex("by_username", (q) => q.eq("username", args.username))
         .unique();
 
-      if (existingUser && existingUser._id !== args.userId) {
+      if (existingUser && existingUser._id !== user._id) {
         throw new ConvexError("Username is already taken.");
       }
     }
@@ -121,11 +138,8 @@ export const updateProfile = mutation({
       profileImageUrl = url;
     }
 
-    // Get current user to preserve existing image if not updating
-    const currentUser = await ctx.db.get(args.userId);
-    
-    // Update the user
-    await ctx.db.patch(args.userId, {
+    // Update the user (can only update their own profile)
+    await ctx.db.patch(user._id, {
       name: args.name,
       username: args.username.toLowerCase(),
       ...(profileImageUrl && { profileImageUrl }),
