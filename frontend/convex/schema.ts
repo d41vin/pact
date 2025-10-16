@@ -1,4 +1,5 @@
-// convex/schema.ts
+// Update your convex/schema.ts
+
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
@@ -20,7 +21,7 @@ export default defineSchema({
     status: v.union(
       v.literal("pending"),
       v.literal("accepted"),
-      v.literal("declined"),
+      // Removed: v.literal("declined")
     ),
     updatedAt: v.number(), // Track when status changed
   })
