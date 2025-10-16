@@ -2,6 +2,7 @@
 
 import { UserCheck } from "lucide-react";
 import { Id } from "@/convex/_generated/dataModel";
+import { useRouter } from "next/navigation";
 import NotificationBase from "./notification-base";
 
 interface FriendAcceptedNotificationProps {
@@ -14,7 +15,6 @@ interface FriendAcceptedNotificationProps {
   };
   timestamp: number;
   isRead: boolean;
-  onMarkRead: (id: Id<"notifications">) => void;
 }
 
 export function FriendAcceptedNotification({
@@ -22,8 +22,13 @@ export function FriendAcceptedNotification({
   fromUser,
   timestamp,
   isRead,
-  onMarkRead,
 }: FriendAcceptedNotificationProps) {
+  const router = useRouter();
+
+  const handleClick = () => {
+    router.push(`/${fromUser.username}`);
+  };
+
   return (
     <NotificationBase
       avatar={fromUser.profileImageUrl}
@@ -32,7 +37,7 @@ export function FriendAcceptedNotification({
       description={`${fromUser.name} accepted your friend request`}
       timestamp={timestamp}
       isRead={isRead}
-      onClick={() => !isRead && onMarkRead(notificationId)}
+      onClick={handleClick}
     />
   );
 }

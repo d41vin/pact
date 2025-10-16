@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Bell } from "lucide-react";
 import {
   Sheet,
@@ -10,19 +10,13 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useAppKitAccount } from "@reown/appkit/react";
-import { Id } from "@/convex/_generated/dataModel";
-// import {
-//   FriendRequestNotification,
-//   FriendAcceptedNotification,
-// } from "@/components/notifications";
-import { FriendRequestNotification } from "./notifications/friend-request";
-import { FriendAcceptedNotification } from "./notifications/friend-accepted";
+import { FriendRequestNotification } from "@/components/notifications/friend-request";
+import { FriendAcceptedNotification } from "@/components/notifications/friend-accepted";
 
 export default function Notifications() {
   const [isOpen, setIsOpen] = useState(false);
@@ -40,35 +34,24 @@ export default function Notifications() {
     currentUser ? { userId: currentUser._id } : "skip",
   );
 
-  const markAsRead = useMutation(api.notifications.markAsRead);
   const markAllAsRead = useMutation(api.notifications.markAllAsRead);
 
   const unreadCount = notifications?.filter((n) => !n.isRead).length ?? 0;
 
-  const handleMarkAsRead = async (id: Id<"notifications">) => {
-    if (!currentUser) return;
-    try {
-      await markAsRead({ userId: currentUser._id, notificationId: id });
-    } catch (error) {
-      console.error("Failed to mark notification as read:", error);
+  // Auto-mark all as read when notification panel opens
+  useEffect(() => {
+    if (isOpen && address && unreadCount > 0) {
+      markAllAsRead({ userAddress: address }).catch((error) => {
+        console.error("Failed to mark all as read:", error);
+      });
     }
-  };
-
-  const handleMarkAllAsRead = async () => {
-    if (!currentUser) return;
-    try {
-      await markAllAsRead({ userId: currentUser._id });
-    } catch (error) {
-      console.error("Failed to mark all as read:", error);
-    }
-  };
+  }, [isOpen, address, unreadCount, markAllAsRead]);
 
   const renderNotification = (notification: any, index: number) => {
     const commonProps = {
       notificationId: notification._id,
       timestamp: notification._creationTime,
       isRead: notification.isRead,
-      onMarkRead: handleMarkAsRead,
     };
 
     switch (notification.type) {
@@ -117,21 +100,9 @@ export default function Notifications() {
       <SheetContent side="right" className="w-full p-0 sm:max-w-md">
         <div className="flex h-full flex-col">
           <SheetHeader className="border-b border-slate-200 px-6 py-4">
-            <div className="flex items-center justify-between">
-              <SheetTitle className="text-xl font-semibold">
-                Notifications
-              </SheetTitle>
-              {unreadCount > 0 && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleMarkAllAsRead}
-                  className="text-sm text-blue-600 hover:bg-blue-50 hover:text-blue-700"
-                >
-                  Mark all read
-                </Button>
-              )}
-            </div>
+            <SheetTitle className="text-xl font-semibold">
+              Notifications
+            </SheetTitle>
             <SheetDescription className="sr-only">
               View and manage your notifications
             </SheetDescription>
