@@ -96,10 +96,10 @@ export default function ProfileCard({ user, isOwnProfile }: ProfileCardProps) {
   };
 
   const handleAddFriend = async () => {
-    if (!currentUser) return;
+    if (!address) return;
     try {
       await sendFriendRequest({
-        requesterId: currentUser._id,
+        userAddress: address,
         addresseeId: user._id,
       });
       toast.success(`Friend request sent to ${user.name}`);
@@ -109,10 +109,10 @@ export default function ProfileCard({ user, isOwnProfile }: ProfileCardProps) {
   };
 
   const handleCancelRequest = async () => {
-    if (!friendshipStatus?.friendshipId || !currentUser) return;
+    if (!friendshipStatus?.friendshipId || !address) return;
     try {
       await cancelFriendRequest({
-        userId: currentUser._id,
+        userAddress: address,
         friendshipId: friendshipStatus.friendshipId,
       });
       toast.success("Friend request cancelled");
@@ -122,10 +122,10 @@ export default function ProfileCard({ user, isOwnProfile }: ProfileCardProps) {
   };
 
   const handleAcceptRequest = async () => {
-    if (!friendshipStatus?.friendshipId || !currentUser) return;
+    if (!friendshipStatus?.friendshipId || !address) return;
     try {
       await acceptFriendRequest({
-        userId: currentUser._id,
+        userAddress: address,
         friendshipId: friendshipStatus.friendshipId,
       });
       toast.success(`You are now friends with ${user.name}`);
@@ -135,10 +135,10 @@ export default function ProfileCard({ user, isOwnProfile }: ProfileCardProps) {
   };
 
   const handleUnfriend = async () => {
-    if (!friendshipStatus?.friendshipId || !currentUser) return;
+    if (!friendshipStatus?.friendshipId || !address) return;
     try {
       await unfriend({
-        userId: currentUser._id,
+        userAddress: address,
         friendshipId: friendshipStatus.friendshipId,
       });
       toast.success(`Removed ${user.name} from friends`);
@@ -148,10 +148,10 @@ export default function ProfileCard({ user, isOwnProfile }: ProfileCardProps) {
   };
 
   const handleBlock = async () => {
-    if (!currentUser) return;
+    if (!address) return;
     try {
       await blockUser({
-        blockerId: currentUser._id,
+        userAddress: address,
         blockedId: user._id,
       });
       toast.success(`Blocked ${user.name}`);

@@ -16,11 +16,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { Id } from "@/convex/_generated/dataModel";
+import { useAppKitAccount } from "@reown/appkit/react";
 
 interface EditProfileModalProps {
   user: {
-    _id: Id<"users">;
+    _id: string;
     name: string;
     username: string;
     profileImageUrl?: string;
@@ -44,6 +44,7 @@ export default function EditProfileModal({
   const [usernameError, setUsernameError] = useState<string | null>(null);
   const [checkingUsername, setCheckingUsername] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { address } = useAppKitAccount();
 
   // Convex mutations
   const updateProfile = useMutation(api.users.updateProfile);
@@ -97,7 +98,7 @@ export default function EditProfileModal({
   };
 
   const handleSave = async () => {
-    if (usernameError) return;
+    if (usernameError || !address) return;
 
     setIsLoading(true);
 
@@ -118,7 +119,7 @@ export default function EditProfileModal({
 
       // Update profile
       await updateProfile({
-        userId: user._id,
+        userAddress: address,
         name,
         username: username.toLowerCase(),
         profileImageId,

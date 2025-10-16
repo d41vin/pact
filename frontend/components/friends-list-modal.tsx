@@ -40,11 +40,6 @@ export default function FriendsListModal({
   const router = useRouter();
   const { address } = useAppKitAccount();
 
-  const currentUser = useQuery(
-    api.users.getUser,
-    address ? { userAddress: address } : "skip",
-  );
-
   const friends = useQuery(
     api.friendships.listFriends,
     canViewList ? { userId } : "skip",
@@ -56,9 +51,9 @@ export default function FriendsListModal({
     friendshipId: Id<"friendships">,
     name: string,
   ) => {
-    if (!currentUser) return;
+    if (!address) return;
     try {
-      await unfriend({ userId: currentUser._id, friendshipId });
+      await unfriend({ userAddress: address, friendshipId });
       toast.success(`Removed ${name} from friends`);
     } catch (error: any) {
       toast.error(error.message || "Failed to unfriend");
@@ -119,57 +114,58 @@ export default function FriendsListModal({
             </div>
           ) : (
             <div className="space-y-2">
-              {friends.map((friend) => (
-                <div
-                  key={friend._id}
-                  className="flex items-center justify-between rounded-lg p-3 transition-colors hover:bg-slate-50"
-                >
-                  <button
-                    onClick={() =>
-                      friend.username && handleProfileClick(friend.username)
-                    }
-                    className="flex flex-1 items-center gap-3 text-left"
+              {friends.map((friend) => {
+                // Provide fallback values for potentially undefined fields
+                const friendName = friend.name || "Unknown User";
+                const friendUsername = friend.username || "unknown";
+
+                return (
+                  <div
+                    key={friend._id}
+                    className="flex items-center justify-between rounded-lg p-3 transition-colors hover:bg-slate-50"
                   >
-                    <Avatar className="h-10 w-10">
-                      <AvatarImage
-                        src={friend.profileImageUrl}
-                        alt={friend.name}
-                      />
-                      <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-500 text-white">
-                        {friend.name?.charAt(0).toUpperCase() ?? "?"}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate font-medium text-slate-900">
-                        {friend.name}
+                    <button
+                      onClick={() => handleProfileClick(friendUsername)}
+                      className="flex flex-1 items-center gap-3 text-left"
+                    >
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage
+                          src={friend.profileImageUrl}
+                          alt={friendName}
+                        />
+                        <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-500 text-white">
+                          {friendName.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate font-medium text-slate-900">
+                          {friendName}
+                        </div>
+                        <div className="truncate text-sm text-slate-500">
+                          @{friendUsername}
+                        </div>
                       </div>
-                      <div className="truncate text-sm text-slate-500">
-                        @{friend.username}
-                      </div>
-                    </div>
-                  </button>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm">
-                        •••
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem
-                        onClick={() =>
-                          handleUnfriend(
-                            friend.friendshipId,
-                            friend.name ?? "this user",
-                          )
-                        }
-                      >
-                        <UserMinus className="mr-2 h-4 w-4" />
-                        Unfriend
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              ))}
+                    </button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm">
+                          •••
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onClick={() =>
+                            handleUnfriend(friend.friendshipId, friendName)
+                          }
+                        >
+                          <UserMinus className="mr-2 h-4 w-4" />
+                          Unfriend
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                );
+              })}
             </div>
           )}
         </ScrollArea>
