@@ -1,20 +1,33 @@
 import { ConvexError, v } from "convex/values";
-import { mutation, query, QueryCtx } from "./_generated/server";
+import { mutation, query } from "./_generated/server";
 import { Id } from "./_generated/dataModel";
 
 // Constants
 const MAX_PENDING_REQUESTS = 50;
-const DECLINE_COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+// Helper function to verify and get user by wallet address
+async function verifyUser(ctx: any, userAddress: string) {
+  const user = await ctx.db
+    .query("users")
+    .withIndex("by_userAddress", (q: any) => q.eq("userAddress", userAddress))
+    .unique();
+
+  if (!user) {
+    throw new ConvexError("User not found or not authenticated");
+  }
+
+  return user;
+}
 
 // Helper function to check if user is blocked
 async function isBlocked(
-  ctx: QueryCtx,
+  ctx: any,
   userId: Id<"users">,
   otherUserId: Id<"users">,
 ) {
   const block = await ctx.db
     .query("blocks")
-    .withIndex("by_both", (q) =>
+    .withIndex("by_both", (q: any) =>
       q.eq("blockerId", otherUserId).eq("blockedId", userId),
     )
     .first();
@@ -74,20 +87,17 @@ export const getFriendshipStatus = query({
   },
 });
 
-// Send friend request
+// Send friend request - SECURE
 export const sendFriendRequest = mutation({
   args: {
-    requesterId: v.id("users"),
-    addresseeId: v.id("users"),
+    userAddress: v.string(), // Caller's wallet address
+    addresseeId: v.id("users"), // Target user
   },
   handler: async (ctx, args) => {
-    // Get requester
-    const requester = await ctx.db.get(args.requesterId);
-    if (!requester) {
-      throw new ConvexError("Requester not found");
-    }
+    // Verify the caller's identity
+    const requester = await verifyUser(ctx, args.userAddress);
 
-    if (args.requesterId === args.addresseeId) {
+    if (requester._id === args.addresseeId) {
       throw new ConvexError("Cannot send friend request to yourself");
     }
 
@@ -98,7 +108,7 @@ export const sendFriendRequest = mutation({
     }
 
     // Check if blocked
-    const blocked = await isBlocked(ctx, args.requesterId, args.addresseeId);
+    const blocked = await isBlocked(ctx, requester._id, args.addresseeId);
     if (blocked) {
       throw new ConvexError("Cannot send friend request to this user");
     }
@@ -107,9 +117,7 @@ export const sendFriendRequest = mutation({
     const existingFriendship = await ctx.db
       .query("friendships")
       .withIndex("by_users", (q) =>
-        q
-          .eq("requesterId", args.requesterId)
-          .eq("addresseeId", args.addresseeId),
+        q.eq("requesterId", requester._id).eq("addresseeId", args.addresseeId),
       )
       .first();
 
@@ -120,43 +128,13 @@ export const sendFriendRequest = mutation({
       if (existingFriendship.status === "pending") {
         throw new ConvexError("Friend request already sent");
       }
-      // If declined, check cooldown
-      if (existingFriendship.status === "declined") {
-        const timeSinceDecline = Date.now() - existingFriendship.updatedAt;
-        if (timeSinceDecline < DECLINE_COOLDOWN_MS) {
-          const hoursLeft = Math.ceil(
-            (DECLINE_COOLDOWN_MS - timeSinceDecline) / (60 * 60 * 1000),
-          );
-          throw new ConvexError(
-            `Please wait ${hoursLeft} hours before sending another request`,
-          );
-        }
-        // Cooldown passed, update to pending
-        await ctx.db.patch(existingFriendship._id, {
-          status: "pending",
-          updatedAt: Date.now(),
-        });
-
-        // Create notification
-        await ctx.db.insert("notifications", {
-          userId: args.addresseeId,
-          type: "friend_request",
-          isRead: false,
-          fromUserId: args.requesterId,
-          friendshipId: existingFriendship._id,
-        });
-
-        return existingFriendship._id;
-      }
     }
 
     // Check reverse direction
     const reverseFriendship = await ctx.db
       .query("friendships")
       .withIndex("by_users", (q) =>
-        q
-          .eq("requesterId", args.addresseeId)
-          .eq("addresseeId", args.requesterId),
+        q.eq("requesterId", args.addresseeId).eq("addresseeId", requester._id),
       )
       .first();
 
@@ -174,7 +152,7 @@ export const sendFriendRequest = mutation({
     // Check pending request limit
     const pendingCount = await ctx.db
       .query("friendships")
-      .withIndex("by_requester", (q) => q.eq("requesterId", args.requesterId))
+      .withIndex("by_requester", (q) => q.eq("requesterId", requester._id))
       .filter((q) => q.eq(q.field("status"), "pending"))
       .collect();
 
@@ -186,7 +164,7 @@ export const sendFriendRequest = mutation({
 
     // Create friendship request
     const friendshipId = await ctx.db.insert("friendships", {
-      requesterId: args.requesterId,
+      requesterId: requester._id,
       addresseeId: args.addresseeId,
       status: "pending",
       updatedAt: Date.now(),
@@ -197,7 +175,7 @@ export const sendFriendRequest = mutation({
       userId: args.addresseeId,
       type: "friend_request",
       isRead: false,
-      fromUserId: args.requesterId,
+      fromUserId: requester._id,
       friendshipId: friendshipId,
     });
 
@@ -205,24 +183,23 @@ export const sendFriendRequest = mutation({
   },
 });
 
-// Accept friend request
+// Accept friend request - SECURE
 export const acceptFriendRequest = mutation({
   args: {
-    userId: v.id("users"),
+    userAddress: v.string(),
     friendshipId: v.id("friendships"),
   },
   handler: async (ctx, args) => {
-    const user = await ctx.db.get(args.userId);
-    if (!user) {
-      throw new ConvexError("User not found");
-    }
+    // Verify the caller's identity
+    const user = await verifyUser(ctx, args.userAddress);
 
     const friendship = await ctx.db.get(args.friendshipId);
     if (!friendship) {
       throw new ConvexError("Friend request not found");
     }
 
-    if (friendship.addresseeId !== args.userId) {
+    // Verify user is the addressee
+    if (friendship.addresseeId !== user._id) {
       throw new ConvexError("Not authorized to accept this request");
     }
 
@@ -241,7 +218,7 @@ export const acceptFriendRequest = mutation({
       userId: friendship.requesterId,
       type: "friend_accepted",
       isRead: false,
-      fromUserId: args.userId,
+      fromUserId: user._id,
       friendshipId: args.friendshipId,
     });
 
@@ -249,7 +226,7 @@ export const acceptFriendRequest = mutation({
     const notification = await ctx.db
       .query("notifications")
       .withIndex("by_user_type", (q) =>
-        q.eq("userId", args.userId).eq("type", "friend_request"),
+        q.eq("userId", user._id).eq("type", "friend_request"),
       )
       .filter((q) => q.eq(q.field("friendshipId"), args.friendshipId))
       .first();
@@ -262,24 +239,23 @@ export const acceptFriendRequest = mutation({
   },
 });
 
-// Decline friend request
+// Decline friend request - SECURE
 export const declineFriendRequest = mutation({
   args: {
-    userId: v.id("users"),
+    userAddress: v.string(),
     friendshipId: v.id("friendships"),
   },
   handler: async (ctx, args) => {
-    const user = await ctx.db.get(args.userId);
-    if (!user) {
-      throw new ConvexError("User not found");
-    }
+    // Verify the caller's identity
+    const user = await verifyUser(ctx, args.userAddress);
 
     const friendship = await ctx.db.get(args.friendshipId);
     if (!friendship) {
       throw new ConvexError("Friend request not found");
     }
 
-    if (friendship.addresseeId !== args.userId) {
+    // Verify user is the addressee
+    if (friendship.addresseeId !== user._id) {
       throw new ConvexError("Not authorized to decline this request");
     }
 
@@ -287,47 +263,43 @@ export const declineFriendRequest = mutation({
       throw new ConvexError("Friend request is not pending");
     }
 
-    // Update to declined status
-    await ctx.db.patch(args.friendshipId, {
-      status: "declined",
-      updatedAt: Date.now(),
-    });
+    // Delete the friendship entirely (no cooldown)
+    await ctx.db.delete(args.friendshipId);
 
-    // Mark the friend request notification as read
+    // Delete the friend request notification
     const notification = await ctx.db
       .query("notifications")
       .withIndex("by_user_type", (q) =>
-        q.eq("userId", args.userId).eq("type", "friend_request"),
+        q.eq("userId", user._id).eq("type", "friend_request"),
       )
       .filter((q) => q.eq(q.field("friendshipId"), args.friendshipId))
       .first();
 
     if (notification) {
-      await ctx.db.patch(notification._id, { isRead: true });
+      await ctx.db.delete(notification._id);
     }
 
-    return args.friendshipId;
+    return true;
   },
 });
 
-// Cancel friend request (requester cancels their own request)
+// Cancel friend request - SECURE
 export const cancelFriendRequest = mutation({
   args: {
-    userId: v.id("users"),
+    userAddress: v.string(),
     friendshipId: v.id("friendships"),
   },
   handler: async (ctx, args) => {
-    const user = await ctx.db.get(args.userId);
-    if (!user) {
-      throw new ConvexError("User not found");
-    }
+    // Verify the caller's identity
+    const user = await verifyUser(ctx, args.userAddress);
 
     const friendship = await ctx.db.get(args.friendshipId);
     if (!friendship) {
       throw new ConvexError("Friend request not found");
     }
 
-    if (friendship.requesterId !== args.userId) {
+    // Verify user is the requester
+    if (friendship.requesterId !== user._id) {
       throw new ConvexError("Not authorized to cancel this request");
     }
 
@@ -355,17 +327,15 @@ export const cancelFriendRequest = mutation({
   },
 });
 
-// Unfriend (remove friendship)
+// Unfriend - SECURE
 export const unfriend = mutation({
   args: {
-    userId: v.id("users"),
+    userAddress: v.string(),
     friendshipId: v.id("friendships"),
   },
   handler: async (ctx, args) => {
-    const user = await ctx.db.get(args.userId);
-    if (!user) {
-      throw new ConvexError("User not found");
-    }
+    // Verify the caller's identity
+    const user = await verifyUser(ctx, args.userAddress);
 
     const friendship = await ctx.db.get(args.friendshipId);
     if (!friendship) {
@@ -374,8 +344,8 @@ export const unfriend = mutation({
 
     // Verify user is part of this friendship
     if (
-      friendship.requesterId !== args.userId &&
-      friendship.addresseeId !== args.userId
+      friendship.requesterId !== user._id &&
+      friendship.addresseeId !== user._id
     ) {
       throw new ConvexError("Not authorized to remove this friendship");
     }
@@ -424,7 +394,7 @@ export const listFriends = query({
       }),
     );
 
-    // Sort by most recent friendship (using _creationTime from friendship)
+    // Sort by most recent friendship
     const friendsWithDate = friends.map((friend, index) => {
       const friendship =
         index < asRequester.length
