@@ -5,13 +5,14 @@ import { useRouter } from "next/navigation";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useAppKitAccount } from "@reown/appkit/react";
+import { useUsernameValidation } from "@/hooks/useUsernameValidation";
 
-// Form Validation - The shadcn/ui way
+// Form Validation
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 
-// UI Components from shadcn/ui
+// UI Components
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -34,9 +35,9 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Spinner } from "@/components/ui/spinner";
 import { toast } from "sonner";
-import { UserRound } from "lucide-react";
+import { UserRound, CheckCircle2, Loader2 } from "lucide-react";
 
-// Define the validation schema with Zod. This is our single source of truth for form data.
+// Validation schema
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
   username: z
@@ -46,14 +47,13 @@ const formSchema = z.object({
       /^[a-z0-9_.]+$/,
       "Use only lowercase letters, numbers, underscores, or periods.",
     ),
-  // Using .any() for file type, then refining it for detailed checks.
   profileImage: z
     .any()
     .optional()
     .refine((file) => !file || file.size > 0, "Image is required if selected.")
     .refine(
-      (file) => !file || file.size <= 4 * 1024 * 1024,
-      "Image must be less than 4MB.",
+      (file) => !file || file.size <= 5 * 1024 * 1024,
+      "Image must be less than 5MB.",
     ),
 });
 
@@ -64,33 +64,32 @@ export default function OnboardingPage() {
   const { address, isConnected, status, embeddedWalletInfo } =
     useAppKitAccount();
 
-  // Gatekeeping Logic: Check for existing users and handle loading states
+  // Check for existing user
   const user = useQuery(api.users.getUser, {
-    // Skip the query until we have an address to check
     userAddress: address ?? "",
   });
 
-  // Redirect to home if user already exists
+  // Redirect if user already exists
   useEffect(() => {
     if (user) {
       router.replace("/home");
     }
   }, [user, router]);
 
-  // If not connected, redirect to login page (assuming it's '/')
+  // Redirect if not connected
   useEffect(() => {
     if (status === "disconnected") {
       router.replace("/");
     }
   }, [status, router]);
 
-  // Connect to Convex backend functions
+  // Mutations
   const createUser = useMutation(api.users.createUser);
   const generateUploadUrl = useMutation(api.storage.generateUploadUrl);
 
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
-  // Initialize React Hook Form using the shadcn/ui pattern
+  // Form
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -100,9 +99,20 @@ export default function OnboardingPage() {
     },
   });
 
+  const watchedUsername = form.watch("username");
+
+  // Username validation hook
+  const {
+    isValid: isUsernameValid,
+    error: usernameError,
+    isChecking,
+  } = useUsernameValidation({
+    username: watchedUsername || "",
+  });
+
   // Handle form submission
   const onSubmit = async (data: FormValues) => {
-    if (!address) return;
+    if (!address || !isUsernameValid) return;
 
     try {
       let profileImageId: any | undefined = undefined;
@@ -128,18 +138,15 @@ export default function OnboardingPage() {
         profileImageId: profileImageId,
       });
 
-      router.push("/home");
       toast.success("Profile created successfully!");
+      router.push("/home");
     } catch (error) {
       console.error("Onboarding failed", error);
-      toast.error("Failed to create profile.", {
-        description:
-          "The username might already be taken. Please try another one.",
-      });
+      toast.error("Failed to create profile. Please try again.");
     }
   };
 
-  // Loading state: Show a spinner while connecting or fetching user data
+  // Loading state
   if (status === "connecting" || (isConnected && user === undefined)) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center">
@@ -148,7 +155,7 @@ export default function OnboardingPage() {
     );
   }
 
-  // Don't render the form until we know the user is new
+  // Don't render if user exists or not connected
   if (!isConnected || user) {
     return null;
   }
@@ -198,6 +205,10 @@ export default function OnboardingPage() {
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file) {
+                          if (file.size > 5 * 1024 * 1024) {
+                            toast.error("Profile image must be less than 5MB");
+                            return;
+                          }
                           field.onChange(file);
                           setImagePreview(URL.createObjectURL(file));
                         }
@@ -229,10 +240,47 @@ export default function OnboardingPage() {
                   <FormItem>
                     <FormLabel>Username</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g. johndoe" {...field} />
+                      <div className="relative">
+                        <Input
+                          placeholder="e.g. johndoe"
+                          {...field}
+                          onChange={(e) =>
+                            field.onChange(e.target.value.toLowerCase())
+                          }
+                          className={
+                            usernameError
+                              ? "border-red-500 pr-10"
+                              : isUsernameValid && watchedUsername
+                                ? "border-green-500 pr-10"
+                                : "pr-10"
+                          }
+                        />
+                        <div className="absolute top-1/2 right-3 -translate-y-1/2">
+                          {isChecking && (
+                            <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
+                          )}
+                          {!isChecking &&
+                            isUsernameValid &&
+                            watchedUsername && (
+                              <CheckCircle2 className="h-4 w-4 text-green-500" />
+                            )}
+                        </div>
+                      </div>
                     </FormControl>
                     <FormDescription>
-                      This is your unique public name.
+                      {usernameError ? (
+                        <span className="text-red-500">{usernameError}</span>
+                      ) : isChecking ? (
+                        <span className="text-slate-500">
+                          Checking availability...
+                        </span>
+                      ) : isUsernameValid && watchedUsername ? (
+                        <span className="text-green-600">
+                          Username is available!
+                        </span>
+                      ) : (
+                        "This is your unique public name."
+                      )}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -243,7 +291,9 @@ export default function OnboardingPage() {
               <Button
                 type="submit"
                 className="w-full"
-                disabled={form.formState.isSubmitting}
+                disabled={
+                  form.formState.isSubmitting || !isUsernameValid || isChecking
+                }
               >
                 {form.formState.isSubmitting && <Spinner className="size-6" />}
                 Save and Continue
