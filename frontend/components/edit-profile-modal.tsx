@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Loader2, Upload, X } from "lucide-react";
+import { Loader2, Upload, X, CheckCircle2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -14,13 +14,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
-import { useMutation, useQuery } from "convex/react";
+import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useAppKitAccount } from "@reown/appkit/react";
+import { useRouter } from "next/navigation";
+import { useUsernameValidation } from "@/hooks/useUsernameValidation";
+import { Id } from "@/convex/_generated/dataModel";
 
 interface EditProfileModalProps {
   user: {
-    _id: string;
+    _id: Id<"users">;
     name: string;
     username: string;
     profileImageUrl?: string;
@@ -34,6 +37,7 @@ export default function EditProfileModal({
   open,
   onOpenChange,
 }: EditProfileModalProps) {
+  const router = useRouter();
   const [name, setName] = useState(user.name);
   const [username, setUsername] = useState(user.username);
   const [profileImage, setProfileImage] = useState<File | null>(null);
@@ -41,8 +45,6 @@ export default function EditProfileModal({
     user.profileImageUrl,
   );
   const [isLoading, setIsLoading] = useState(false);
-  const [usernameError, setUsernameError] = useState<string | null>(null);
-  const [checkingUsername, setCheckingUsername] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { address } = useAppKitAccount();
 
@@ -50,32 +52,15 @@ export default function EditProfileModal({
   const updateProfile = useMutation(api.users.updateProfile);
   const generateUploadUrl = useMutation(api.storage.generateUploadUrl);
 
-  // Check username availability
-  const usernameCheck = useQuery(
-    api.users.checkUsername,
-    username !== user.username ? { username } : "skip",
-  );
-
-  const handleUsernameChange = (newUsername: string) => {
-    setUsername(newUsername);
-
-    if (newUsername === user.username) {
-      setUsernameError(null);
-      return;
-    }
-
-    if (newUsername.length < 3) {
-      setUsernameError("Username must be at least 3 characters");
-      return;
-    }
-
-    // Check will happen via useQuery
-    if (usernameCheck) {
-      setUsernameError("Username is already taken");
-    } else if (usernameCheck === false) {
-      setUsernameError(null);
-    }
-  };
+  // Username validation
+  const {
+    isValid: isUsernameValid,
+    error: usernameError,
+    isChecking,
+  } = useUsernameValidation({
+    username,
+    originalUsername: user.username,
+  });
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -98,7 +83,7 @@ export default function EditProfileModal({
   };
 
   const handleSave = async () => {
-    if (usernameError || !address) return;
+    if (!isUsernameValid || !address) return;
 
     setIsLoading(true);
 
@@ -117,6 +102,8 @@ export default function EditProfileModal({
         profileImageId = storageId;
       }
 
+      const usernameChanged = username !== user.username;
+
       // Update profile
       await updateProfile({
         userAddress: address,
@@ -125,12 +112,18 @@ export default function EditProfileModal({
         profileImageId,
       });
 
-      toast.success("Profile updated successfully");
+      toast.success("Profile updated successfully!");
       onOpenChange(false);
 
-      // Reload page to show updated data
-      window.location.reload();
+      // Navigate to new username URL if changed
+      if (usernameChanged) {
+        router.push(`/${username.toLowerCase()}`);
+      } else {
+        // Just reload to show updated data
+        window.location.reload();
+      }
     } catch (error: any) {
+      console.error("Profile update error:", error);
       toast.error(
         error.message || "Could not update profile. Please try again.",
       );
@@ -207,26 +200,36 @@ export default function EditProfileModal({
               <Input
                 id="username"
                 value={username}
-                onChange={(e) => handleUsernameChange(e.target.value)}
+                onChange={(e) => setUsername(e.target.value.toLowerCase())}
                 placeholder="Enter username"
-                className={usernameError ? "border-red-500" : ""}
+                className={
+                  usernameError
+                    ? "border-red-500 pr-10"
+                    : isUsernameValid && username !== user.username
+                      ? "border-green-500 pr-10"
+                      : "pr-10"
+                }
               />
-              {checkingUsername && (
-                <div className="absolute top-1/2 right-3 -translate-y-1/2">
+              <div className="absolute top-1/2 right-3 -translate-y-1/2">
+                {isChecking && (
                   <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
-                </div>
-              )}
+                )}
+                {!isChecking &&
+                  isUsernameValid &&
+                  username !== user.username && (
+                    <CheckCircle2 className="h-4 w-4 text-green-500" />
+                  )}
+              </div>
             </div>
             {usernameError && (
               <p className="text-sm text-red-500">{usernameError}</p>
             )}
-            {usernameCheck === undefined &&
-              username !== user.username &&
-              username.length >= 3 && (
-                <p className="text-sm text-slate-500">
-                  Checking availability...
-                </p>
-              )}
+            {isChecking && (
+              <p className="text-sm text-slate-500">Checking availability...</p>
+            )}
+            {!isChecking && isUsernameValid && username !== user.username && (
+              <p className="text-sm text-green-600">Username is available!</p>
+            )}
           </div>
         </div>
 
@@ -242,7 +245,9 @@ export default function EditProfileModal({
           <Button
             onClick={handleSave}
             className="flex-1"
-            disabled={!hasChanges || !!usernameError || isLoading}
+            disabled={
+              !hasChanges || !isUsernameValid || isChecking || isLoading
+            }
           >
             {isLoading ? (
               <>
