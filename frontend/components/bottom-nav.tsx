@@ -1,13 +1,11 @@
-// todo:
-// 1. make it squircle
-// 2. make it mobile responsive, and test it
-// 3. if user is not connected then don't show it
-
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
 import { Home, Users, User } from "lucide-react";
 import { motion } from "framer-motion";
+import { useAppKitAccount } from "@reown/appkit/react";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
 const tabs = [
   { value: "home", icon: Home, label: "Home" },
@@ -18,17 +16,36 @@ const tabs = [
 export function BottomNav() {
   const pathname = usePathname();
   const router = useRouter();
+  const { address, isConnected } = useAppKitAccount();
+
+  // Fetch user data from Convex using the connected wallet address
+  const user = useQuery(api.users.getUser, {
+    userAddress: address || "",
+  });
 
   const getActiveTab = () => {
+    // Updated to handle dynamic profile routes
+    if (pathname.startsWith("/@")) {
+      return "profile";
+    }
     const tab = tabs.find((t) => pathname.startsWith(`/${t.value}`));
     return tab?.value ?? "home";
   };
 
   const handleTabChange = (value: string) => {
-    router.push(`/${value}`);
+    if (value === "profile" && user) {
+      router.push(`/${user.username}`);
+    } else {
+      router.push(`/${value}`);
+    }
   };
 
   const activeTab = getActiveTab();
+
+  // Don't render the bottom nav if the user is not connected
+  if (!isConnected) {
+    return null;
+  }
 
   return (
     <div className="pointer-events-none fixed right-0 bottom-6 left-0 z-50 px-4">
