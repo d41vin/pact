@@ -35,8 +35,8 @@ const modal = createAppKit({
   features: {
     analytics: true, // Optional - defaults to your Cloud configuration
     connectMethodsOrder: ["email", "social", "wallet"],
-    email: true, // default to true
-    socials: ["google", "apple"],
+    // email: true, // default to true. has been set up in dashboard
+    // socials: ["google", "apple"], // has been set up in dashboard
     emailShowWallets: false, // default to true
   },
   featuredWalletIds: [
