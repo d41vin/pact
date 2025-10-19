@@ -5,7 +5,7 @@ import { Settings } from "lucide-react";
 import UserSearch from "@/components/user-search";
 import Notifications from "@/components/notifications";
 
-export default function TopNav() {
+export function TopNav() {
   const router = useRouter();
 
   return (
