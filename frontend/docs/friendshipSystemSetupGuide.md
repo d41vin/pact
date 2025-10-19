@@ -129,22 +129,22 @@ After these changes, test:
 /////
 
 ### Profile Page Tests
-- [/] View own profile (shows Edit Profile button) = <does work, username validation is jank / using existing username gives out a wierd error in sonner, not user friendly / does not route to new profile url upon change.>
+- [/ BACKLOGGED] View own profile (shows Edit Profile button) = Does work. Username validation is jank but no need to worry for now as its planned in the backlog. Using existing username gives out a wierd error in sonner toast, not user friendly, needs improvent. Also does not route to new profile url upon username change.
 - [/] View stranger profile (shows Add Friend)
 - [/] Send friend request
-- [/] Cancel sent request = <jank, shows the request sent button which is the button that cancels the request>
-- [/] Receive friend request (shows Accept Request) = <notification works, but why does it not auto mark as read when notification component is opned, and why does clicking on the notification disapears the add friend and reject buttons? instead it should not be clickable except the username of the requester and it should route to the profile page.>
+- [/ DESIGN] Cancel sent request = <jank, shows the request sent button which is the button that cancels the request>
+- [/ FIXED] Receive friend request (shows Accept Request) = <notification works, but why does it not auto mark as read when notification component is opened like twitter does? and if we pivot this would mean the mark as read button is not needed anymore, right? Why does clicking on the notification disapears the add friend and reject request buttons? Instead the notification portion should not be clickable except the name/username of the requester or users involved should be shown as clickable and it should route to their profile page. Do you agree or do you have a better idea?>
 - [/] Accept friend request
 - [/] View friend profile (shows Message + Friends dropdown)
-- [ ] Unfriend someone
+- [/] Unfriend someone
 - [ ] Block user
 - [ ] Try to add friend after blocking (should fail)
 
 ### Notification Tests
 - [/] Receive friend request notification
 - [/] Accept request from notification
-- [/] Decline request from notification = <after declining the friend request, the buttons to add friend went missing and did not appear even after reloding the page, checked the block table and it was empty. my guess is because there is not "case: "declined"" in the profile-card.tsx, unsure if this is the cause, just a guess.>
-- [/] Receive friend accepted notification = <make it more cheerful>
+- [/ FIXED] Decline request from notification = <after declining the friend request, the buttons to add friend in the profile went missing and did not appear even after reloding the page, checked the block table and it was empty. my guess is because there is no "case: "declined"" in the profile-card.tsx, unsure if this is the cause, just a guess.>
+- [/ DESIGN] Receive friend accepted notification = <make it more cheerful>
 - [/] Mark notification as read
 - [/] Mark all as read
 - [/] Unread count badge appears/updates
@@ -152,7 +152,7 @@ After these changes, test:
 ### Friends List Tests
 - [/] Click friend count on own profile (should open)
 - [/] Click friend count on friend's profile (should open)
-- [/] Click friend count on stranger's profile (should show restricted message) = <no message just restricted cursor shown>
+- [/ DESIGN] Click friend count on stranger's profile (should show restricted message) = <no message just restricted cursor shown. add a "add as friend to view" message. add a "create an account" message for unconnected users.>
 - [ ] View friends list sorted by recent
 - [/] Click friend in list (navigates to profile)
 - [/] Unfriend from list
@@ -160,7 +160,7 @@ After these changes, test:
 
 ### Edge Cases
 - [ ] Send request to blocked user (should fail)
-- [ ] Decline request triggers 24hr cooldown
+- [PIVOT] Decline request triggers 24hr cooldown = <remove this feature, blocking does the job>
 - [ ] Can't send more than 50 pending requests
 - [ ] Blocking removes existing friendship
 - [ ] Unblocking allows new friend request
@@ -189,17 +189,7 @@ After these changes, test:
 - [ ] Home page/feed
 - [ ] XMTP messaging integration
 
-## 🎉 What's Working Now
 
-You now have a **complete friendship system** with:
-- ✅ Full friend request flow
-- ✅ Blocking capabilities
-- ✅ Real notifications with actions
-- ✅ Friends list modal
-- ✅ Dynamic profile buttons based on relationship
-- ✅ All edge cases handled (cooldowns, limits, etc.)
-
-The system follows X.com/Instagram patterns and is production-ready!
 
 ## 🚀 Next: What Do You Want to Build?
 
