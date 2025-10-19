@@ -25,10 +25,10 @@ export default function BlockedUsersManagement() {
 
   const unblockUser = useMutation(api.blocks.unblockUser);
 
-  const handleUnblock = async (blockedId: string, name: string) => {
+  const handleUnblock = async (blockedId: any, name: any) => {
     if (!address) return;
     try {
-      await unblockUser({ userAddress: address, blockedId: blockedId as any });
+      await unblockUser({ userAddress: address, blockedId });
       toast.success(`Unblocked ${name}`);
     } catch (error: any) {
       toast.error(error.message || "Failed to unblock user");
@@ -79,7 +79,9 @@ export default function BlockedUsersManagement() {
                   alt={blockedUser.name}
                 />
                 <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-500 text-white">
-                  {blockedUser.name.charAt(0).toUpperCase()}
+                  {blockedUser.name
+                    ? blockedUser.name.charAt(0).toUpperCase()
+                    : "U"}
                 </AvatarFallback>
               </Avatar>
               <div className="min-w-0 flex-1">
@@ -94,16 +96,22 @@ export default function BlockedUsersManagement() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => handleViewProfile(blockedUser.username)}
+                  disabled={!blockedUser.username}
+                  onClick={() => {
+                    if (blockedUser.username)
+                      handleViewProfile(blockedUser.username);
+                  }}
                 >
                   View Profile
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() =>
-                    handleUnblock(blockedUser._id, blockedUser.name)
-                  }
+                  disabled={!blockedUser._id || !blockedUser.name}
+                  onClick={() => {
+                    if (blockedUser._id && blockedUser.name)
+                      handleUnblock(blockedUser._id, blockedUser.name);
+                  }}
                 >
                   Unblock
                 </Button>
