@@ -13,6 +13,7 @@ import type * as friendships from "../friendships.js";
 import type * as notifications from "../notifications.js";
 import type * as storage from "../storage.js";
 import type * as users from "../users.js";
+import type * as groups from "../groups.js";
 
 import type {
   ApiFromModules,
@@ -34,6 +35,7 @@ declare const fullApi: ApiFromModules<{
   notifications: typeof notifications;
   storage: typeof storage;
   users: typeof users;
+  groups: typeof groups;
 }>;
 declare const fullApiWithMounts: typeof fullApi;
 
