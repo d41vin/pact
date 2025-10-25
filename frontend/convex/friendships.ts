@@ -395,17 +395,24 @@ export const listFriends = query({
     );
 
     // Sort by most recent friendship
-    const friendsWithDate = friends.map((friend, index) => {
+    // Combine with friendship data and filter out null users
+    const friendsWithDate = [];
+
+    for (let i = 0; i < friends.length; i++) {
+      const friend = friends[i];
+      if (!friend) continue; // Skip if user not found
+
       const friendship =
-        index < asRequester.length
-          ? asRequester[index]
-          : asAddressee[index - asRequester.length];
-      return {
+        i < asRequester.length
+          ? asRequester[i]
+          : asAddressee[i - asRequester.length];
+
+      friendsWithDate.push({
         ...friend,
         friendshipDate: friendship._creationTime,
         friendshipId: friendship._id,
-      };
-    });
+      });
+    }
 
     return friendsWithDate.sort((a, b) => b.friendshipDate - a.friendshipDate);
   },
