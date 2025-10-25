@@ -16,7 +16,11 @@ export default defineSchema({
   friendships: defineTable({
     requesterId: v.id("users"),
     addresseeId: v.id("users"),
-    status: v.union(v.literal("pending"), v.literal("accepted")),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("accepted"),
+      v.literal("declined"),
+    ),
     updatedAt: v.number(),
   })
     .index("by_requester", ["requesterId"])
@@ -41,7 +45,7 @@ export default defineSchema({
       v.literal("group_invite"),
       v.literal("group_joined"),
       v.literal("payment_request"),
-      v.literal("payment_received")
+      v.literal("payment_received"),
     ),
     isRead: v.boolean(),
     fromUserId: v.optional(v.id("users")),
@@ -68,7 +72,7 @@ export default defineSchema({
     joinMethod: v.union(
       v.literal("request"),
       v.literal("invite"),
-      v.literal("nft")
+      v.literal("nft"),
     ), // MVP: request only
   })
     .index("by_creator", ["creatorId"])
@@ -94,7 +98,7 @@ export default defineSchema({
     status: v.union(
       v.literal("pending"),
       v.literal("accepted"),
-      v.literal("cancelled")
+      v.literal("cancelled"),
     ),
     respondedAt: v.optional(v.number()),
   })
@@ -117,7 +121,7 @@ export default defineSchema({
       v.literal("settings_changed"),
       v.literal("admin_promoted"),
       v.literal("admin_demoted"),
-      v.literal("group_created")
+      v.literal("group_created"),
     ),
     metadata: v.any(), // Flexible field for activity-specific data
   })
@@ -133,7 +137,7 @@ export default defineSchema({
     category: v.union(
       v.literal("system"),
       v.literal("private"),
-      v.literal("community")
+      v.literal("community"),
     ),
     contractAddress: v.optional(v.string()),
     creatorId: v.optional(v.id("users")),
