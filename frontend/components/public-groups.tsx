@@ -1,67 +1,33 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Users } from "lucide-react";
+import { Users, Loader2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-// import { useQuery } from 'convex/react'
-// import { api } from '@/convex/_generated/api'
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
 interface PublicGroupsProps {
   username: string;
 }
 
-// TODO: Replace with actual Group type from Convex
-interface Group {
-  _id: string;
-  name: string;
-  groupImageUrl?: string;
-  groupColor?: string;
-  members: {
-    userId: string;
-    profileImageUrl?: string;
-    name: string;
-  }[];
-}
-
-// TODO: Remove mock data once Convex is integrated
-const MOCK_GROUPS: Group[] = [
-  {
-    _id: "1",
-    name: "Weekend Trip",
-    groupColor: "#3b82f6",
-    members: [
-      { userId: "1", name: "Sarah", profileImageUrl: undefined },
-      { userId: "2", name: "Mike", profileImageUrl: undefined },
-      { userId: "3", name: "Emily", profileImageUrl: undefined },
-    ],
-  },
-  {
-    _id: "2",
-    name: "Office Lunch",
-    groupColor: "#8b5cf6",
-    members: [
-      { userId: "4", name: "James", profileImageUrl: undefined },
-      { userId: "5", name: "Lisa", profileImageUrl: undefined },
-    ],
-  },
-  {
-    _id: "3",
-    name: "Gym Buddies",
-    groupColor: "#10b981",
-    members: [
-      { userId: "6", name: "Tom", profileImageUrl: undefined },
-      { userId: "7", name: "Anna", profileImageUrl: undefined },
-      { userId: "8", name: "Chris", profileImageUrl: undefined },
-    ],
-  },
-];
-
 export default function PublicGroups({ username }: PublicGroupsProps) {
   const router = useRouter();
 
-  // TODO: Replace with actual Convex query
-  // const groups = useQuery(api.groups.listPublicByUsername, { username })
-  const groups = MOCK_GROUPS; // Mock data
+  // Fetch public groups for this user
+  const groups = useQuery(api.groups.listPublicGroupsByUsername, { username });
+
+  if (groups === undefined) {
+    return (
+      <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+        <h2 className="mb-4 text-lg font-semibold text-slate-900">
+          Public Groups
+        </h2>
+        <div className="flex justify-center py-8">
+          <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+        </div>
+      </div>
+    );
+  }
 
   if (!groups || groups.length === 0) {
     return (
@@ -90,36 +56,32 @@ export default function PublicGroups({ username }: PublicGroupsProps) {
         Public Groups
       </h2>
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-        {groups.map((group) => (
+        {groups.map((group: any) => (
           <button
             key={group._id}
             onClick={() => router.push(`/groups/${group._id}`)}
             className="group relative overflow-hidden rounded-xl border border-slate-200 transition-all hover:border-slate-300 hover:shadow-md"
             style={{
-              backgroundColor: group.groupColor
-                ? `${group.groupColor}15`
-                : "#f8fafc",
+              backgroundColor: `${group.accentColor}15`,
             }}
           >
             <div className="space-y-3 p-4">
               {/* Group Avatar or Icon */}
               <div className="flex justify-center">
-                {group.groupImageUrl ? (
+                {group.imageType === "emoji" ? (
+                  <div
+                    className="flex h-14 w-14 items-center justify-center rounded-full text-2xl text-white shadow-sm"
+                    style={{ backgroundColor: group.accentColor }}
+                  >
+                    {group.imageOrEmoji}
+                  </div>
+                ) : (
                   <div className="h-14 w-14 overflow-hidden rounded-full border-2 border-white shadow-sm">
                     <img
-                      src={group.groupImageUrl}
+                      src={group.imageOrEmoji}
                       alt={group.name}
                       className="h-full w-full object-cover"
                     />
-                  </div>
-                ) : (
-                  <div
-                    className="flex h-14 w-14 items-center justify-center rounded-full text-white shadow-sm"
-                    style={{
-                      backgroundColor: group.groupColor || "#64748b",
-                    }}
-                  >
-                    <Users className="h-7 w-7" />
                   </div>
                 )}
               </div>
@@ -132,10 +94,10 @@ export default function PublicGroups({ username }: PublicGroupsProps) {
               </div>
 
               {/* Member Avatar Stack */}
-              {group.members.length > 0 && (
+              {group.members && group.members.length > 0 && (
                 <div className="flex justify-center">
                   <div className="flex -space-x-2">
-                    {group.members.slice(0, 3).map((member, index) => (
+                    {group.members.slice(0, 3).map((member: any) => (
                       <Avatar
                         key={member.userId}
                         className="h-8 w-8 border-2 border-white ring-1 ring-slate-200"
@@ -147,7 +109,7 @@ export default function PublicGroups({ username }: PublicGroupsProps) {
                         <AvatarFallback
                           className="text-xs font-semibold text-white"
                           style={{
-                            backgroundColor: group.groupColor || "#64748b",
+                            backgroundColor: group.accentColor,
                           }}
                         >
                           {member.name.charAt(0).toUpperCase()}
@@ -158,7 +120,7 @@ export default function PublicGroups({ username }: PublicGroupsProps) {
                       <div
                         className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white text-xs font-semibold text-white ring-1 ring-slate-200"
                         style={{
-                          backgroundColor: group.groupColor || "#64748b",
+                          backgroundColor: group.accentColor,
                         }}
                       >
                         +{group.members.length - 3}
@@ -173,7 +135,7 @@ export default function PublicGroups({ username }: PublicGroupsProps) {
             <div
               className="absolute inset-0 opacity-0 transition-opacity group-hover:opacity-10"
               style={{
-                backgroundColor: group.groupColor || "#64748b",
+                backgroundColor: group.accentColor,
               }}
             />
           </button>
