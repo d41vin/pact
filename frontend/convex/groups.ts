@@ -1,5 +1,5 @@
 import { ConvexError, v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, QueryCtx } from "./_generated/server";
 import { Id } from "./_generated/dataModel";
 
 // Helper function to verify and get user by wallet address
@@ -18,13 +18,15 @@ async function verifyUser(ctx: any, userAddress: string) {
 
 // Helper function to check if user is a member of a group
 async function isGroupMember(
-  ctx: any,
+  ctx: QueryCtx,
   groupId: Id<"groups">,
-  userId: Id<"users">
+  userId: Id<"users">,
 ) {
   const member = await ctx.db
     .query("groupMembers")
-    .withIndex("by_group_user", (q) => q.eq("groupId", groupId).eq("userId", userId))
+    .withIndex("by_group_user", (q) =>
+      q.eq("groupId", groupId).eq("userId", userId),
+    )
     .first();
 
   return member !== null;
@@ -32,13 +34,15 @@ async function isGroupMember(
 
 // Helper function to check if user is an admin of a group
 async function isGroupAdmin(
-  ctx: any,
+  ctx: QueryCtx,
   groupId: Id<"groups">,
-  userId: Id<"users">
+  userId: Id<"users">,
 ) {
   const member = await ctx.db
     .query("groupMembers")
-    .withIndex("by_group_user", (q) => q.eq("groupId", groupId).eq("userId", userId))
+    .withIndex("by_group_user", (q) =>
+      q.eq("groupId", groupId).eq("userId", userId),
+    )
     .first();
 
   return member?.role === "admin";
@@ -50,7 +54,7 @@ async function logActivity(
   groupId: Id<"groups">,
   actorId: Id<"users">,
   type: any,
-  metadata?: any
+  metadata?: any,
 ) {
   await ctx.db.insert("groupActivities", {
     groupId,
@@ -89,7 +93,7 @@ export const listUserGroups = query({
           memberCount.slice(0, 4).map(async (m) => {
             const user = await ctx.db.get(m.userId);
             return user;
-          })
+          }),
         );
 
         return {
@@ -98,7 +102,7 @@ export const listUserGroups = query({
           members: members.filter((m) => m !== null),
           userRole: membership.role,
         };
-      })
+      }),
     );
 
     return groups.filter((g) => g !== null);
@@ -119,10 +123,11 @@ export const getGroup = query({
     let isMember = false;
     let userRole = null;
     if (args.userId) {
+      const userId = args.userId;
       const membership = await ctx.db
         .query("groupMembers")
         .withIndex("by_group_user", (q) =>
-          q.eq("groupId", args.groupId).eq("userId", args.userId)
+          q.eq("groupId", args.groupId).eq("userId", userId),
         )
         .first();
 
@@ -154,7 +159,7 @@ export const getGroup = query({
           role: m.role,
           joinedAt: m.joinedAt,
         };
-      })
+      }),
     );
 
     return {
@@ -205,14 +210,14 @@ export const listPublicGroupsByUsername = query({
               name: u?.name || "Unknown",
               profileImageUrl: u?.profileImageUrl,
             };
-          })
+          }),
         );
 
         return {
           ...group,
           members: members.filter((m) => m !== null),
         };
-      })
+      }),
     );
 
     return groups.filter((g) => g !== null);
@@ -246,7 +251,7 @@ export const getGroupActivities = query({
           ...activity,
           actor,
         };
-      })
+      }),
     );
 
     return {
@@ -281,7 +286,7 @@ export const getGlobalActivityFeed = query({
           .withIndex("by_group", (q) => q.eq("groupId", groupId))
           .order("desc")
           .take(10); // Get 10 from each group
-      })
+      }),
     );
 
     // Flatten and sort by creation time
@@ -300,7 +305,7 @@ export const getGlobalActivityFeed = query({
           actor,
           group,
         };
-      })
+      }),
     );
 
     return populated;
@@ -497,7 +502,7 @@ export const promoteMember = mutation({
     const membership = await ctx.db
       .query("groupMembers")
       .withIndex("by_group_user", (q) =>
-        q.eq("groupId", args.groupId).eq("userId", args.memberId)
+        q.eq("groupId", args.groupId).eq("userId", args.memberId),
       )
       .first();
 
@@ -548,7 +553,7 @@ export const demoteMember = mutation({
     const membership = await ctx.db
       .query("groupMembers")
       .withIndex("by_group_user", (q) =>
-        q.eq("groupId", args.groupId).eq("userId", args.memberId)
+        q.eq("groupId", args.groupId).eq("userId", args.memberId),
       )
       .first();
 
@@ -599,7 +604,7 @@ export const removeMember = mutation({
     const membership = await ctx.db
       .query("groupMembers")
       .withIndex("by_group_user", (q) =>
-        q.eq("groupId", args.groupId).eq("userId", args.memberId)
+        q.eq("groupId", args.groupId).eq("userId", args.memberId),
       )
       .first();
 
@@ -650,7 +655,7 @@ export const leaveGroup = mutation({
     const membership = await ctx.db
       .query("groupMembers")
       .withIndex("by_group_user", (q) =>
-        q.eq("groupId", args.groupId).eq("userId", user._id)
+        q.eq("groupId", args.groupId).eq("userId", user._id),
       )
       .first();
 
@@ -693,7 +698,7 @@ export const sendInvitation = mutation({
     const existingInvite = await ctx.db
       .query("groupInvitations")
       .withIndex("by_group_invitee", (q) =>
-        q.eq("groupId", args.groupId).eq("inviteeId", args.inviteeId)
+        q.eq("groupId", args.groupId).eq("inviteeId", args.inviteeId),
       )
       .filter((q) => q.eq(q.field("status"), "pending"))
       .first();
@@ -863,7 +868,7 @@ export const listPendingInvitations = query({
     const invitations = await ctx.db
       .query("groupInvitations")
       .withIndex("by_invitee_status", (q) =>
-        q.eq("inviteeId", args.userId).eq("status", "pending")
+        q.eq("inviteeId", args.userId).eq("status", "pending"),
       )
       .collect();
 
@@ -876,7 +881,7 @@ export const listPendingInvitations = query({
           group,
           inviter,
         };
-      })
+      }),
     );
 
     return populated;
@@ -908,7 +913,7 @@ export const requestAccess = mutation({
     const existingRequest = await ctx.db
       .query("groupInvitations")
       .withIndex("by_group_invitee", (q) =>
-        q.eq("groupId", args.groupId).eq("inviteeId", user._id)
+        q.eq("groupId", args.groupId).eq("inviteeId", user._id),
       )
       .filter((q) => q.eq(q.field("status"), "pending"))
       .first();
@@ -929,7 +934,7 @@ export const requestAccess = mutation({
     const admins = await ctx.db
       .query("groupMembers")
       .withIndex("by_group_role", (q) =>
-        q.eq("groupId", args.groupId).eq("role", "admin")
+        q.eq("groupId", args.groupId).eq("role", "admin"),
       )
       .collect();
 
@@ -987,7 +992,12 @@ export const grantAccessRequest = mutation({
     });
 
     // Log activity
-    await logActivity(ctx, invitation.groupId, invitation.inviteeId, "member_joined");
+    await logActivity(
+      ctx,
+      invitation.groupId,
+      invitation.inviteeId,
+      "member_joined",
+    );
 
     // Notify requester
     await ctx.db.insert("notifications", {
