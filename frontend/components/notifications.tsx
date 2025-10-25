@@ -17,6 +17,8 @@ import { api } from "@/convex/_generated/api";
 import { useAppKitAccount } from "@reown/appkit/react";
 import { FriendRequestNotification } from "@/components/notifications/friend-request";
 import { FriendAcceptedNotification } from "@/components/notifications/friend-accepted";
+import { GroupInviteNotification } from "@/components/notifications/group-invite";
+import { GroupJoinedNotification } from "@/components/notifications/group-joined";
 
 export default function Notifications() {
   const [isOpen, setIsOpen] = useState(false);
@@ -72,7 +74,27 @@ export default function Notifications() {
             fromUser={notification.fromUser}
           />
         );
-      // TODO: Add other notification types (group_invite, payment_request, etc.)
+      case "group_invite":
+        return (
+          <GroupInviteNotification
+            key={notification._id}
+            {...commonProps}
+            invitationId={notification.groupId} // This should be invitationId, will need to update schema
+            fromUser={notification.fromUser}
+            group={notification.group}
+            message={notification.message}
+          />
+        );
+      case "group_joined":
+        return (
+          <GroupJoinedNotification
+            key={notification._id}
+            {...commonProps}
+            fromUser={notification.fromUser}
+            group={notification.group}
+            message={notification.message}
+          />
+        );
       default:
         return null;
     }
