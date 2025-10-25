@@ -10,6 +10,7 @@
 
 import type * as blocks from "../blocks.js";
 import type * as friendships from "../friendships.js";
+import type * as groups from "../groups.js";
 import type * as notifications from "../notifications.js";
 import type * as storage from "../storage.js";
 import type * as users from "../users.js";
@@ -31,6 +32,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   blocks: typeof blocks;
   friendships: typeof friendships;
+  groups: typeof groups;
   notifications: typeof notifications;
   storage: typeof storage;
   users: typeof users;
