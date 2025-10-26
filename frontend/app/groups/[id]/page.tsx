@@ -19,6 +19,9 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import MembersModal from "@/components/groups/members-modal";
+import GroupSettingsModal from "@/components/groups/group-settings-modal";
+import InviteMembersModal from "@/components/groups/invite-members-modal";
 
 export default function GroupDetailPage() {
   const params = useParams();
@@ -26,6 +29,11 @@ export default function GroupDetailPage() {
   const groupId = params.id as Id<"groups">;
   const { address } = useAppKitAccount();
   const [activeTab, setActiveTab] = useState("activity");
+
+  // Modal states
+  const [membersModalOpen, setMembersModalOpen] = useState(false);
+  const [settingsModalOpen, setSettingsModalOpen] = useState(false);
+  const [inviteModalOpen, setInviteModalOpen] = useState(false);
 
   // Get current user
   const currentUser = useQuery(
@@ -254,29 +262,48 @@ export default function GroupDetailPage() {
             </div>
 
             {/* Action Buttons */}
-            <div className="mb-6 grid grid-cols-2 gap-3">
-              <Button variant="outline" disabled>
+            <div className="mb-6 space-y-3">
+              {group.userRole === "admin" && (
+                <div className="grid grid-cols-2 gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={() => setInviteModalOpen(true)}
+                  >
+                    <UserPlus className="mr-2 h-4 w-4" />
+                    Invite
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setSettingsModalOpen(true)}
+                  >
+                    <Settings className="mr-2 h-4 w-4" />
+                    Settings
+                  </Button>
+                </div>
+              )}
+              <Button variant="outline" disabled className="w-full">
                 <Plus className="mr-2 h-4 w-4" />
                 Use Pact
               </Button>
-              {group.userRole === "admin" ? (
-                <Button variant="outline">
-                  <Settings className="mr-2 h-4 w-4" />
-                  Settings
-                </Button>
-              ) : (
+              {group.userRole !== "admin" &&
                 group.creatorId !== currentUser?._id && (
-                  <Button variant="outline" onClick={handleLeaveGroup}>
+                  <Button
+                    variant="outline"
+                    onClick={handleLeaveGroup}
+                    className="w-full"
+                  >
                     <LogOut className="mr-2 h-4 w-4" />
                     Leave Group
                   </Button>
-                )
-              )}
+                )}
             </div>
 
             {/* Members Avatar Stack (clickable) */}
             <div className="flex justify-center">
-              <button className="flex -space-x-2 transition-transform hover:scale-105">
+              <button
+                onClick={() => setMembersModalOpen(true)}
+                className="flex -space-x-2 transition-transform hover:scale-105"
+              >
                 {group.members.slice(0, 5).map((member: any) => (
                   <Avatar
                     key={member._id}
@@ -371,6 +398,49 @@ export default function GroupDetailPage() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Modals */}
+      <MembersModal
+        open={membersModalOpen}
+        onOpenChange={setMembersModalOpen}
+        groupId={groupId}
+        members={group.members.map((m: any) => ({
+          _id: m._id,
+          name: m.name || "Unknown",
+          username: m.username || "unknown",
+          profileImageUrl: m.profileImageUrl,
+          role: m.role,
+          joinedAt: m.joinedAt,
+        }))}
+        creatorId={group.creatorId}
+        currentUserRole={group.userRole}
+        accentColor={group.accentColor}
+      />
+
+      <GroupSettingsModal
+        open={settingsModalOpen}
+        onOpenChange={setSettingsModalOpen}
+        group={{
+          _id: group._id,
+          name: group.name,
+          description: group.description,
+          imageOrEmoji: group.imageOrEmoji,
+          imageType: group.imageType,
+          accentColor: group.accentColor,
+          privacy: group.privacy,
+          creatorId: group.creatorId,
+        }}
+        isCreator={group.creatorId === currentUser?._id}
+      />
+
+      <InviteMembersModal
+        open={inviteModalOpen}
+        onOpenChange={setInviteModalOpen}
+        groupId={groupId}
+        groupName={group.name}
+        accentColor={group.accentColor}
+        existingMemberIds={group.members.map((m: any) => m._id)}
+      />
     </div>
   );
 }
