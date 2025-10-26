@@ -79,7 +79,7 @@ export default function Notifications() {
           <GroupInviteNotification
             key={notification._id}
             {...commonProps}
-            invitationId={notification.groupId} // This should be invitationId, will need to update schema
+            invitationId={notification.invitationId}
             fromUser={notification.fromUser}
             group={notification.group}
             message={notification.message}
