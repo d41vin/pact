@@ -2,18 +2,20 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Users, Loader2 } from "lucide-react";
+import { Plus, Users, Loader2, Link as LinkIcon } from "lucide-react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useAppKitAccount } from "@reown/appkit/react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import CreateGroupModal from "@/components/groups/create-group-modal";
+import JoinByCodeModal from "@/components/groups/join-by-code-modal";
 
 export default function GroupsPage() {
   const router = useRouter();
   const { address } = useAppKitAccount();
   const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [joinCodeModalOpen, setJoinCodeModalOpen] = useState(false);
   const [showAllActivities, setShowAllActivities] = useState(false);
 
   // Get current user
@@ -66,6 +68,10 @@ export default function GroupsPage() {
         return `${actorName} was demoted in ${groupName}`;
       case "settings_changed":
         return `${actorName} updated ${groupName} settings`;
+      case "code_created":
+        return `${actorName} created an invite code in ${groupName}`;
+      case "code_used":
+        return `${actorName} joined ${groupName} with a code`;
       default:
         return `Activity in ${groupName}`;
     }
@@ -87,6 +93,10 @@ export default function GroupsPage() {
         return "📉";
       case "settings_changed":
         return "⚙️";
+      case "code_created":
+        return "🔗";
+      case "code_used":
+        return "🎟️";
       default:
         return "📌";
     }
@@ -113,10 +123,19 @@ export default function GroupsPage() {
                 Manage your groups and see recent activity
               </p>
             </div>
-            <Button onClick={() => setCreateModalOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" />
-              Create Group
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                onClick={() => setJoinCodeModalOpen(true)}
+                variant="outline"
+              >
+                <LinkIcon className="mr-2 h-4 w-4" />
+                Join by Code
+              </Button>
+              <Button onClick={() => setCreateModalOpen(true)}>
+                <Plus className="mr-2 h-4 w-4" />
+                Create Group
+              </Button>
+            </div>
           </div>
 
           {/* Activity Feed */}
@@ -176,12 +195,21 @@ export default function GroupsPage() {
                   No groups yet
                 </h3>
                 <p className="mb-4 text-sm text-slate-500">
-                  Create your first group to get started
+                  Create a group or join one with an invite code
                 </p>
-                <Button onClick={() => setCreateModalOpen(true)}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Create Your First Group
-                </Button>
+                <div className="flex justify-center gap-2">
+                  <Button onClick={() => setCreateModalOpen(true)}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Create Group
+                  </Button>
+                  <Button
+                    onClick={() => setJoinCodeModalOpen(true)}
+                    variant="outline"
+                  >
+                    <LinkIcon className="mr-2 h-4 w-4" />
+                    Join by Code
+                  </Button>
+                </div>
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -283,6 +311,11 @@ export default function GroupsPage() {
       <CreateGroupModal
         open={createModalOpen}
         onOpenChange={setCreateModalOpen}
+      />
+
+      <JoinByCodeModal
+        open={joinCodeModalOpen}
+        onOpenChange={setJoinCodeModalOpen}
       />
     </>
   );

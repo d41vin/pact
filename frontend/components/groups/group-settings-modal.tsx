@@ -12,6 +12,7 @@ import {
   Trash2,
   Lock,
   Globe,
+  Link as LinkIcon,
 } from "lucide-react";
 import {
   Dialog,
@@ -33,6 +34,8 @@ import { useAppKitAccount } from "@reown/appkit/react";
 import { Id } from "@/convex/_generated/dataModel";
 import { GROUP_COLORS } from "@/lib/group-constants";
 import EmojiPicker from "emoji-picker-react";
+import PermissionsSettings from "@/components/groups/permissions-settings";
+import InviteCodesModal from "@/components/groups/invite-codes-modal";
 
 interface GroupSettingsModalProps {
   open: boolean;
@@ -46,6 +49,10 @@ interface GroupSettingsModalProps {
     accentColor: string;
     privacy: "public" | "private";
     creatorId: Id<"users">;
+    permissions?: {
+      whoCanInvite: "all" | "admins" | "creator";
+      whoCanCreatePacts: "all" | "admins";
+    };
   };
   isCreator: boolean;
 }
@@ -80,6 +87,7 @@ export default function GroupSettingsModal({
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("general");
+  const [inviteCodesModalOpen, setInviteCodesModalOpen] = useState(false);
 
   // Mutations
   const updateGroup = useMutation(api.groups.updateGroup);
@@ -134,7 +142,6 @@ export default function GroupSettingsModal({
     try {
       let imageOrEmoji = imageType === "emoji" ? emoji : group.imageOrEmoji;
 
-      // Upload new image if selected
       if (imageType === "image" && imageFile) {
         const postUrl = await generateUploadUrl();
         const result = await fetch(postUrl, {
@@ -162,8 +169,6 @@ export default function GroupSettingsModal({
 
       toast.success("Group settings updated!");
       onOpenChange(false);
-
-      // Reload to show changes
       window.location.reload();
     } catch (error: any) {
       console.error("Update error:", error);
@@ -218,246 +223,293 @@ export default function GroupSettingsModal({
     selectedColor.value !== group.accentColor ||
     privacy !== group.privacy;
 
+  const defaultPermissions = {
+    whoCanInvite: "admins" as const,
+    whoCanCreatePacts: "admins" as const,
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Settings className="h-5 w-5" />
-            Group Settings
-          </DialogTitle>
-          <DialogDescription>
-            Manage your group settings and preferences
-          </DialogDescription>
-        </DialogHeader>
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Settings className="h-5 w-5" />
+              Group Settings
+            </DialogTitle>
+            <DialogDescription>
+              Manage your group settings and preferences
+            </DialogDescription>
+          </DialogHeader>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="general">General</TabsTrigger>
-            <TabsTrigger value="danger">Danger Zone</TabsTrigger>
-          </TabsList>
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="general">General</TabsTrigger>
+              <TabsTrigger value="permissions">Permissions</TabsTrigger>
+              <TabsTrigger value="codes">Invite Codes</TabsTrigger>
+              <TabsTrigger value="danger">Danger</TabsTrigger>
+            </TabsList>
 
-          {/* General Settings */}
-          <TabsContent value="general" className="space-y-6 py-4">
-            {/* Image/Emoji Selection */}
-            <div className="flex flex-col items-center gap-4">
-              <div className="relative">
-                {imageType === "image" && imagePreview ? (
-                  <div className="relative h-24 w-24 overflow-hidden rounded-full border-4 border-white shadow-lg ring-2 ring-slate-200">
-                    <img
-                      src={imagePreview}
-                      alt="Group"
-                      className="h-full w-full object-cover"
-                    />
-                    <button
-                      onClick={handleRemoveImage}
-                      className="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-white transition-colors hover:bg-red-600"
+            {/* General Settings */}
+            <TabsContent value="general" className="space-y-6 py-4">
+              {/* Image/Emoji Selection */}
+              <div className="flex flex-col items-center gap-4">
+                <div className="relative">
+                  {imageType === "image" && imagePreview ? (
+                    <div className="relative h-24 w-24 overflow-hidden rounded-full border-4 border-white shadow-lg ring-2 ring-slate-200">
+                      <img
+                        src={imagePreview}
+                        alt="Group"
+                        className="h-full w-full object-cover"
+                      />
+                      <button
+                        onClick={handleRemoveImage}
+                        className="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-white transition-colors hover:bg-red-600"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div
+                      className="flex h-24 w-24 items-center justify-center rounded-full border-4 border-white text-5xl shadow-lg ring-2 ring-slate-200"
+                      style={{ backgroundColor: selectedColor.light }}
                     >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
-                ) : (
-                  <div
-                    className="flex h-24 w-24 items-center justify-center rounded-full border-4 border-white text-5xl shadow-lg ring-2 ring-slate-200"
-                    style={{ backgroundColor: selectedColor.light }}
+                      {emoji}
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
                   >
-                    {emoji}
+                    <Smile className="mr-2 h-4 w-4" />
+                    Choose Emoji
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <ImageIcon className="mr-2 h-4 w-4" />
+                    Upload Image
+                  </Button>
+                </div>
+
+                {showEmojiPicker && (
+                  <div className="rounded-lg border border-slate-200 shadow-lg">
+                    <EmojiPicker onEmojiClick={handleEmojiSelect} />
                   </div>
                 )}
-              </div>
 
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                >
-                  <Smile className="mr-2 h-4 w-4" />
-                  Choose Emoji
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <ImageIcon className="mr-2 h-4 w-4" />
-                  Upload Image
-                </Button>
-              </div>
-
-              {showEmojiPicker && (
-                <div className="rounded-lg border border-slate-200 shadow-lg">
-                  <EmojiPicker onEmojiClick={handleEmojiSelect} />
-                </div>
-              )}
-
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-                className="hidden"
-              />
-            </div>
-
-            {/* Group Name */}
-            <div className="space-y-2">
-              <Label htmlFor="name">
-                Group Name <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value.slice(0, 50))}
-                placeholder="e.g. Weekend Trip"
-                maxLength={50}
-              />
-              <p className="text-xs text-slate-500">
-                {name.length}/50 characters
-              </p>
-            </div>
-
-            {/* Description */}
-            <div className="space-y-2">
-              <Label htmlFor="description">Description (Optional)</Label>
-              <Textarea
-                id="description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value.slice(0, 300))}
-                placeholder="What's this group about?"
-                maxLength={300}
-                rows={3}
-              />
-              <p className="text-xs text-slate-500">
-                {description.length}/300 characters
-              </p>
-            </div>
-
-            {/* Color Picker */}
-            <div className="space-y-2">
-              <Label>Accent Color</Label>
-              <div className="grid grid-cols-6 gap-2">
-                {GROUP_COLORS.map((color) => (
-                  <button
-                    key={color.value}
-                    type="button"
-                    onClick={() => setSelectedColor(color)}
-                    className={`h-10 w-full rounded-lg transition-all ${
-                      selectedColor.value === color.value
-                        ? "ring-2 ring-slate-900 ring-offset-2"
-                        : "hover:scale-105"
-                    }`}
-                    style={{ backgroundColor: color.value }}
-                    title={color.name}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {/* Privacy Toggle */}
-            <div className="space-y-2">
-              <Label>Privacy</Label>
-              <div className="flex items-center justify-between rounded-lg border border-slate-200 p-4">
-                <div className="flex items-center gap-3">
-                  {privacy === "private" ? (
-                    <Lock className="h-5 w-5 text-slate-600" />
-                  ) : (
-                    <Globe className="h-5 w-5 text-slate-600" />
-                  )}
-                  <div>
-                    <div className="font-medium text-slate-900">
-                      {privacy === "private" ? "Private Group" : "Public Group"}
-                    </div>
-                    <div className="text-sm text-slate-500">
-                      {privacy === "private"
-                        ? "Only members can see this group"
-                        : "Anyone can see this group on profiles"}
-                    </div>
-                  </div>
-                </div>
-                <Switch
-                  checked={privacy === "private"}
-                  onCheckedChange={(checked) =>
-                    setPrivacy(checked ? "private" : "public")
-                  }
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="hidden"
                 />
               </div>
-            </div>
-          </TabsContent>
 
-          {/* Danger Zone */}
-          <TabsContent value="danger" className="space-y-4 py-4">
-            {isCreator ? (
-              <div className="rounded-lg border-2 border-red-200 bg-red-50 p-6">
-                <div className="mb-4">
-                  <h3 className="mb-2 text-lg font-semibold text-red-900">
-                    Delete Group
+              {/* Group Name */}
+              <div className="space-y-2">
+                <Label htmlFor="name">
+                  Group Name <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value.slice(0, 50))}
+                  placeholder="e.g. Weekend Trip"
+                  maxLength={50}
+                />
+                <p className="text-xs text-slate-500">
+                  {name.length}/50 characters
+                </p>
+              </div>
+
+              {/* Description */}
+              <div className="space-y-2">
+                <Label htmlFor="description">Description (Optional)</Label>
+                <Textarea
+                  id="description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value.slice(0, 300))}
+                  placeholder="What's this group about?"
+                  maxLength={300}
+                  rows={3}
+                />
+                <p className="text-xs text-slate-500">
+                  {description.length}/300 characters
+                </p>
+              </div>
+
+              {/* Color Picker */}
+              <div className="space-y-2">
+                <Label>Accent Color</Label>
+                <div className="grid grid-cols-6 gap-2">
+                  {GROUP_COLORS.map((color) => (
+                    <button
+                      key={color.value}
+                      type="button"
+                      onClick={() => setSelectedColor(color)}
+                      className={`h-10 w-full rounded-lg transition-all ${
+                        selectedColor.value === color.value
+                          ? "ring-2 ring-slate-900 ring-offset-2"
+                          : "hover:scale-105"
+                      }`}
+                      style={{ backgroundColor: color.value }}
+                      title={color.name}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Privacy Toggle */}
+              <div className="space-y-2">
+                <Label>Privacy</Label>
+                <div className="flex items-center justify-between rounded-lg border border-slate-200 p-4">
+                  <div className="flex items-center gap-3">
+                    {privacy === "private" ? (
+                      <Lock className="h-5 w-5 text-slate-600" />
+                    ) : (
+                      <Globe className="h-5 w-5 text-slate-600" />
+                    )}
+                    <div>
+                      <div className="font-medium text-slate-900">
+                        {privacy === "private"
+                          ? "Private Group"
+                          : "Public Group"}
+                      </div>
+                      <div className="text-sm text-slate-500">
+                        {privacy === "private"
+                          ? "Only members can see this group"
+                          : "Anyone can see this group on profiles"}
+                      </div>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={privacy === "private"}
+                    onCheckedChange={(checked) =>
+                      setPrivacy(checked ? "private" : "public")
+                    }
+                  />
+                </div>
+              </div>
+            </TabsContent>
+
+            {/* Permissions Tab */}
+            <TabsContent value="permissions" className="py-4">
+              <PermissionsSettings
+                groupId={group._id}
+                currentPermissions={group.permissions || defaultPermissions}
+              />
+            </TabsContent>
+
+            {/* Invite Codes Tab */}
+            <TabsContent value="codes" className="py-4">
+              <div className="space-y-4">
+                <div>
+                  <h3 className="mb-2 text-lg font-semibold text-slate-900">
+                    Invite Codes
                   </h3>
-                  <p className="text-sm text-red-700">
-                    Once you delete a group, there is no going back. This will
-                    permanently delete the group, all members, invitations, and
-                    activity history.
+                  <p className="text-sm text-slate-600">
+                    Create and manage invite codes for your group
                   </p>
                 </div>
                 <Button
-                  onClick={handleDelete}
-                  variant="destructive"
-                  disabled={isLoading}
+                  onClick={() => setInviteCodesModalOpen(true)}
                   className="w-full"
                 >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Deleting...
-                    </>
-                  ) : (
-                    <>
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Delete Group Permanently
-                    </>
-                  )}
+                  <LinkIcon className="mr-2 h-4 w-4" />
+                  Manage Invite Codes
                 </Button>
               </div>
-            ) : (
-              <div className="rounded-lg border border-slate-200 bg-slate-50 p-6 text-center">
-                <p className="text-sm text-slate-600">
-                  Only the group creator can delete this group.
-                </p>
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
+            </TabsContent>
 
-        {/* Action Buttons */}
-        {activeTab === "general" && (
-          <div className="flex gap-3 border-t border-slate-200 pt-4">
-            <Button
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              className="flex-1"
-              disabled={isLoading}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleSave}
-              className="flex-1"
-              disabled={!hasChanges || isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Saving...
-                </>
+            {/* Danger Zone */}
+            <TabsContent value="danger" className="space-y-4 py-4">
+              {isCreator ? (
+                <div className="rounded-lg border-2 border-red-200 bg-red-50 p-6">
+                  <div className="mb-4">
+                    <h3 className="mb-2 text-lg font-semibold text-red-900">
+                      Delete Group
+                    </h3>
+                    <p className="text-sm text-red-700">
+                      Once you delete a group, there is no going back. This will
+                      permanently delete the group, all members, invitations,
+                      and activity history.
+                    </p>
+                  </div>
+                  <Button
+                    onClick={handleDelete}
+                    variant="destructive"
+                    disabled={isLoading}
+                    className="w-full"
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Deleting...
+                      </>
+                    ) : (
+                      <>
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Delete Group Permanently
+                      </>
+                    )}
+                  </Button>
+                </div>
               ) : (
-                "Save Changes"
+                <div className="rounded-lg border border-slate-200 bg-slate-50 p-6 text-center">
+                  <p className="text-sm text-slate-600">
+                    Only the group creator can delete this group.
+                  </p>
+                </div>
               )}
-            </Button>
-          </div>
-        )}
-      </DialogContent>
-    </Dialog>
+            </TabsContent>
+          </Tabs>
+
+          {/* Action Buttons (General Tab Only) */}
+          {activeTab === "general" && (
+            <div className="flex gap-3 border-t border-slate-200 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+                className="flex-1"
+                disabled={isLoading}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSave}
+                className="flex-1"
+                disabled={!hasChanges || isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  "Save Changes"
+                )}
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <InviteCodesModal
+        open={inviteCodesModalOpen}
+        onOpenChange={setInviteCodesModalOpen}
+        groupId={group._id}
+        groupName={group.name}
+      />
+    </>
   );
 }
