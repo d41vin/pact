@@ -48,9 +48,12 @@ export default defineSchema({
       v.literal("payment_received"),
     ),
     isRead: v.boolean(),
+
+    // Polymorphic fields based on type
     fromUserId: v.optional(v.id("users")),
     friendshipId: v.optional(v.id("friendships")),
     groupId: v.optional(v.id("groups")),
+    invitationId: v.optional(v.id("groupInvitations")), // FIXED: Separate field for invitation
     paymentId: v.optional(v.id("payments")),
     amount: v.optional(v.number()),
     message: v.optional(v.string()),

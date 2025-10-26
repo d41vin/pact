@@ -28,7 +28,7 @@ export const list = query({
       .order("desc")
       .collect();
 
-    // Populate fromUser data for each notification
+    // Populate fromUser and group data for each notification
     const populatedNotifications = await Promise.all(
       notifications.map(async (notification) => {
         let fromUser = null;
@@ -36,9 +36,15 @@ export const list = query({
           fromUser = await ctx.db.get(notification.fromUserId);
         }
 
+        let group = null;
+        if (notification.groupId) {
+          group = await ctx.db.get(notification.groupId);
+        }
+
         return {
           ...notification,
           fromUser,
+          group,
         };
       }),
     );
@@ -67,19 +73,17 @@ export const getUnreadCount = query({
 // Mark notification as read - SECURE
 export const markAsRead = mutation({
   args: {
-    userAddress: v.string(), // Caller's wallet address
+    userAddress: v.string(),
     notificationId: v.id("notifications"),
   },
   handler: async (ctx, args) => {
-    // Verify the caller's identity
     const user = await verifyUser(ctx, args.userAddress);
-
     const notification = await ctx.db.get(args.notificationId);
+
     if (!notification) {
       throw new ConvexError("Notification not found");
     }
 
-    // Verify ownership
     if (notification.userId !== user._id) {
       throw new ConvexError("Not authorized to mark this notification as read");
     }
@@ -95,10 +99,9 @@ export const markAsRead = mutation({
 // Mark all notifications as read for a user - SECURE
 export const markAllAsRead = mutation({
   args: {
-    userAddress: v.string(), // Caller's wallet address
+    userAddress: v.string(),
   },
   handler: async (ctx, args) => {
-    // Verify the caller's identity
     const user = await verifyUser(ctx, args.userAddress);
 
     const unreadNotifications = await ctx.db
@@ -121,19 +124,17 @@ export const markAllAsRead = mutation({
 // Delete a notification - SECURE
 export const deleteNotification = mutation({
   args: {
-    userAddress: v.string(), // Caller's wallet address
+    userAddress: v.string(),
     notificationId: v.id("notifications"),
   },
   handler: async (ctx, args) => {
-    // Verify the caller's identity
     const user = await verifyUser(ctx, args.userAddress);
-
     const notification = await ctx.db.get(args.notificationId);
+
     if (!notification) {
       throw new ConvexError("Notification not found");
     }
 
-    // Verify ownership
     if (notification.userId !== user._id) {
       throw new ConvexError("Not authorized to delete this notification");
     }

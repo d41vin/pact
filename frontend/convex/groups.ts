@@ -348,7 +348,7 @@ export const createGroup = mutation({
       accentColor: args.accentColor,
       creatorId: user._id,
       privacy: args.privacy || "public",
-      joinMethod: "request", // MVP default
+      joinMethod: "request",
     });
 
     // Add creator as admin member
@@ -365,7 +365,7 @@ export const createGroup = mutation({
     // Send invitations if provided
     if (args.inviteFriendIds && args.inviteFriendIds.length > 0) {
       for (const friendId of args.inviteFriendIds) {
-        await ctx.db.insert("groupInvitations", {
+        const invitationId = await ctx.db.insert("groupInvitations", {
           groupId,
           inviterId: user._id,
           inviteeId: friendId,
@@ -373,12 +373,14 @@ export const createGroup = mutation({
         });
 
         // Create notification
+        // FIXED: Use invitationId field
         await ctx.db.insert("notifications", {
           userId: friendId,
           type: "group_invite",
           isRead: false,
           fromUserId: user._id,
           groupId: groupId,
+          invitationId: invitationId, // FIXED
         });
       }
     }
@@ -684,17 +686,14 @@ export const sendInvitation = mutation({
   handler: async (ctx, args) => {
     const user = await verifyUser(ctx, args.userAddress);
 
-    // Check if user is a member
     if (!(await isGroupMember(ctx, args.groupId, user._id))) {
       throw new ConvexError("Only group members can send invitations");
     }
 
-    // Check if invitee is already a member
     if (await isGroupMember(ctx, args.groupId, args.inviteeId)) {
       throw new ConvexError("User is already a member of this group");
     }
 
-    // Check for existing pending invitation
     const existingInvite = await ctx.db
       .query("groupInvitations")
       .withIndex("by_group_invitee", (q) =>
@@ -707,7 +706,6 @@ export const sendInvitation = mutation({
       throw new ConvexError("Invitation already sent to this user");
     }
 
-    // Create invitation
     const invitationId = await ctx.db.insert("groupInvitations", {
       groupId: args.groupId,
       inviterId: user._id,
@@ -715,13 +713,14 @@ export const sendInvitation = mutation({
       status: "pending",
     });
 
-    // Create notification
+    // FIXED: Use invitationId field instead of groupId
     await ctx.db.insert("notifications", {
       userId: args.inviteeId,
       type: "group_invite",
       isRead: false,
       fromUserId: user._id,
       groupId: args.groupId,
+      invitationId: invitationId, // FIXED
     });
 
     return invitationId;
@@ -888,9 +887,6 @@ export const listPendingInvitations = query({
   },
 });
 
-// ==================== ACCESS REQUESTS (MVP) ====================
-
-// Request access to a group
 export const requestAccess = mutation({
   args: {
     userAddress: v.string(),
@@ -904,12 +900,10 @@ export const requestAccess = mutation({
       throw new ConvexError("Group not found");
     }
 
-    // Check if already a member
     if (await isGroupMember(ctx, args.groupId, user._id)) {
       throw new ConvexError("You are already a member of this group");
     }
 
-    // Check for existing pending invitation (acts as request)
     const existingRequest = await ctx.db
       .query("groupInvitations")
       .withIndex("by_group_invitee", (q) =>
@@ -922,15 +916,13 @@ export const requestAccess = mutation({
       throw new ConvexError("Access request already pending");
     }
 
-    // Create a "self-invitation" as access request
     const requestId = await ctx.db.insert("groupInvitations", {
       groupId: args.groupId,
-      inviterId: user._id, // User requesting is the "inviter"
-      inviteeId: user._id, // And also the "invitee"
+      inviterId: user._id,
+      inviteeId: user._id,
       status: "pending",
     });
 
-    // Notify all admins
     const admins = await ctx.db
       .query("groupMembers")
       .withIndex("by_group_role", (q) =>
@@ -939,12 +931,14 @@ export const requestAccess = mutation({
       .collect();
 
     for (const admin of admins) {
+      // FIXED: Use invitationId field
       await ctx.db.insert("notifications", {
         userId: admin.userId,
         type: "group_invite",
         isRead: false,
         fromUserId: user._id,
         groupId: args.groupId,
+        invitationId: requestId, // FIXED
         message: "requested to join the group",
       });
     }
