@@ -16,11 +16,7 @@ export default defineSchema({
   friendships: defineTable({
     requesterId: v.id("users"),
     addresseeId: v.id("users"),
-    status: v.union(
-      v.literal("pending"),
-      v.literal("accepted"),
-      v.literal("declined"),
-    ),
+    status: v.union(v.literal("pending"), v.literal("accepted")),
     updatedAt: v.number(),
   })
     .index("by_requester", ["requesterId"])
@@ -48,12 +44,10 @@ export default defineSchema({
       v.literal("payment_received"),
     ),
     isRead: v.boolean(),
-
-    // Polymorphic fields based on type
     fromUserId: v.optional(v.id("users")),
     friendshipId: v.optional(v.id("friendships")),
     groupId: v.optional(v.id("groups")),
-    invitationId: v.optional(v.id("groupInvitations")), // FIXED: Separate field for invitation
+    invitationId: v.optional(v.id("groupInvitations")),
     paymentId: v.optional(v.id("payments")),
     amount: v.optional(v.number()),
     message: v.optional(v.string()),
@@ -62,21 +56,31 @@ export default defineSchema({
     .index("by_user_unread", ["userId", "isRead"])
     .index("by_user_type", ["userId", "type"]),
 
-  // ==================== GROUPS TABLES ====================
-
   groups: defineTable({
     name: v.string(),
     description: v.string(),
-    imageOrEmoji: v.string(), // Either emoji unicode character or storage URL
-    imageType: v.union(v.literal("emoji"), v.literal("image")), // Track type
-    accentColor: v.string(), // Hex color code
+    imageOrEmoji: v.string(),
+    imageType: v.union(v.literal("emoji"), v.literal("image")),
+    accentColor: v.string(),
     creatorId: v.id("users"),
     privacy: v.union(v.literal("public"), v.literal("private")),
     joinMethod: v.union(
       v.literal("request"),
       v.literal("invite"),
+      v.literal("code"),
       v.literal("nft"),
-    ), // MVP: request only
+    ),
+    // NEW: Permissions configuration
+    permissions: v.optional(
+      v.object({
+        whoCanInvite: v.union(
+          v.literal("all"),
+          v.literal("admins"),
+          v.literal("creator"),
+        ),
+        whoCanCreatePacts: v.union(v.literal("all"), v.literal("admins")),
+      }),
+    ),
   })
     .index("by_creator", ["creatorId"])
     .index("by_privacy", ["privacy"])
@@ -112,6 +116,21 @@ export default defineSchema({
     .index("by_status", ["status"])
     .index("by_invitee_status", ["inviteeId", "status"]),
 
+  // NEW: Invite codes table
+  groupInviteCodes: defineTable({
+    groupId: v.id("groups"),
+    code: v.string(), // 8-character unique code
+    createdBy: v.id("users"),
+    expiresAt: v.optional(v.number()), // Optional expiration
+    maxUses: v.optional(v.number()), // Optional use limit
+    uses: v.number(), // Current use count
+    isActive: v.boolean(),
+  })
+    .index("by_group", ["groupId"])
+    .index("by_code", ["code"])
+    .index("by_creator", ["createdBy"])
+    .index("by_active", ["isActive"]),
+
   groupActivities: defineTable({
     groupId: v.id("groups"),
     actorId: v.id("users"),
@@ -125,14 +144,15 @@ export default defineSchema({
       v.literal("admin_promoted"),
       v.literal("admin_demoted"),
       v.literal("group_created"),
+      v.literal("code_created"), // NEW
+      v.literal("code_used"), // NEW
     ),
-    metadata: v.any(), // Flexible field for activity-specific data
+    metadata: v.any(),
   })
     .index("by_group", ["groupId"])
     .index("by_actor", ["actorId"])
     .index("by_type", ["type"]),
 
-  // Placeholder for future Pacts tables
   pacts: defineTable({
     name: v.string(),
     description: v.string(),
@@ -156,7 +176,7 @@ export default defineSchema({
     instanceName: v.optional(v.string()),
     createdBy: v.id("users"),
     createdAt: v.number(),
-    config: v.any(), // Pact-specific configuration
+    config: v.any(),
   })
     .index("by_group", ["groupId"])
     .index("by_pact", ["pactId"])
