@@ -24,7 +24,7 @@ async function isGroupMember(
 ) {
   const member = await ctx.db
     .query("groupMembers")
-    .withIndex("by_group_user", (q) =>
+    .withIndex("by_group_user", (q: any) =>
       q.eq("groupId", groupId).eq("userId", userId),
     )
     .first();
@@ -40,7 +40,7 @@ async function isGroupAdmin(
 ) {
   const member = await ctx.db
     .query("groupMembers")
-    .withIndex("by_group_user", (q) =>
+    .withIndex("by_group_user", (q: any) =>
       q.eq("groupId", groupId).eq("userId", userId),
     )
     .first();
@@ -314,6 +314,35 @@ export const getGlobalActivityFeed = query({
 
 // ==================== MUTATIONS ====================
 
+// Helper function to check if user can invite based on permissions
+async function canInvite(ctx: any, groupId: Id<"groups">, userId: Id<"users">) {
+  const group = await ctx.db.get(groupId);
+  if (!group) return false;
+
+  const member = await ctx.db
+    .query("groupMembers")
+    .withIndex("by_group_user", (q: any) =>
+      q.eq("groupId", groupId).eq("userId", userId),
+    )
+    .first();
+
+  if (!member) return false;
+
+  // Get permissions (default to "admins" if not set)
+  const whoCanInvite = group.permissions?.whoCanInvite || "admins";
+
+  switch (whoCanInvite) {
+    case "creator":
+      return group.creatorId === userId;
+    case "admins":
+      return member.role === "admin";
+    case "all":
+      return true;
+    default:
+      return false;
+  }
+}
+
 // Create a new group
 export const createGroup = mutation({
   args: {
@@ -329,17 +358,14 @@ export const createGroup = mutation({
   handler: async (ctx, args) => {
     const user = await verifyUser(ctx, args.userAddress);
 
-    // Validate name length
     if (args.name.length < 2 || args.name.length > 50) {
       throw new ConvexError("Group name must be between 2 and 50 characters");
     }
 
-    // Validate description length
     if (args.description.length > 300) {
       throw new ConvexError("Description must be 300 characters or less");
     }
 
-    // Create group
     const groupId = await ctx.db.insert("groups", {
       name: args.name,
       description: args.description,
@@ -349,9 +375,13 @@ export const createGroup = mutation({
       creatorId: user._id,
       privacy: args.privacy || "public",
       joinMethod: "request",
+      // Default permissions
+      permissions: {
+        whoCanInvite: "admins",
+        whoCanCreatePacts: "admins",
+      },
     });
 
-    // Add creator as admin member
     await ctx.db.insert("groupMembers", {
       groupId,
       userId: user._id,
@@ -359,10 +389,8 @@ export const createGroup = mutation({
       joinedAt: Date.now(),
     });
 
-    // Log group creation
     await logActivity(ctx, groupId, user._id, "group_created");
 
-    // Send invitations if provided
     if (args.inviteFriendIds && args.inviteFriendIds.length > 0) {
       for (const friendId of args.inviteFriendIds) {
         const invitationId = await ctx.db.insert("groupInvitations", {
@@ -372,15 +400,13 @@ export const createGroup = mutation({
           status: "pending",
         });
 
-        // Create notification
-        // FIXED: Use invitationId field
         await ctx.db.insert("notifications", {
           userId: friendId,
           type: "group_invite",
           isRead: false,
           fromUserId: user._id,
           groupId: groupId,
-          invitationId: invitationId, // FIXED
+          invitationId: invitationId,
         });
       }
     }
@@ -481,6 +507,88 @@ export const deleteGroup = mutation({
     await ctx.db.delete(args.groupId);
 
     return true;
+  },
+});
+
+// Update group permissions
+export const updatePermissions = mutation({
+  args: {
+    userAddress: v.string(),
+    groupId: v.id("groups"),
+    whoCanInvite: v.union(
+      v.literal("all"),
+      v.literal("admins"),
+      v.literal("creator"),
+    ),
+    whoCanCreatePacts: v.union(v.literal("all"), v.literal("admins")),
+  },
+  handler: async (ctx, args) => {
+    const user = await verifyUser(ctx, args.userAddress);
+
+    // Check if user is admin
+    if (!(await isGroupAdmin(ctx, args.groupId, user._id))) {
+      throw new ConvexError("Only admins can update permissions");
+    }
+
+    await ctx.db.patch(args.groupId, {
+      permissions: {
+        whoCanInvite: args.whoCanInvite,
+        whoCanCreatePacts: args.whoCanCreatePacts,
+      },
+    });
+
+    // Log activity
+    await logActivity(ctx, args.groupId, user._id, "settings_changed", {
+      changes: ["permissions"],
+    });
+
+    return true;
+  },
+});
+
+// Query to check user's permissions in a group
+export const getUserPermissions = query({
+  args: {
+    groupId: v.id("groups"),
+    userId: v.id("users"),
+  },
+  handler: async (ctx, args) => {
+    const group = await ctx.db.get(args.groupId);
+    if (!group) return null;
+
+    const member = await ctx.db
+      .query("groupMembers")
+      .withIndex("by_group_user", (q) =>
+        q.eq("groupId", args.groupId).eq("userId", args.userId),
+      )
+      .first();
+
+    if (!member) {
+      return {
+        canInvite: false,
+        canCreatePacts: false,
+        canManageMembers: false,
+        canEditSettings: false,
+      };
+    }
+
+    const isAdmin = member.role === "admin";
+    const isCreator = group.creatorId === args.userId;
+    const permissions = group.permissions || {
+      whoCanInvite: "admins",
+      whoCanCreatePacts: "admins",
+    };
+
+    return {
+      canInvite: await canInvite(ctx, args.groupId, args.userId),
+      canCreatePacts:
+        permissions.whoCanCreatePacts === "all" ||
+        (permissions.whoCanCreatePacts === "admins" && isAdmin),
+      canManageMembers: isAdmin,
+      canEditSettings: isAdmin,
+      canDelete: isCreator,
+      role: member.role,
+    };
   },
 });
 
@@ -686,8 +794,9 @@ export const sendInvitation = mutation({
   handler: async (ctx, args) => {
     const user = await verifyUser(ctx, args.userAddress);
 
-    if (!(await isGroupMember(ctx, args.groupId, user._id))) {
-      throw new ConvexError("Only group members can send invitations");
+    // Check if user can invite based on permissions
+    if (!(await canInvite(ctx, args.groupId, user._id))) {
+      throw new ConvexError("You don't have permission to invite members");
     }
 
     if (await isGroupMember(ctx, args.groupId, args.inviteeId)) {
@@ -713,14 +822,13 @@ export const sendInvitation = mutation({
       status: "pending",
     });
 
-    // FIXED: Use invitationId field instead of groupId
     await ctx.db.insert("notifications", {
       userId: args.inviteeId,
       type: "group_invite",
       isRead: false,
       fromUserId: user._id,
       groupId: args.groupId,
-      invitationId: invitationId, // FIXED
+      invitationId: invitationId,
     });
 
     return invitationId;
