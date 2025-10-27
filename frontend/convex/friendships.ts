@@ -60,6 +60,26 @@ export const getFriendshipStatus = query({
       .first();
 
     if (friendship) {
+      // Handle declined status with cooldown
+      if (friendship.status === "declined") {
+        const COOLDOWN_24H = 24 * 60 * 60 * 1000;
+        const timeSinceDeclining = Date.now() - (friendship.declinedAt || 0);
+
+        if (timeSinceDeclining >= COOLDOWN_24H) {
+          // Cooldown expired, treat as "none"
+          return { status: "none" };
+        }
+
+        // Still in cooldown
+        return {
+          status: "declined",
+          friendshipId: friendship._id,
+          isRequester: true,
+          declinedAt: friendship.declinedAt,
+          cooldownExpiresAt: (friendship.declinedAt || 0) + COOLDOWN_24H,
+        };
+      }
+
       return {
         status: friendship.status,
         friendshipId: friendship._id,
@@ -127,6 +147,29 @@ export const sendFriendRequest = mutation({
       }
       if (existingFriendship.status === "pending") {
         throw new ConvexError("Friend request already sent");
+      }
+      if (existingFriendship.status === "declined") {
+        // Check if 24-hour cooldown has passed
+        const COOLDOWN_24H = 24 * 60 * 60 * 1000;
+        const timeSinceDeclining =
+          Date.now() - (existingFriendship.declinedAt || 0);
+
+        if (timeSinceDeclining < COOLDOWN_24H) {
+          const remainingMs = COOLDOWN_24H - timeSinceDeclining;
+          const remainingHours = Math.ceil(remainingMs / (60 * 60 * 1000));
+          throw new ConvexError(
+            `Please wait ${remainingHours} hour${remainingHours > 1 ? "s" : ""} before sending another request to this user`,
+          );
+        }
+
+        // Cooldown expired, update to pending
+        await ctx.db.patch(existingFriendship._id, {
+          status: "pending",
+          updatedAt: Date.now(),
+          declinedAt: undefined,
+        });
+
+        return existingFriendship._id;
       }
     }
 
@@ -263,8 +306,12 @@ export const declineFriendRequest = mutation({
       throw new ConvexError("Friend request is not pending");
     }
 
-    // Delete the friendship entirely (no cooldown)
-    await ctx.db.delete(args.friendshipId);
+    // Mark as declined with timestamp (24-hour cooldown)
+    await ctx.db.patch(args.friendshipId, {
+      status: "declined",
+      updatedAt: Date.now(),
+      declinedAt: Date.now(),
+    });
 
     // Delete the friend request notification
     const notification = await ctx.db

@@ -21,6 +21,7 @@ import { useAppKitAccount } from "@reown/appkit/react";
 import { Id } from "@/convex/_generated/dataModel";
 import EditProfileModal from "@/components/edit-profile-modal";
 import FriendsListModal from "@/components/friends-list-modal";
+import { DeclinedRequestTooltip } from "@/components/declined-request-tooltip";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -274,6 +275,23 @@ export default function ProfileCard({ user, isOwnProfile }: ProfileCardProps) {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+          </div>
+        );
+
+      case "declined":
+        // Request was declined - show disabled button with info
+        return (
+          <div className="flex items-center gap-2">
+            <Button disabled className="w-full" variant="outline">
+              <UserPlus className="mr-2 h-4 w-4" />
+              Add Friend
+            </Button>
+            <DeclinedRequestTooltip
+              declinedAt={friendshipStatus.declinedAt || Date.now()}
+              cooldownExpiresAt={
+                friendshipStatus.cooldownExpiresAt || Date.now()
+              }
+            />
           </div>
         );
 

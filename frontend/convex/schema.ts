@@ -16,8 +16,13 @@ export default defineSchema({
   friendships: defineTable({
     requesterId: v.id("users"),
     addresseeId: v.id("users"),
-    status: v.union(v.literal("pending"), v.literal("accepted")),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("accepted"),
+      v.literal("declined"),
+    ),
     updatedAt: v.number(),
+    declinedAt: v.optional(v.number()), // Timestamp when request was declined
   })
     .index("by_requester", ["requesterId"])
     .index("by_addressee", ["addresseeId"])
