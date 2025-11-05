@@ -4,6 +4,7 @@ import "@/styles/globals.css";
 
 import { headers } from "next/headers"; // added
 import ContextProvider from "@/context";
+import { ConvexClientProvider } from "./ConvexClientProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -39,7 +40,9 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} antialiased`}
       >
-        <ContextProvider cookies={cookies}>{children}</ContextProvider>
+        <ContextProvider cookies={cookies}>
+          <ConvexClientProvider>{children}</ConvexClientProvider>
+        </ContextProvider>
       </body>
     </html>
   );
