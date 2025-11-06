@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Poppins } from "next/font/google";
 import "@/styles/globals.css";
+import { Toaster } from "@/components/ui/sonner";
 
 import { headers } from "next/headers"; // added
 import ContextProvider from "@/context";
 import { ConvexClientProvider } from "./ConvexClientProvider";
+import { BottomNav } from "@/components/bottom-nav";
+import { TopNav } from "@/components/top-nav";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -41,7 +44,12 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} antialiased`}
       >
         <ContextProvider cookies={cookies}>
-          <ConvexClientProvider>{children}</ConvexClientProvider>
+          <ConvexClientProvider>
+            <TopNav />
+            {children}
+            <BottomNav />
+            <Toaster richColors />
+          </ConvexClientProvider>
         </ContextProvider>
       </body>
     </html>
