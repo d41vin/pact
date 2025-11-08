@@ -13,6 +13,31 @@ export default defineSchema({
     .index("by_username", ["username"])
     .index("by_email", ["email"]),
 
+  friendships: defineTable({
+    requesterId: v.id("users"),
+    addresseeId: v.id("users"),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("accepted"),
+      v.literal("declined"),
+    ),
+    updatedAt: v.number(),
+    declinedAt: v.optional(v.number()), // Timestamp when request was declined
+  })
+    .index("by_requester", ["requesterId"])
+    .index("by_addressee", ["addresseeId"])
+    .index("by_status", ["status"])
+    .index("by_addressee_status", ["addresseeId", "status"])
+    .index("by_users", ["requesterId", "addresseeId"]),
+
+  blocks: defineTable({
+    blockerId: v.id("users"),
+    blockedId: v.id("users"),
+  })
+    .index("by_blocker", ["blockerId"])
+    .index("by_blocked", ["blockedId"])
+    .index("by_both", ["blockerId", "blockedId"]),
+
   notifications: defineTable({
     userId: v.id("users"),
     type: v.union(
