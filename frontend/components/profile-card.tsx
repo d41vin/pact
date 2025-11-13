@@ -11,6 +11,8 @@ import {
   UserMinus,
   UserX,
   Clock,
+  Users,
+  MoreVertical,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -21,6 +23,7 @@ import { useAppKitAccount } from "@reown/appkit/react";
 import { Id } from "@/convex/_generated/dataModel";
 import EditProfileModal from "@/components/edit-profile-modal";
 import FriendsListModal from "@/components/friends-list-modal";
+import SendGroupInviteModal from "@/components/send-group-invite-modal";
 import { DeclinedRequestTooltip } from "@/components/declined-request-tooltip";
 import {
   DropdownMenu,
@@ -50,7 +53,11 @@ export default function ProfileCard({ user, isOwnProfile }: ProfileCardProps) {
   const [copied, setCopied] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [friendsModalOpen, setFriendsModalOpen] = useState(false);
+  const [groupInviteModalOpen, setGroupInviteModalOpen] = useState(false);
   const { address } = useAppKitAccount();
+
+  // Cache current time to avoid impure function calls during render
+  const [currentTime] = useState(() => Date.now());
 
   // Get current user
   const currentUser = useQuery(
@@ -91,7 +98,7 @@ export default function ProfileCard({ user, isOwnProfile }: ProfileCardProps) {
       setCopied(true);
       toast.success("Address copied to clipboard");
       setTimeout(() => setCopied(false), 2000);
-    } catch (error) {
+    } catch {
       toast.error("Failed to copy address");
     }
   };
@@ -104,8 +111,12 @@ export default function ProfileCard({ user, isOwnProfile }: ProfileCardProps) {
         addresseeId: user._id,
       });
       toast.success(`Friend request sent to ${user.name}`);
-    } catch (error: any) {
-      toast.error(error.message || "Failed to send friend request");
+    } catch (error: unknown) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to send friend request",
+      );
     }
   };
 
@@ -117,8 +128,10 @@ export default function ProfileCard({ user, isOwnProfile }: ProfileCardProps) {
         friendshipId: friendshipStatus.friendshipId,
       });
       toast.success("Friend request cancelled");
-    } catch (error: any) {
-      toast.error(error.message || "Failed to cancel request");
+    } catch (error: unknown) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to cancel request",
+      );
     }
   };
 
@@ -130,8 +143,10 @@ export default function ProfileCard({ user, isOwnProfile }: ProfileCardProps) {
         friendshipId: friendshipStatus.friendshipId,
       });
       toast.success(`You are now friends with ${user.name}`);
-    } catch (error: any) {
-      toast.error(error.message || "Failed to accept request");
+    } catch (error: unknown) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to accept request",
+      );
     }
   };
 
@@ -143,8 +158,10 @@ export default function ProfileCard({ user, isOwnProfile }: ProfileCardProps) {
         friendshipId: friendshipStatus.friendshipId,
       });
       toast.success(`Removed ${user.name} from friends`);
-    } catch (error: any) {
-      toast.error(error.message || "Failed to unfriend");
+    } catch (error: unknown) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to unfriend",
+      );
     }
   };
 
@@ -156,8 +173,10 @@ export default function ProfileCard({ user, isOwnProfile }: ProfileCardProps) {
         blockedId: user._id,
       });
       toast.success(`Blocked ${user.name}`);
-    } catch (error: any) {
-      toast.error(error.message || "Failed to block user");
+    } catch (error: unknown) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to block user",
+      );
     }
   };
 
@@ -195,7 +214,7 @@ export default function ProfileCard({ user, isOwnProfile }: ProfileCardProps) {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="w-full">
-                  More
+                  <MoreVertical className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
@@ -231,7 +250,7 @@ export default function ProfileCard({ user, isOwnProfile }: ProfileCardProps) {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" className="w-full">
-                    More
+                    <MoreVertical className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
@@ -246,7 +265,7 @@ export default function ProfileCard({ user, isOwnProfile }: ProfileCardProps) {
         }
 
       case "accepted":
-        // Friends - show Message and Friends dropdown
+        // Friends - show Message and Friends dropdown with Group Invite
         return (
           <div className="grid grid-cols-2 gap-3">
             <Button onClick={handleMessage} className="w-full">
@@ -261,6 +280,11 @@ export default function ProfileCard({ user, isOwnProfile }: ProfileCardProps) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setGroupInviteModalOpen(true)}>
+                  <Users className="mr-2 h-4 w-4" />
+                  Send Group Invite
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleUnfriend}>
                   <UserMinus className="mr-2 h-4 w-4" />
                   Unfriend
@@ -287,9 +311,9 @@ export default function ProfileCard({ user, isOwnProfile }: ProfileCardProps) {
               Add Friend
             </Button>
             <DeclinedRequestTooltip
-              declinedAt={friendshipStatus.declinedAt || Date.now()}
+              declinedAt={friendshipStatus.declinedAt || currentTime}
               cooldownExpiresAt={
-                friendshipStatus.cooldownExpiresAt || Date.now()
+                friendshipStatus.cooldownExpiresAt || currentTime
               }
             />
           </div>
@@ -316,7 +340,7 @@ export default function ProfileCard({ user, isOwnProfile }: ProfileCardProps) {
             <div className="relative">
               <Avatar className="h-24 w-24 border-4 border-white shadow-lg ring-2 ring-slate-200">
                 <AvatarImage src={user.profileImageUrl} alt={user.name} />
-                <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-500 text-2xl font-semibold text-white">
+                <AvatarFallback className="bg-linear-to-br from-blue-400 to-purple-500 text-2xl font-semibold text-white">
                   {user.name.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
@@ -393,6 +417,17 @@ export default function ProfileCard({ user, isOwnProfile }: ProfileCardProps) {
         onOpenChange={setFriendsModalOpen}
         canViewList={canViewFriendsList}
       />
+
+      {/* Send Group Invite Modal */}
+      {!isOwnProfile && friendshipStatus?.status === "accepted" && (
+        <SendGroupInviteModal
+          open={groupInviteModalOpen}
+          onOpenChange={setGroupInviteModalOpen}
+          friendId={user._id}
+          friendName={user.name}
+          friendUsername={user.username}
+        />
+      )}
     </>
   );
 }
