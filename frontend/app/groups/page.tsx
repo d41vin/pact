@@ -10,13 +10,60 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import CreateGroupModal from "@/components/groups/create-group-modal";
 import JoinByCodeModal from "@/components/groups/join-by-code-modal";
+import ActivityFeedFilters from "@/components/groups/activity-feed-filters";
+import Image from "next/image";
+import { Id } from "@/convex/_generated/dataModel";
+
+// Type for activity as returned from the backend
+interface Activity {
+  _id: string;
+  _creationTime: number;
+  type: string;
+  actor?: {
+    _id: Id<"users">;
+    _creationTime: number;
+    email?: string;
+    profileImageUrl?: string;
+    name: string;
+    username: string;
+    userAddress: string;
+  } | null;
+  group?: {
+    _id?: Id<"groups">;
+    _creationTime?: number;
+    permissions?: {
+      whoCanInvite: "all" | "admins" | "creator";
+      whoCanCreatePacts: "all" | "admins";
+    };
+    name: string;
+    description?: string;
+    imageOrEmoji?: string;
+    imageType?: "emoji" | "image";
+    accentColor?: string;
+    creatorId?: Id<"users">;
+    privacy?: "public" | "private";
+    joinMethod?: "request" | "invite" | "code" | "nft";
+  } | null;
+  metadata?: Record<string, unknown>;
+}
+
+// Type for members as returned from the backend (with optional fields)
+interface BackendMember {
+  _id?: Id<"users">;
+  _creationTime?: number;
+  email?: string;
+  profileImageUrl?: string;
+  name?: string;
+  username?: string;
+  userAddress?: string;
+}
 
 export default function GroupsPage() {
   const router = useRouter();
   const { address } = useAppKitAccount();
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [joinCodeModalOpen, setJoinCodeModalOpen] = useState(false);
-  const [showAllActivities, setShowAllActivities] = useState(false);
+  const [filteredActivities, setFilteredActivities] = useState<Activity[]>([]);
 
   // Get current user
   const currentUser = useQuery(
@@ -33,9 +80,7 @@ export default function GroupsPage() {
   // Get global activity feed
   const activities = useQuery(
     api.groups.getGlobalActivityFeed,
-    currentUser
-      ? { userId: currentUser._id, limit: showAllActivities ? 50 : 20 }
-      : "skip",
+    currentUser ? { userId: currentUser._id, limit: 50 } : "skip",
   );
 
   if (!currentUser) {
@@ -49,7 +94,7 @@ export default function GroupsPage() {
     );
   }
 
-  const formatActivityText = (activity: any) => {
+  const formatActivityText = (activity: Activity) => {
     const actorName = activity.actor?.name || "Someone";
     const groupName = activity.group?.name || "a group";
 
@@ -103,13 +148,20 @@ export default function GroupsPage() {
   };
 
   const formatTimestamp = (timestamp: number): string => {
-    const seconds = Math.floor((Date.now() - timestamp) / 1000);
+    const now = new Date().getTime();
+    const seconds = Math.floor((now - timestamp) / 1000);
     if (seconds < 60) return "just now";
     if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
     if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
     if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`;
     return `${Math.floor(seconds / 604800)}w ago`;
   };
+
+  // Get activities to display (filtered or all)
+  const displayActivities =
+    filteredActivities.length > 0 || activities?.length === 0
+      ? filteredActivities
+      : activities || [];
 
   return (
     <>
@@ -144,35 +196,41 @@ export default function GroupsPage() {
               <h2 className="mb-4 text-lg font-semibold text-slate-900">
                 Recent Activity
               </h2>
-              <div className="space-y-3">
-                {activities.map((activity) => (
-                  <div
-                    key={activity._id}
-                    className="flex items-start gap-3 rounded-lg p-3 transition-colors hover:bg-slate-50"
-                  >
-                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-slate-100 text-xl">
-                      {getActivityIcon(activity.type)}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm text-slate-900">
-                        {formatActivityText(activity)}
-                      </p>
-                      <p className="mt-1 text-xs text-slate-500">
-                        {formatTimestamp(activity._creationTime)}
-                      </p>
-                    </div>
-                  </div>
-                ))}
+
+              {/* Activity Filters */}
+              <div className="mb-4">
+                <ActivityFeedFilters
+                  activities={activities}
+                  onFilteredActivitiesChange={setFilteredActivities}
+                />
               </div>
-              {activities.length >= 20 && !showAllActivities && (
-                <Button
-                  variant="ghost"
-                  onClick={() => setShowAllActivities(true)}
-                  className="mt-4 w-full"
-                >
-                  Show More
-                </Button>
-              )}
+
+              <div className="space-y-3">
+                {displayActivities.length === 0 ? (
+                  <div className="py-8 text-center">
+                    <p className="text-slate-500">No matching activities</p>
+                  </div>
+                ) : (
+                  displayActivities.map((activity) => (
+                    <div
+                      key={activity._id}
+                      className="flex items-start gap-3 rounded-lg p-3 transition-colors hover:bg-slate-50"
+                    >
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xl">
+                        {getActivityIcon(activity.type)}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm text-slate-900">
+                          {formatActivityText(activity)}
+                        </p>
+                        <p className="mt-1 text-xs text-slate-500">
+                          {formatTimestamp(activity._creationTime)}
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
           )}
 
@@ -238,11 +296,12 @@ export default function GroupsPage() {
                             {group.imageOrEmoji}
                           </div>
                         ) : (
-                          <div className="h-16 w-16 overflow-hidden rounded-full shadow-sm">
-                            <img
+                          <div className="relative h-16 w-16 overflow-hidden rounded-full shadow-sm">
+                            <Image
                               src={group.imageOrEmoji}
                               alt={group.name}
-                              className="h-full w-full object-cover"
+                              fill
+                              className="object-cover"
                             />
                           </div>
                         )}
@@ -265,23 +324,28 @@ export default function GroupsPage() {
                         <div className="flex -space-x-2">
                           {group.members
                             .slice(0, 3)
-                            .map((member: any, idx: number) => (
-                              <Avatar
-                                key={member._id}
-                                className="h-8 w-8 border-2 border-white ring-1 ring-slate-200"
-                              >
-                                <AvatarImage
-                                  src={member.profileImageUrl}
-                                  alt={member.name}
-                                />
-                                <AvatarFallback
-                                  className="text-xs font-semibold text-white"
-                                  style={{ backgroundColor: group.accentColor }}
+                            .map((member: BackendMember) => {
+                              if (!member._id || !member.name) return null;
+                              return (
+                                <Avatar
+                                  key={member._id}
+                                  className="h-8 w-8 border-2 border-white ring-1 ring-slate-200"
                                 >
-                                  {member.name.charAt(0).toUpperCase()}
-                                </AvatarFallback>
-                              </Avatar>
-                            ))}
+                                  <AvatarImage
+                                    src={member.profileImageUrl}
+                                    alt={member.name}
+                                  />
+                                  <AvatarFallback
+                                    className="text-xs font-semibold text-white"
+                                    style={{
+                                      backgroundColor: group.accentColor,
+                                    }}
+                                  >
+                                    {member.name.charAt(0).toUpperCase()}
+                                  </AvatarFallback>
+                                </Avatar>
+                              );
+                            })}
                           {group.memberCount > 3 && (
                             <div
                               className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white text-xs font-semibold text-white ring-1 ring-slate-200"

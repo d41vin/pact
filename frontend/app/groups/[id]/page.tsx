@@ -6,6 +6,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useAppKitAccount } from "@reown/appkit/react";
 import { Id } from "@/convex/_generated/dataModel";
+import Image from "next/image";
 import {
   Settings,
   UserPlus,
@@ -22,6 +23,63 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import MembersModal from "@/components/groups/members-modal";
 import GroupSettingsModal from "@/components/groups/group-settings-modal";
 import InviteMembersModal from "@/components/groups/invite-members-modal";
+import ActivityFeedFilters from "@/components/groups/activity-feed-filters";
+
+// Type for activity as returned from the backend
+interface Activity {
+  _id: string;
+  _creationTime: number;
+  type: string;
+  actor?: {
+    _id: Id<"users">;
+    _creationTime: number;
+    email?: string;
+    profileImageUrl?: string;
+    name: string;
+    username: string;
+    userAddress: string;
+  } | null;
+  group?: {
+    _id?: Id<"groups">;
+    _creationTime?: number;
+    permissions?: {
+      whoCanInvite: "all" | "admins" | "creator";
+      whoCanCreatePacts: "all" | "admins";
+    };
+    name: string;
+    description?: string;
+    imageOrEmoji?: string;
+    imageType?: "emoji" | "image";
+    accentColor?: string;
+    creatorId?: Id<"users">;
+    privacy?: "public" | "private";
+    joinMethod?: "request" | "invite" | "code" | "nft";
+  } | null;
+  metadata?: Record<string, unknown>;
+}
+
+// Planned type for members (for future use when backend returns clean member objects)
+interface Member {
+  _id: Id<"users">;
+  name: string;
+  username: string;
+  profileImageUrl?: string;
+  role: "admin" | "member";
+  joinedAt: number;
+}
+
+// Type for members as returned from the backend (with optional fields)
+interface BackendMember {
+  _id?: Id<"users">;
+  _creationTime?: number;
+  email?: string;
+  profileImageUrl?: string;
+  name?: string;
+  username?: string;
+  userAddress?: string;
+  role: "admin" | "member";
+  joinedAt: number;
+}
 
 export default function GroupDetailPage() {
   const params = useParams();
@@ -34,6 +92,10 @@ export default function GroupDetailPage() {
   const [membersModalOpen, setMembersModalOpen] = useState(false);
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
+
+  // Activity filter state
+  const [filteredActivities, setFilteredActivities] = useState<Activity[]>([]);
+  const [showAllActivities, setShowAllActivities] = useState(false);
 
   // Get current user
   const currentUser = useQuery(
@@ -50,7 +112,9 @@ export default function GroupDetailPage() {
   // Get group activities
   const activitiesData = useQuery(
     api.groups.getGroupActivities,
-    group?.hasAccess ? { groupId, limit: 20 } : "skip",
+    group?.hasAccess
+      ? { groupId, limit: showAllActivities ? 100 : 20 }
+      : "skip",
   );
 
   // Mutations
@@ -66,8 +130,10 @@ export default function GroupDetailPage() {
     try {
       await requestAccess({ userAddress: address, groupId });
       toast.success("Access request sent!");
-    } catch (error: any) {
-      toast.error(error.message || "Failed to request access");
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to request access";
+      toast.error(errorMessage);
     }
   };
 
@@ -86,8 +152,10 @@ export default function GroupDetailPage() {
       await leaveGroup({ userAddress: address, groupId });
       toast.success("You left the group");
       router.push("/groups");
-    } catch (error: any) {
-      toast.error(error.message || "Failed to leave group");
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to leave group";
+      toast.error(errorMessage);
     }
   };
 
@@ -112,7 +180,7 @@ export default function GroupDetailPage() {
             Group not found
           </h2>
           <p className="mb-4 text-slate-500">
-            This group doesn't exist or has been deleted.
+            This group doesn&apos;t exist or has been deleted.
           </p>
           <Button onClick={() => router.push("/groups")}>Back to Groups</Button>
         </div>
@@ -155,7 +223,8 @@ export default function GroupDetailPage() {
   }
 
   const formatTimestamp = (timestamp: number): string => {
-    const seconds = Math.floor((Date.now() - timestamp) / 1000);
+    const now = new Date().getTime();
+    const seconds = Math.floor((now - timestamp) / 1000);
     if (seconds < 60) return "just now";
     if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
     if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
@@ -163,7 +232,7 @@ export default function GroupDetailPage() {
     return `${Math.floor(seconds / 604800)}w ago`;
   };
 
-  const formatActivityText = (activity: any) => {
+  const formatActivityText = (activity: Activity): string => {
     const actorName = activity.actor?.name || "Someone";
 
     switch (activity.type) {
@@ -174,7 +243,6 @@ export default function GroupDetailPage() {
       case "member_left":
         return `${actorName} left`;
       case "member_removed":
-        const removedUser = activity.metadata?.removedUserId;
         return `${actorName} removed a member`;
       case "admin_promoted":
         return `${actorName} was promoted to admin`;
@@ -182,6 +250,10 @@ export default function GroupDetailPage() {
         return `${actorName} was demoted`;
       case "settings_changed":
         return `${actorName} updated group settings`;
+      case "code_created":
+        return `${actorName} created an invite code`;
+      case "code_used":
+        return `${actorName} joined with a code`;
       default:
         return `Activity by ${actorName}`;
     }
@@ -203,10 +275,20 @@ export default function GroupDetailPage() {
         return "📉";
       case "settings_changed":
         return "⚙️";
+      case "code_created":
+        return "🔗";
+      case "code_used":
+        return "🎟️";
       default:
         return "📌";
     }
   };
+
+  // Get activities to display (filtered or all)
+  const displayActivities =
+    filteredActivities.length > 0 || activitiesData?.activities.length === 0
+      ? filteredActivities
+      : activitiesData?.activities || [];
 
   return (
     <div className="min-h-screen bg-slate-50 px-4 pt-24 pb-28">
@@ -229,11 +311,12 @@ export default function GroupDetailPage() {
                   {group.imageOrEmoji}
                 </div>
               ) : (
-                <div className="h-24 w-24 overflow-hidden rounded-full border-4 border-white shadow-lg ring-2 ring-slate-200">
-                  <img
+                <div className="relative h-24 w-24 overflow-hidden rounded-full border-4 border-white shadow-lg ring-2 ring-slate-200">
+                  <Image
                     src={group.imageOrEmoji}
                     alt={group.name}
-                    className="h-full w-full object-cover"
+                    fill
+                    className="object-cover"
                   />
                 </div>
               )}
@@ -304,23 +387,26 @@ export default function GroupDetailPage() {
                 onClick={() => setMembersModalOpen(true)}
                 className="flex -space-x-2 transition-transform hover:scale-105"
               >
-                {group.members.slice(0, 5).map((member: any) => (
-                  <Avatar
-                    key={member._id}
-                    className="h-10 w-10 border-2 border-white ring-1 ring-slate-200"
-                  >
-                    <AvatarImage
-                      src={member.profileImageUrl}
-                      alt={member.name}
-                    />
-                    <AvatarFallback
-                      className="text-sm font-semibold text-white"
-                      style={{ backgroundColor: group.accentColor }}
+                {group.members.slice(0, 5).map((member: BackendMember) => {
+                  if (!member._id || !member.name) return null;
+                  return (
+                    <Avatar
+                      key={member._id}
+                      className="h-10 w-10 border-2 border-white ring-1 ring-slate-200"
                     >
-                      {member.name.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                ))}
+                      <AvatarImage
+                        src={member.profileImageUrl}
+                        alt={member.name}
+                      />
+                      <AvatarFallback
+                        className="text-sm font-semibold text-white"
+                        style={{ backgroundColor: group.accentColor }}
+                      >
+                        {member.name.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                  );
+                })}
                 {group.memberCount > 5 && (
                   <div
                     className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-white text-sm font-semibold text-white ring-1 ring-slate-200"
@@ -352,22 +438,36 @@ export default function GroupDetailPage() {
                 Group Activity
               </h2>
 
+              {/* Activity Filters */}
+              {activitiesData && activitiesData.activities.length > 0 && (
+                <div className="mb-4">
+                  <ActivityFeedFilters
+                    activities={activitiesData.activities}
+                    onFilteredActivitiesChange={setFilteredActivities}
+                  />
+                </div>
+              )}
+
               {!activitiesData ? (
                 <div className="flex justify-center py-8">
                   <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
                 </div>
-              ) : activitiesData.activities.length === 0 ? (
+              ) : displayActivities.length === 0 ? (
                 <div className="py-12 text-center">
-                  <p className="text-slate-500">No activity yet</p>
+                  <p className="text-slate-500">
+                    {activitiesData.activities.length === 0
+                      ? "No activity yet"
+                      : "No matching activities"}
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {activitiesData.activities.map((activity) => (
+                  {displayActivities.map((activity) => (
                     <div
                       key={activity._id}
                       className="flex items-start gap-3 rounded-lg p-3 transition-colors hover:bg-slate-50"
                     >
-                      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-slate-100 text-xl">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xl">
                         {getActivityIcon(activity.type)}
                       </div>
                       <div className="min-w-0 flex-1">
@@ -380,6 +480,26 @@ export default function GroupDetailPage() {
                       </div>
                     </div>
                   ))}
+
+                  {/* Show More/Less Button */}
+                  {activitiesData.hasMore && !showAllActivities && (
+                    <Button
+                      variant="ghost"
+                      onClick={() => setShowAllActivities(true)}
+                      className="w-full"
+                    >
+                      Show More
+                    </Button>
+                  )}
+                  {showAllActivities && (
+                    <Button
+                      variant="ghost"
+                      onClick={() => setShowAllActivities(false)}
+                      className="w-full"
+                    >
+                      Show Less
+                    </Button>
+                  )}
                 </div>
               )}
             </div>
@@ -404,14 +524,16 @@ export default function GroupDetailPage() {
         open={membersModalOpen}
         onOpenChange={setMembersModalOpen}
         groupId={groupId}
-        members={group.members.map((m: any) => ({
-          _id: m._id,
-          name: m.name || "Unknown",
-          username: m.username || "unknown",
-          profileImageUrl: m.profileImageUrl,
-          role: m.role,
-          joinedAt: m.joinedAt,
-        }))}
+        members={group.members
+          .filter((m: BackendMember) => m._id && m.name && m.username)
+          .map((m: BackendMember) => ({
+            _id: m._id!,
+            name: m.name!,
+            username: m.username!,
+            profileImageUrl: m.profileImageUrl,
+            role: m.role,
+            joinedAt: m.joinedAt,
+          }))}
         creatorId={group.creatorId}
         currentUserRole={group.userRole}
         accentColor={group.accentColor}
@@ -439,7 +561,9 @@ export default function GroupDetailPage() {
         groupId={groupId}
         groupName={group.name}
         accentColor={group.accentColor}
-        existingMemberIds={group.members.map((m: any) => m._id)}
+        existingMemberIds={group.members
+          .filter((m: BackendMember) => m._id)
+          .map((m: BackendMember) => m._id!)}
       />
     </div>
   );
