@@ -552,6 +552,15 @@ export default function GroupDetailPage() {
           privacy: group.privacy,
           creatorId: group.creatorId,
         }}
+        members={group.members
+          .filter((m: BackendMember) => m._id && m.name && m.username)
+          .map((m: BackendMember) => ({
+            _id: m._id!,
+            name: m.name!,
+            username: m.username!,
+            role: m.role,
+            joinedAt: m.joinedAt,
+          }))}
         isCreator={group.creatorId === currentUser?._id}
       />
 

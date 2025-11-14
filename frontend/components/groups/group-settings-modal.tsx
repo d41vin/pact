@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import {
   Settings,
   Loader2,
@@ -36,6 +37,15 @@ import { GROUP_COLORS } from "@/lib/group-constants";
 import EmojiPicker from "emoji-picker-react";
 import PermissionsSettings from "@/components/groups/permissions-settings";
 import InviteCodesModal from "@/components/groups/invite-codes-modal";
+import GroupAnalytics from "@/components/groups/group-analytics";
+
+interface Member {
+  _id: Id<"users">;
+  name: string;
+  username: string;
+  role: "admin" | "member";
+  joinedAt: number;
+}
 
 interface GroupSettingsModalProps {
   open: boolean;
@@ -54,6 +64,7 @@ interface GroupSettingsModalProps {
       whoCanCreatePacts: "all" | "admins";
     };
   };
+  members: Member[];
   isCreator: boolean;
 }
 
@@ -61,6 +72,7 @@ export default function GroupSettingsModal({
   open,
   onOpenChange,
   group,
+  members,
   isCreator,
 }: GroupSettingsModalProps) {
   const router = useRouter();
@@ -115,7 +127,7 @@ export default function GroupSettingsModal({
     }
   };
 
-  const handleEmojiSelect = (emojiData: any) => {
+  const handleEmojiSelect = (emojiData: { emoji: string }) => {
     setEmoji(emojiData.emoji);
     setImageType("emoji");
     setShowEmojiPicker(false);
@@ -170,9 +182,13 @@ export default function GroupSettingsModal({
       toast.success("Group settings updated!");
       onOpenChange(false);
       window.location.reload();
-    } catch (error: any) {
+    } catch (error) {
       console.error("Update error:", error);
-      toast.error(error.message || "Failed to update group settings");
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Failed to update group settings";
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
@@ -207,9 +223,11 @@ export default function GroupSettingsModal({
       toast.success("Group deleted successfully");
       onOpenChange(false);
       router.push("/groups");
-    } catch (error: any) {
+    } catch (error) {
       console.error("Delete error:", error);
-      toast.error(error.message || "Failed to delete group");
+      const message =
+        error instanceof Error ? error.message : "Failed to delete group";
+      toast.error(message);
       setIsLoading(false);
     }
   };
@@ -243,9 +261,10 @@ export default function GroupSettingsModal({
           </DialogHeader>
 
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="general">General</TabsTrigger>
               <TabsTrigger value="permissions">Permissions</TabsTrigger>
+              <TabsTrigger value="analytics">Analytics</TabsTrigger>
               <TabsTrigger value="codes">Invite Codes</TabsTrigger>
               <TabsTrigger value="danger">Danger</TabsTrigger>
             </TabsList>
@@ -257,9 +276,11 @@ export default function GroupSettingsModal({
                 <div className="relative">
                   {imageType === "image" && imagePreview ? (
                     <div className="relative h-24 w-24 overflow-hidden rounded-full border-4 border-white shadow-lg ring-2 ring-slate-200">
-                      <img
+                      <Image
                         src={imagePreview}
                         alt="Group"
+                        width={96}
+                        height={96}
                         className="h-full w-full object-cover"
                       />
                       <button
@@ -410,6 +431,16 @@ export default function GroupSettingsModal({
               />
             </TabsContent>
 
+            {/* Analytics Tab */}
+            <TabsContent value="analytics" className="py-4">
+              <GroupAnalytics
+                groupId={group._id}
+                members={members}
+                creatorId={group.creatorId}
+                accentColor={group.accentColor}
+              />
+            </TabsContent>
+
             {/* Invite Codes Tab */}
             <TabsContent value="codes" className="py-4">
               <div className="space-y-4">
@@ -509,6 +540,7 @@ export default function GroupSettingsModal({
         onOpenChange={setInviteCodesModalOpen}
         groupId={group._id}
         groupName={group.name}
+        accentColor={group.accentColor}
       />
     </>
   );
