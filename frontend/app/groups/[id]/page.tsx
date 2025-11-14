@@ -24,6 +24,7 @@ import MembersModal from "@/components/groups/members-modal";
 import GroupSettingsModal from "@/components/groups/group-settings-modal";
 import InviteMembersModal from "@/components/groups/invite-members-modal";
 import ActivityFeedFilters from "@/components/groups/activity-feed-filters";
+import MockPacts from "@/components/groups/mock-pacts";
 
 // Type for activity as returned from the backend
 interface Activity {
@@ -424,9 +425,7 @@ export default function GroupDetailPage() {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="activity">Activity</TabsTrigger>
-            <TabsTrigger value="pacts" disabled>
-              Pacts
-            </TabsTrigger>
+            <TabsTrigger value="pacts">Pacts</TabsTrigger>
             <TabsTrigger value="chat" disabled>
               Chat
             </TabsTrigger>
@@ -506,9 +505,18 @@ export default function GroupDetailPage() {
           </TabsContent>
 
           <TabsContent value="pacts">
-            <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center">
-              <p className="text-slate-500">Pacts feature coming soon</p>
-            </div>
+            <MockPacts
+              groupId={groupId}
+              groupName={group.name}
+              members={group.members
+                .filter((m: BackendMember) => m._id && m.name)
+                .map((m: BackendMember) => ({
+                  _id: m._id!,
+                  name: m.name!,
+                  profileImageUrl: m.profileImageUrl,
+                }))}
+              accentColor={group.accentColor}
+            />
           </TabsContent>
 
           <TabsContent value="chat">
