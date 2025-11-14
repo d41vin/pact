@@ -24,7 +24,7 @@ import MembersModal from "@/components/groups/members-modal";
 import GroupSettingsModal from "@/components/groups/group-settings-modal";
 import InviteMembersModal from "@/components/groups/invite-members-modal";
 import ActivityFeedFilters from "@/components/groups/activity-feed-filters";
-import MockPacts from "@/components/groups/mock-pacts";
+import PactsOverview from "@/components/pacts/pacts-overview";
 
 // Type for activity as returned from the backend
 interface Activity {
@@ -93,6 +93,7 @@ export default function GroupDetailPage() {
   const [membersModalOpen, setMembersModalOpen] = useState(false);
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
+  const [createPactModalOpen, setCreatePactModalOpen] = useState(false);
 
   // Activity filter state
   const [filteredActivities, setFilteredActivities] = useState<Activity[]>([]);
@@ -222,6 +223,11 @@ export default function GroupDetailPage() {
   if (!("memberCount" in group) || !("members" in group)) {
     return null; // This should never happen, but satisfies TypeScript
   }
+
+  const canCreatePacts =
+    group.permissions?.whoCanCreatePacts === "admins"
+      ? group.userRole === "admin"
+      : true;
 
   const formatTimestamp = (timestamp: number): string => {
     const now = new Date().getTime();
@@ -365,7 +371,26 @@ export default function GroupDetailPage() {
                   </Button>
                 </div>
               )}
-              <Button variant="outline" disabled className="w-full">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  if (!canCreatePacts) {
+                    toast.info("Only admins can create pacts in this group");
+                    return;
+                  }
+
+                  setActiveTab("pacts");
+                  setCreatePactModalOpen(true);
+                }}
+                className="w-full"
+                disabled={!canCreatePacts}
+                aria-disabled={!canCreatePacts}
+                title={
+                  canCreatePacts
+                    ? undefined
+                    : "Only admins can create pacts in this group"
+                }
+              >
                 <Plus className="mr-2 h-4 w-4" />
                 Use Pact
               </Button>
@@ -505,17 +530,21 @@ export default function GroupDetailPage() {
           </TabsContent>
 
           <TabsContent value="pacts">
-            <MockPacts
+            <PactsOverview
               groupId={groupId}
               groupName={group.name}
               members={group.members
-                .filter((m: BackendMember) => m._id && m.name)
+                .filter((m: BackendMember) => m._id && m.name && m.username)
                 .map((m: BackendMember) => ({
                   _id: m._id!,
                   name: m.name!,
+                  username: m.username!,
                   profileImageUrl: m.profileImageUrl,
                 }))}
               accentColor={group.accentColor}
+              canCreatePacts={canCreatePacts}
+              createModalOpen={createPactModalOpen}
+              onCreateModalOpenChange={setCreatePactModalOpen}
             />
           </TabsContent>
 
