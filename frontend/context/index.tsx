@@ -3,7 +3,7 @@
 import { wagmiAdapter, projectId } from "@/config";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createAppKit } from "@reown/appkit/react";
-import { hederaTestnet } from "@reown/appkit/networks";
+import { mantleTestnet } from "@reown/appkit/networks";
 import React, { type ReactNode } from "react";
 import { cookieToInitialState, WagmiProvider, type Config } from "wagmi";
 import { ReownAuthentication } from "@reown/appkit-siwx";
@@ -19,7 +19,7 @@ if (!projectId) {
 const metadata = {
   name: "Pact",
   description:
-    "An all-in-one finance app for personal, group, and merchant transactions on Hedera, with programmable features like bill splitting, group-based P2P lending, borrowing, betting, and more.",
+    "An all-in-one finance app for personal, group, and merchant transactions on Mantle, with programmable features like bill splitting, group-based P2P lending, borrowing, betting, and more.",
   url: "https://appkitexampleapp.com", // origin must match your domain & subdomain
   icons: ["https://avatars.githubusercontent.com/u/179229932"],
 };
@@ -28,8 +28,8 @@ const metadata = {
 const modal = createAppKit({
   adapters: [wagmiAdapter],
   projectId,
-  networks: [hederaTestnet],
-  defaultNetwork: hederaTestnet,
+  networks: [mantleTestnet],
+  defaultNetwork: mantleTestnet,
   metadata: metadata,
   siwx: new ReownAuthentication({
     required: false,
@@ -42,8 +42,8 @@ const modal = createAppKit({
     emailShowWallets: false, // default to true
   },
   featuredWalletIds: [
-    "c57ca95b47569778a828d19178114f4db188b89b763c899ba0be274e97267d96",
-    "a29498d225fa4b13468ff4d6cf4ae0ea4adcbd95f07ce8a843a1dee10b632f3f",
+    // "c57ca95b47569778a828d19178114f4db188b89b763c899ba0be274e97267d96",
+    // "a29498d225fa4b13468ff4d6cf4ae0ea4adcbd95f07ce8a843a1dee10b632f3f",
   ],
   debug: true, //defaults to false - remove before production
   themeMode: "light", //defaults to user system settings
