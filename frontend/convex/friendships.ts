@@ -9,7 +9,7 @@ const MAX_PENDING_REQUESTS = 50;
 async function verifyUser(ctx: any, userAddress: string) {
   const user = await ctx.db
     .query("users")
-    .withIndex("by_userAddress", (q: any) => q.eq("userAddress", userAddress))
+    .withIndex("by_userAddress", (q: any) => q.eq("userAddress", userAddress.toLowerCase()))
     .unique();
 
   if (!user) {

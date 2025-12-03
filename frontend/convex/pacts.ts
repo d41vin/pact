@@ -6,7 +6,7 @@ import { Id } from "./_generated/dataModel";
 async function verifyUser(ctx: MutationCtx, userAddress: string) {
   const user = await ctx.db
     .query("users")
-    .withIndex("by_userAddress", (q) => q.eq("userAddress", userAddress))
+    .withIndex("by_userAddress", (q) => q.eq("userAddress", userAddress.toLowerCase()))
     .unique();
 
   if (!user) {
