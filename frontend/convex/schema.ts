@@ -61,6 +61,30 @@ export default defineSchema({
     .index("by_user_unread", ["userId", "isRead"])
     .index("by_user_type", ["userId", "type"]),
 
+  // NEW: Payments table
+  payments: defineTable({
+    senderId: v.id("users"),
+    senderAddress: v.string(),
+    recipientId: v.optional(v.id("users")),
+    recipientAddress: v.string(),
+    amount: v.string(), // Store as string to preserve precision
+    note: v.optional(v.string()),
+    transactionHash: v.string(),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("completed"),
+      v.literal("failed"),
+    ),
+    blockNumber: v.optional(v.number()),
+    timestamp: v.number(),
+  })
+    .index("by_sender", ["senderId"])
+    .index("by_recipient", ["recipientId"])
+    .index("by_sender_address", ["senderAddress"])
+    .index("by_recipient_address", ["recipientAddress"])
+    .index("by_transaction_hash", ["transactionHash"])
+    .index("by_status", ["status"]),
+
   groups: defineTable({
     name: v.string(),
     description: v.string(),
@@ -156,7 +180,6 @@ export default defineSchema({
     .index("by_actor", ["actorId"])
     .index("by_type", ["type"]),
 
-  // ENHANCED: Pacts table with full configuration
   pacts: defineTable({
     name: v.string(),
     description: v.string(),
@@ -184,7 +207,6 @@ export default defineSchema({
     .index("by_creator", ["creatorId"])
     .index("by_active", ["isActive"]),
 
-  // ENHANCED: Group pacts with full state management
   groupPacts: defineTable({
     groupId: v.id("groups"),
     pactId: v.id("pacts"),
@@ -197,21 +219,17 @@ export default defineSchema({
       v.literal("completed"),
       v.literal("cancelled"),
     ),
-    // Configuration
     config: v.object({
       goal: v.optional(v.number()),
       deadline: v.optional(v.number()),
       participants: v.array(v.id("users")),
       settings: v.any(),
     }),
-    // Financial state
     balance: v.number(),
     totalContributions: v.number(),
     totalWithdrawals: v.number(),
-    // Hedera integration
     hederaAccountId: v.optional(v.string()),
     contractState: v.optional(v.any()),
-    // Metadata
     lastActivityAt: v.number(),
   })
     .index("by_group", ["groupId"])
@@ -220,7 +238,6 @@ export default defineSchema({
     .index("by_status", ["status"])
     .index("by_group_status", ["groupId", "status"]),
 
-  // NEW: Pact transactions
   pactTransactions: defineTable({
     pactInstanceId: v.id("groupPacts"),
     userId: v.id("users"),
@@ -231,7 +248,6 @@ export default defineSchema({
       v.literal("fee"),
     ),
     amount: v.number(),
-    // Hedera
     hederaTransactionId: v.optional(v.string()),
     hederaTimestamp: v.optional(v.number()),
     status: v.union(
@@ -239,10 +255,8 @@ export default defineSchema({
       v.literal("confirmed"),
       v.literal("failed"),
     ),
-    // Context
     description: v.optional(v.string()),
     metadata: v.optional(v.any()),
-    // Timestamps
     confirmedAt: v.optional(v.number()),
   })
     .index("by_pact", ["pactInstanceId"])
@@ -250,16 +264,13 @@ export default defineSchema({
     .index("by_status", ["status"])
     .index("by_pact_status", ["pactInstanceId", "status"]),
 
-  // NEW: Pact participants
   pactParticipants: defineTable({
     pactInstanceId: v.id("groupPacts"),
     userId: v.id("users"),
     role: v.union(v.literal("creator"), v.literal("participant")),
-    // Contributions
     totalContributed: v.number(),
     totalWithdrawn: v.number(),
     netPosition: v.number(),
-    // Status
     isActive: v.boolean(),
     joinedAt: v.number(),
     leftAt: v.optional(v.number()),
@@ -269,7 +280,6 @@ export default defineSchema({
     .index("by_pact_user", ["pactInstanceId", "userId"])
     .index("by_active", ["isActive"]),
 
-  // NEW: Pact actions (for approval workflows)
   pactActions: defineTable({
     pactInstanceId: v.id("groupPacts"),
     userId: v.id("users"),
@@ -281,11 +291,9 @@ export default defineSchema({
       v.literal("rejected"),
       v.literal("completed"),
     ),
-    // Approval
     requiredApprovals: v.optional(v.number()),
     approvals: v.array(v.id("users")),
     rejections: v.array(v.id("users")),
-    // Timestamps
     resolvedAt: v.optional(v.number()),
   })
     .index("by_pact", ["pactInstanceId"])

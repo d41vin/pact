@@ -14,6 +14,7 @@ import type * as groups from "../groups.js";
 import type * as inviteCodes from "../inviteCodes.js";
 import type * as notifications from "../notifications.js";
 import type * as pacts from "../pacts.js";
+import type * as payments from "../payments.js";
 import type * as seedPacts from "../seedPacts.js";
 import type * as storage from "../storage.js";
 import type * as users from "../users.js";
@@ -31,6 +32,7 @@ declare const fullApi: ApiFromModules<{
   inviteCodes: typeof inviteCodes;
   notifications: typeof notifications;
   pacts: typeof pacts;
+  payments: typeof payments;
   seedPacts: typeof seedPacts;
   storage: typeof storage;
   users: typeof users;
