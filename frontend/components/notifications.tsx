@@ -19,6 +19,8 @@ import { FriendRequestNotification } from "@/components/notifications/friend-req
 import { FriendAcceptedNotification } from "@/components/notifications/friend-accepted";
 import { GroupInviteNotification } from "@/components/notifications/group-invite";
 import { GroupJoinedNotification } from "@/components/notifications/group-joined";
+import { PaymentReceivedNotification } from "@/components/notifications/payments-received";
+
 
 export default function Notifications() {
   const [isOpen, setIsOpen] = useState(false);
@@ -92,6 +94,17 @@ export default function Notifications() {
             {...commonProps}
             fromUser={notification.fromUser}
             group={notification.group}
+            message={notification.message}
+          />
+        );
+      case "payment_received":
+        return (
+          <PaymentReceivedNotification
+            key={notification._id}
+            {...commonProps}
+            fromUser={notification.fromUser}
+            paymentId={notification.paymentId}
+            amount={notification.amount}
             message={notification.message}
           />
         );
