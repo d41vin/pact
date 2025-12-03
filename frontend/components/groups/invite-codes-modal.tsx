@@ -28,6 +28,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useAppKitAccount } from "@reown/appkit/react";
 import { Id } from "@/convex/_generated/dataModel";
+import { formatShortDate, formatExpiry } from "@/lib/date-utils";
 import QRCodeGenerator from "@/components/groups/qr-code-generator";
 
 interface InviteCodesModalProps {
@@ -159,30 +160,6 @@ export default function InviteCodesModal({
         error instanceof Error ? error.message : "Failed to delete code";
       toast.error(message);
     }
-  };
-
-  const formatExpiry = (timestamp?: number) => {
-    if (!timestamp) return "Never";
-    const date = new Date(timestamp);
-    const now = Date.now();
-
-    if (timestamp < now) return "Expired";
-
-    return date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
-  const formatDate = (timestamp: number) => {
-    return new Date(timestamp).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
   };
 
   return (
@@ -347,7 +324,7 @@ export default function InviteCodesModal({
                               <div className="space-y-1 text-sm text-slate-500">
                                 <div>
                                   Created by {code.creator?.name || "Unknown"}{" "}
-                                  on {formatDate(code._creationTime)}
+                                  on {formatShortDate(code._creationTime)}
                                 </div>
                                 <div>
                                   Expires: {formatExpiry(code.expiresAt)}

@@ -2,6 +2,7 @@
 
 import { ReactNode } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { formatTimeAgo } from "@/lib/date-utils";
 
 interface NotificationBaseProps {
   avatar?: string | null;
@@ -13,16 +14,6 @@ interface NotificationBaseProps {
   actions?: ReactNode;
   onClick?: () => void;
 }
-
-const formatTimestamp = (timestamp: number): string => {
-  const seconds = Math.floor((Date.now() - timestamp) / 1000);
-
-  if (seconds < 60) return "just now";
-  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
-  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
-  if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`;
-  return `${Math.floor(seconds / 604800)}w ago`;
-};
 
 export default function NotificationBase({
   avatar,
@@ -56,7 +47,7 @@ export default function NotificationBase({
           <div className="mb-1 flex items-start justify-between gap-2">
             <h4 className="text-sm font-semibold text-slate-900">{title}</h4>
             <span className="text-xs whitespace-nowrap text-slate-500">
-              {formatTimestamp(timestamp)}
+              {formatTimeAgo(timestamp)}
             </span>
           </div>
           <p className="mb-1 text-sm text-slate-600">{description}</p>

@@ -13,6 +13,7 @@ import JoinByCodeModal from "@/components/groups/join-by-code-modal";
 import ActivityFeedFilters from "@/components/groups/activity-feed-filters";
 import Image from "next/image";
 import { Id } from "@/convex/_generated/dataModel";
+import { formatTimeAgo } from "@/lib/date-utils";
 
 // Type for activity as returned from the backend
 interface Activity {
@@ -147,16 +148,6 @@ export default function GroupsPage() {
     }
   };
 
-  const formatTimestamp = (timestamp: number): string => {
-    const now = new Date().getTime();
-    const seconds = Math.floor((now - timestamp) / 1000);
-    if (seconds < 60) return "just now";
-    if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
-    if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
-    if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`;
-    return `${Math.floor(seconds / 604800)}w ago`;
-  };
-
   // Get activities to display (filtered or all)
   const displayActivities =
     filteredActivities.length > 0 || activities?.length === 0
@@ -224,7 +215,7 @@ export default function GroupsPage() {
                           {formatActivityText(activity)}
                         </p>
                         <p className="mt-1 text-xs text-slate-500">
-                          {formatTimestamp(activity._creationTime)}
+                          {formatTimeAgo(activity._creationTime)}
                         </p>
                       </div>
                     </div>

@@ -25,6 +25,7 @@ import GroupSettingsModal from "@/components/groups/group-settings-modal";
 import InviteMembersModal from "@/components/groups/invite-members-modal";
 import ActivityFeedFilters from "@/components/groups/activity-feed-filters";
 import MockPacts from "@/components/groups/mock-pacts";
+import { formatTimeAgo } from "@/lib/date-utils";
 
 // Type for activity as returned from the backend
 interface Activity {
@@ -222,16 +223,6 @@ export default function GroupDetailPage() {
   if (!("memberCount" in group) || !("members" in group)) {
     return null; // This should never happen, but satisfies TypeScript
   }
-
-  const formatTimestamp = (timestamp: number): string => {
-    const now = new Date().getTime();
-    const seconds = Math.floor((now - timestamp) / 1000);
-    if (seconds < 60) return "just now";
-    if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
-    if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
-    if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`;
-    return `${Math.floor(seconds / 604800)}w ago`;
-  };
 
   const formatActivityText = (activity: Activity): string => {
     const actorName = activity.actor?.name || "Someone";
@@ -474,7 +465,7 @@ export default function GroupDetailPage() {
                           {formatActivityText(activity)}
                         </p>
                         <p className="mt-1 text-xs text-slate-500">
-                          {formatTimestamp(activity._creationTime)}
+                          {formatTimeAgo(activity._creationTime)}
                         </p>
                       </div>
                     </div>
