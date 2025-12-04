@@ -7,6 +7,8 @@ import { api } from "@/convex/_generated/api";
 import { useAppKitAccount } from "@reown/appkit/react";
 import { Spinner } from "@/components/ui/spinner";
 import SendPaymentSheet from "@/components/home/send-payment-sheet";
+import ReceivePaymentDialog from "@/components/home/receive-payment-dialog";
+import { HandCoins, Link2, Split, MoreHorizontal } from "lucide-react";
 
 export default function HomePage() {
   const router = useRouter();
@@ -47,7 +49,7 @@ export default function HomePage() {
       <main className="min-h-screen bg-gradient-to-b from-slate-50 to-white px-4 pt-24 pb-32">
         <div className="mx-auto max-w-4xl">
           {/* Welcome Section */}
-          <div className="mb-8 rounded-2xl bg-white p-6 shadow-sm border border-slate-200">
+          <div className="mb-8 rounded-[100px] corner-squircle bg-white p-6 shadow-sm border border-slate-200">
             <div className="text-center">
               <h1 className="mb-2 text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 Welcome back, {user.name}!
@@ -69,60 +71,47 @@ export default function HomePage() {
                 <SendPaymentSheet />
               </div>
 
-              {/* Placeholder for more action buttons */}
+              {/* Receive Button */}
               <div className="w-full sm:w-[calc(50%-0.5rem)] lg:w-[calc(25%-0.75rem)]">
-                <button className="flex h-24 w-full flex-col items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-green-500 to-green-600 text-white shadow-lg transition-all hover:shadow-xl">
-                  <svg
-                    className="h-6 w-6"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 4v16m8-8H4"
-                    />
-                  </svg>
+                <ReceivePaymentDialog />
+              </div>
+
+              {/* Request Button */}
+              <div className="w-full sm:w-[calc(50%-0.5rem)] lg:w-[calc(25%-0.75rem)]">
+                <button className="flex h-24 w-full flex-col items-center justify-center gap-2 rounded-[100px] corner-squircle bg-gradient-to-br from-amber-500 to-amber-600 text-white shadow-lg transition-all hover:shadow-xl">
+                  <HandCoins className="h-6 w-6" />
                   <span className="text-sm font-medium">Request</span>
                 </button>
               </div>
 
+              {/* Payment Link Button */}
               <div className="w-full sm:w-[calc(50%-0.5rem)] lg:w-[calc(25%-0.75rem)]">
-                <button className="flex h-24 w-full flex-col items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 text-white shadow-lg transition-all hover:shadow-xl">
-                  <svg
-                    className="h-6 w-6"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z"
-                    />
-                  </svg>
-                  <span className="text-sm font-medium">Split</span>
+                <button className="flex h-24 w-full flex-col items-center justify-center gap-2 rounded-[100px] corner-squircle bg-gradient-to-br from-purple-500 to-purple-600 text-white shadow-lg transition-all hover:shadow-xl">
+                  <Link2 className="h-6 w-6" />
+                  <span className="text-sm font-medium">Payment Link</span>
                 </button>
               </div>
 
+              {/* Claim Link Button */}
               <div className="w-full sm:w-[calc(50%-0.5rem)] lg:w-[calc(25%-0.75rem)]">
-                <button className="flex h-24 w-full flex-col items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 text-white shadow-lg transition-all hover:shadow-xl">
-                  <svg
-                    className="h-6 w-6"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
+                <button className="flex h-24 w-full flex-col items-center justify-center gap-2 rounded-[100px] corner-squircle bg-gradient-to-br from-pink-500 to-pink-600 text-white shadow-lg transition-all hover:shadow-xl">
+                  <Link2 className="h-6 w-6" />
+                  <span className="text-sm font-medium">Claim Link</span>
+                </button>
+              </div>
+
+              {/* Split Bill Button */}
+              <div className="w-full sm:w-[calc(50%-0.5rem)] lg:w-[calc(25%-0.75rem)]">
+                <button className="flex h-24 w-full flex-col items-center justify-center gap-2 rounded-[100px] corner-squircle bg-gradient-to-br from-teal-500 to-teal-600 text-white shadow-lg transition-all hover:shadow-xl">
+                  <Split className="h-6 w-6" />
+                  <span className="text-sm font-medium">Split Bill</span>
+                </button>
+              </div>
+
+              {/* More Button */}
+              <div className="w-full sm:w-[calc(50%-0.5rem)] lg:w-[calc(25%-0.75rem)]">
+                <button className="flex h-24 w-full flex-col items-center justify-center gap-2 rounded-[100px] corner-squircle bg-gradient-to-br from-slate-500 to-slate-600 text-white shadow-lg transition-all hover:shadow-xl">
+                  <MoreHorizontal className="h-6 w-6" />
                   <span className="text-sm font-medium">More</span>
                 </button>
               </div>
@@ -130,7 +119,7 @@ export default function HomePage() {
           </div>
 
           {/* Recent Activity Section - Placeholder */}
-          <div className="mt-8 rounded-2xl bg-white p-6 shadow-sm border border-slate-200">
+          <div className="mt-8 rounded-[50px] corner-squircle bg-white p-6 shadow-sm border border-slate-200">
             <h2 className="mb-4 text-xl font-semibold text-slate-900">
               Recent Activity
             </h2>
