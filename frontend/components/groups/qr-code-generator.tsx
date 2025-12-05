@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import {
   Download,
   Link as LinkIcon,
-  X,
   QrCode as QrCodeIcon,
 } from "lucide-react";
 import {
@@ -16,7 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import QRCodeStyling from "qr-code-styling";
+import { QRCode } from "react-qrcode-logo";
 
 interface QRCodeGeneratorProps {
   open: boolean;
@@ -33,8 +32,7 @@ export default function QRCodeGenerator({
   groupName,
   accentColor,
 }: QRCodeGeneratorProps) {
-  const ref = useRef<HTMLDivElement>(null);
-  const qrCodeRef = useRef<QRCodeStyling | null>(null);
+  const qrRef = useRef<any>(null);
 
   // Generate shareable link (replace with actual domain in production)
   const shareLink =
@@ -42,77 +40,17 @@ export default function QRCodeGenerator({
       ? `${window.location.origin}/groups?code=${code}`
       : "";
 
-  // Generate QR code
-  useEffect(() => {
-    if (!open || !code || !shareLink) return;
-
-    const link = shareLink;
-
-    // Create QR code
-    if (!qrCodeRef.current) {
-      qrCodeRef.current = new QRCodeStyling({
-        width: 300,
-        height: 300,
-        data: link,
-        margin: 10,
-        qrOptions: {
-          typeNumber: 0,
-          mode: "Byte",
-          errorCorrectionLevel: "M",
-        },
-        imageOptions: {
-          hideBackgroundDots: true,
-          imageSize: 0.4,
-          margin: 8,
-        },
-        dotsOptions: {
-          color: accentColor,
-          type: "rounded",
-        },
-        backgroundOptions: {
-          color: "#ffffff",
-        },
-        cornersSquareOptions: {
-          color: accentColor,
-          type: "extra-rounded",
-        },
-        cornersDotOptions: {
-          color: accentColor,
-          type: "dot",
-        },
-      });
-    } else {
-      qrCodeRef.current.update({
-        data: link,
-        dotsOptions: {
-          color: accentColor,
-          type: "rounded",
-        },
-        cornersSquareOptions: {
-          color: accentColor,
-          type: "extra-rounded",
-        },
-        cornersDotOptions: {
-          color: accentColor,
-          type: "dot",
-        },
-      });
-    }
-
-    // Clear previous QR code
-    if (ref.current) {
-      ref.current.innerHTML = "";
-      qrCodeRef.current.append(ref.current);
-    }
-  }, [open, code, accentColor, shareLink]);
-
   const handleDownload = () => {
-    if (!qrCodeRef.current) return;
+    if (!qrRef.current) return;
 
-    qrCodeRef.current.download({
-      name: `${groupName.replace(/\s+/g, "-").toLowerCase()}-invite-${code}`,
-      extension: "png",
-    });
+    const canvas = qrRef.current.canvas.current;
+    if (!canvas) return;
+
+    const url = canvas.toDataURL("image/png");
+    const link = document.createElement("a");
+    link.download = `${groupName.replace(/\s+/g, "-").toLowerCase()}-invite-${code}.png`;
+    link.href = url;
+    link.click();
 
     toast.success("QR code downloaded!");
   };
@@ -142,7 +80,21 @@ export default function QRCodeGenerator({
         <div className="space-y-4">
           {/* QR Code Display */}
           <div className="flex justify-center rounded-lg border border-slate-200 bg-white p-4">
-            <div ref={ref} />
+            <QRCode
+              ref={qrRef}
+              value={shareLink}
+              size={300}
+              quietZone={10}
+              fgColor={accentColor}
+              bgColor="#ffffff"
+              qrStyle="dots"
+              eyeRadius={[
+                { outer: 10, inner: 5 },
+                { outer: 10, inner: 5 },
+                { outer: 10, inner: 5 },
+              ]}
+              ecLevel="M"
+            />
           </div>
 
           {/* Invite Code */}
