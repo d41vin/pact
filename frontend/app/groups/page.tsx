@@ -86,10 +86,10 @@ export default function GroupsPage() {
 
   if (!currentUser) {
     return (
-      <div className="flex min-h-screen items-center justify-center px-4 pt-24 pb-28">
+      <div className="flex min-h-screen items-center justify-center px-4 pt-8 pb-28">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
-          <p className="text-sm text-slate-500">Loading...</p>
+          <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
+          <p className="text-sm text-zinc-500">Loading...</p>
         </div>
       </div>
     );
@@ -156,13 +156,13 @@ export default function GroupsPage() {
 
   return (
     <>
-      <div className="min-h-screen bg-slate-50 px-4 pt-24 pb-28">
-        <div className="mx-auto max-w-6xl space-y-6">
+      <div className="min-h-screen bg-zinc-50 px-4 pt-8 pb-28">
+        <div className="mx-auto max-w-4xl space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-slate-900">Groups</h1>
-              <p className="mt-1 text-slate-600">
+              <h1 className="text-3xl font-bold text-zinc-900">Groups</h1>
+              <p className="mt-1 text-zinc-600">
                 Manage your groups and see recent activity
               </p>
             </div>
@@ -183,8 +183,8 @@ export default function GroupsPage() {
 
           {/* Activity Feed */}
           {activities && activities.length > 0 && (
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-              <h2 className="mb-4 text-lg font-semibold text-slate-900">
+            <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
+              <h2 className="mb-4 text-lg font-semibold text-zinc-900">
                 Recent Activity
               </h2>
 
@@ -199,22 +199,22 @@ export default function GroupsPage() {
               <div className="space-y-3">
                 {displayActivities.length === 0 ? (
                   <div className="py-8 text-center">
-                    <p className="text-slate-500">No matching activities</p>
+                    <p className="text-zinc-500">No matching activities</p>
                   </div>
                 ) : (
                   displayActivities.map((activity) => (
                     <div
                       key={activity._id}
-                      className="flex items-start gap-3 rounded-lg p-3 transition-colors hover:bg-slate-50"
+                      className="flex items-start gap-3 rounded-lg p-3 transition-colors hover:bg-zinc-50"
                     >
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xl">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-xl">
                         {getActivityIcon(activity.type)}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm text-slate-900">
+                        <p className="text-sm text-zinc-900">
                           {formatActivityText(activity)}
                         </p>
-                        <p className="mt-1 text-xs text-slate-500">
+                        <p className="mt-1 text-xs text-zinc-500">
                           {formatTimeAgo(activity._creationTime)}
                         </p>
                       </div>
@@ -227,23 +227,23 @@ export default function GroupsPage() {
 
           {/* Groups Grid */}
           <div>
-            <h2 className="mb-4 text-lg font-semibold text-slate-900">
+            <h2 className="mb-4 text-lg font-semibold text-zinc-900">
               Your Groups {groups && `(${groups.length})`}
             </h2>
 
             {!groups ? (
-              <div className="flex items-center justify-center rounded-2xl border border-slate-200 bg-white p-12">
-                <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+              <div className="flex items-center justify-center rounded-2xl border border-zinc-200 bg-white p-12">
+                <Loader2 className="h-6 w-6 animate-spin text-zinc-400" />
               </div>
             ) : groups.length === 0 ? (
-              <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center">
-                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100">
-                  <Users className="h-8 w-8 text-slate-400" />
+              <div className="rounded-2xl border border-zinc-200 bg-white p-12 text-center">
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-zinc-100">
+                  <Users className="h-8 w-8 text-zinc-400" />
                 </div>
-                <h3 className="mb-2 text-lg font-semibold text-slate-900">
+                <h3 className="mb-2 text-lg font-semibold text-zinc-900">
                   No groups yet
                 </h3>
-                <p className="mb-4 text-sm text-slate-500">
+                <p className="mb-4 text-sm text-zinc-500">
                   Create a group or join one with an invite code
                 </p>
                 <div className="flex justify-center gap-2">
@@ -266,7 +266,7 @@ export default function GroupsPage() {
                   <button
                     key={group._id}
                     onClick={() => router.push(`/groups/${group._id}`)}
-                    className="group relative overflow-hidden rounded-xl border border-slate-200 bg-white p-6 text-left shadow-sm transition-all hover:border-slate-300 hover:shadow-md"
+                    className="group relative overflow-hidden rounded-xl border border-zinc-200 bg-white p-6 text-left shadow-sm transition-all hover:border-zinc-300 hover:shadow-md"
                   >
                     {/* Accent Color Background */}
                     <div
@@ -300,11 +300,11 @@ export default function GroupsPage() {
 
                       {/* Group Info */}
                       <div className="text-center">
-                        <h3 className="truncate text-lg font-semibold text-slate-900">
+                        <h3 className="truncate text-lg font-semibold text-zinc-900">
                           {group.name}
                         </h3>
                         {group.description && (
-                          <p className="mt-1 line-clamp-2 text-sm text-slate-500">
+                          <p className="mt-1 line-clamp-2 text-sm text-zinc-500">
                             {group.description}
                           </p>
                         )}
@@ -320,7 +320,7 @@ export default function GroupsPage() {
                               return (
                                 <Avatar
                                   key={member._id}
-                                  className="h-8 w-8 border-2 border-white ring-1 ring-slate-200"
+                                  className="h-8 w-8 border-2 border-white ring-1 ring-zinc-200"
                                 >
                                   <AvatarImage
                                     src={member.profileImageUrl}
@@ -339,7 +339,7 @@ export default function GroupsPage() {
                             })}
                           {group.memberCount > 3 && (
                             <div
-                              className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white text-xs font-semibold text-white ring-1 ring-slate-200"
+                              className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white text-xs font-semibold text-white ring-1 ring-zinc-200"
                               style={{ backgroundColor: group.accentColor }}
                             >
                               +{group.memberCount - 3}
@@ -349,7 +349,7 @@ export default function GroupsPage() {
 
                         {/* Role Badge */}
                         {group.userRole === "admin" && (
-                          <span className="rounded-full bg-slate-900 px-2 py-1 text-xs font-medium text-white">
+                          <span className="rounded-full bg-zinc-900 px-2 py-1 text-xs font-medium text-white">
                             Admin
                           </span>
                         )}

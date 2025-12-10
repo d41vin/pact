@@ -164,10 +164,10 @@ export default function GroupDetailPage() {
   // Loading state
   if (group === undefined) {
     return (
-      <div className="flex min-h-screen items-center justify-center px-4 pt-24 pb-28">
+      <div className="flex min-h-screen items-center justify-center px-4 pt-8 pb-28">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
-          <p className="text-sm text-slate-500">Loading group...</p>
+          <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
+          <p className="text-sm text-zinc-500">Loading group...</p>
         </div>
       </div>
     );
@@ -176,12 +176,12 @@ export default function GroupDetailPage() {
   // Group not found
   if (group === null) {
     return (
-      <div className="flex min-h-screen items-center justify-center px-4 pt-24 pb-28">
+      <div className="flex min-h-screen items-center justify-center px-4 pt-8 pb-28">
         <div className="text-center">
-          <h2 className="mb-2 text-2xl font-bold text-slate-900">
+          <h2 className="mb-2 text-2xl font-bold text-zinc-900">
             Group not found
           </h2>
-          <p className="mb-4 text-slate-500">
+          <p className="mb-4 text-zinc-500">
             This group doesn&apos;t exist or has been deleted.
           </p>
           <Button onClick={() => router.push("/groups")}>Back to Groups</Button>
@@ -193,15 +193,15 @@ export default function GroupDetailPage() {
   // Access denied - show access request component
   if (!group.hasAccess) {
     return (
-      <div className="flex min-h-screen items-center justify-center px-4 pt-24 pb-28">
+      <div className="flex min-h-screen items-center justify-center px-4 pt-8 pb-28">
         <div className="max-w-md text-center">
-          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100">
-            <Lock className="h-8 w-8 text-slate-400" />
+          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-zinc-100">
+            <Lock className="h-8 w-8 text-zinc-400" />
           </div>
-          <h2 className="mb-2 text-2xl font-bold text-slate-900">
+          <h2 className="mb-2 text-2xl font-bold text-zinc-900">
             Private Group
           </h2>
-          <p className="mb-6 text-slate-500">
+          <p className="mb-6 text-zinc-500">
             This is a private group. Request access to join.
           </p>
           {currentUser ? (
@@ -210,7 +210,7 @@ export default function GroupDetailPage() {
               Request Access
             </Button>
           ) : (
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-zinc-500">
               Sign up or log in to request access
             </p>
           )}
@@ -283,11 +283,11 @@ export default function GroupDetailPage() {
       : activitiesData?.activities || [];
 
   return (
-    <div className="min-h-screen bg-slate-50 px-4 pt-24 pb-28">
+    <div className="min-h-screen bg-zinc-50 px-4 pt-8 pb-28">
       <div className="mx-auto max-w-4xl space-y-6">
         {/* Group Profile Card */}
         <div
-          className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
+          className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm"
           style={{
             background: `linear-gradient(to bottom, ${group.accentColor}15 0%, white 40%)`,
           }}
@@ -303,7 +303,7 @@ export default function GroupDetailPage() {
                   {group.imageOrEmoji}
                 </div>
               ) : (
-                <div className="relative h-24 w-24 overflow-hidden rounded-full border-4 border-white shadow-lg ring-2 ring-slate-200">
+                <div className="relative h-24 w-24 overflow-hidden rounded-full border-4 border-white shadow-lg ring-2 ring-zinc-200">
                   <Image
                     src={group.imageOrEmoji}
                     alt={group.name}
@@ -316,13 +316,13 @@ export default function GroupDetailPage() {
 
             {/* Group Info */}
             <div className="mb-6 text-center">
-              <h1 className="mb-2 text-3xl font-bold text-slate-900">
+              <h1 className="mb-2 text-3xl font-bold text-zinc-900">
                 {group.name}
               </h1>
               {group.description && (
-                <p className="text-slate-600">{group.description}</p>
+                <p className="text-zinc-600">{group.description}</p>
               )}
-              <div className="mt-3 flex items-center justify-center gap-3 text-sm text-slate-500">
+              <div className="mt-3 flex items-center justify-center gap-3 text-sm text-zinc-500">
                 <span className="flex items-center gap-1">
                   <Users className="h-4 w-4" />
                   {group.memberCount} member{group.memberCount !== 1 ? "s" : ""}
@@ -384,7 +384,7 @@ export default function GroupDetailPage() {
                   return (
                     <Avatar
                       key={member._id}
-                      className="h-10 w-10 border-2 border-white ring-1 ring-slate-200"
+                      className="h-10 w-10 border-2 border-white ring-1 ring-zinc-200"
                     >
                       <AvatarImage
                         src={member.profileImageUrl}
@@ -401,7 +401,7 @@ export default function GroupDetailPage() {
                 })}
                 {group.memberCount > 5 && (
                   <div
-                    className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-white text-sm font-semibold text-white ring-1 ring-slate-200"
+                    className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-white text-sm font-semibold text-white ring-1 ring-zinc-200"
                     style={{ backgroundColor: group.accentColor }}
                   >
                     +{group.memberCount - 5}
@@ -423,8 +423,8 @@ export default function GroupDetailPage() {
           </TabsList>
 
           <TabsContent value="activity" className="mt-6">
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-              <h2 className="mb-4 text-lg font-semibold text-slate-900">
+            <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
+              <h2 className="mb-4 text-lg font-semibold text-zinc-900">
                 Group Activity
               </h2>
 
@@ -440,11 +440,11 @@ export default function GroupDetailPage() {
 
               {!activitiesData ? (
                 <div className="flex justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+                  <Loader2 className="h-6 w-6 animate-spin text-zinc-400" />
                 </div>
               ) : displayActivities.length === 0 ? (
                 <div className="py-12 text-center">
-                  <p className="text-slate-500">
+                  <p className="text-zinc-500">
                     {activitiesData.activities.length === 0
                       ? "No activity yet"
                       : "No matching activities"}
@@ -455,16 +455,16 @@ export default function GroupDetailPage() {
                   {displayActivities.map((activity) => (
                     <div
                       key={activity._id}
-                      className="flex items-start gap-3 rounded-lg p-3 transition-colors hover:bg-slate-50"
+                      className="flex items-start gap-3 rounded-lg p-3 transition-colors hover:bg-zinc-50"
                     >
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xl">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-xl">
                         {getActivityIcon(activity.type)}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm text-slate-900">
+                        <p className="text-sm text-zinc-900">
                           {formatActivityText(activity)}
                         </p>
-                        <p className="mt-1 text-xs text-slate-500">
+                        <p className="mt-1 text-xs text-zinc-500">
                           {formatTimeAgo(activity._creationTime)}
                         </p>
                       </div>
@@ -511,8 +511,8 @@ export default function GroupDetailPage() {
           </TabsContent>
 
           <TabsContent value="chat">
-            <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center">
-              <p className="text-slate-500">Chat feature coming soon</p>
+            <div className="rounded-2xl border border-zinc-200 bg-white p-12 text-center">
+              <p className="text-zinc-500">Chat feature coming soon</p>
             </div>
           </TabsContent>
         </Tabs>

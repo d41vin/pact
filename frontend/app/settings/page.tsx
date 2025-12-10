@@ -53,19 +53,19 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 px-4 pt-24 pb-28">
-      <div className="mx-auto max-w-6xl">
+    <div className="min-h-screen bg-zinc-50 px-4 pt-8 pb-28">
+      <div className="mx-auto max-w-4xl">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-slate-900">Settings</h1>
-          <p className="mt-1 text-slate-600">
+          <h1 className="text-3xl font-bold text-zinc-900">Settings</h1>
+          <p className="mt-1 text-zinc-600">
             Manage your account settings and preferences
           </p>
         </div>
 
         <div className="flex gap-6">
           {/* Sidebar */}
-          <aside className="w-64 flex-shrink-0">
-            <nav className="rounded-xl border border-slate-200 bg-white p-2 shadow-sm">
+          <aside className="w-64 shrink-0">
+            <nav className="rounded-xl border border-zinc-200 bg-white p-2 shadow-sm">
               {sections.map((section) => {
                 const Icon = section.icon;
                 return (
@@ -75,8 +75,8 @@ export default function SettingsPage() {
                     className={cn(
                       "flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left transition-colors",
                       activeSection === section.id
-                        ? "bg-slate-900 text-white"
-                        : "text-slate-700 hover:bg-slate-100",
+                        ? "bg-zinc-900 text-white"
+                        : "text-zinc-700 hover:bg-zinc-100",
                     )}
                   >
                     <Icon className="h-5 w-5" />
@@ -89,7 +89,7 @@ export default function SettingsPage() {
 
           {/* Main Content */}
           <main className="flex-1">
-            <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
+            <div className="rounded-xl border border-zinc-200 bg-white shadow-sm">
               {renderSection()}
             </div>
           </main>

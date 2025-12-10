@@ -28,10 +28,10 @@ export default function ProfilePage() {
   // Loading state
   if (user === undefined) {
     return (
-      <div className="flex min-h-screen items-center justify-center px-4 pt-24 pb-28">
+      <div className="flex min-h-screen items-center justify-center px-4 pt-8 pb-28">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
-          <p className="text-sm text-slate-500">Loading profile...</p>
+          <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
+          <p className="text-sm text-zinc-500">Loading profile...</p>
         </div>
       </div>
     );
@@ -40,12 +40,12 @@ export default function ProfilePage() {
   // User not found
   if (user === null) {
     return (
-      <div className="flex min-h-screen items-center justify-center px-4 pt-24 pb-28">
+      <div className="flex min-h-screen items-center justify-center px-4 pt-8 pb-28">
         <div className="text-center">
-          <h2 className="mb-2 text-2xl font-bold text-slate-900">
+          <h2 className="mb-2 text-2xl font-bold text-zinc-900">
             User not found
           </h2>
-          <p className="text-slate-500">
+          <p className="text-zinc-500">
             The profile you're looking for doesn't exist.
           </p>
         </div>
@@ -56,7 +56,7 @@ export default function ProfilePage() {
   const isOwnProfile = currentUser?.userAddress === user.userAddress;
 
   return (
-    <div className="min-h-screen px-4 pt-24 pb-28">
+    <div className="min-h-screen px-4 pt-8 pb-28">
       <div className="mx-auto max-w-4xl space-y-6">
         {/* Profile Card */}
         <ProfileCard user={user} isOwnProfile={isOwnProfile} />
