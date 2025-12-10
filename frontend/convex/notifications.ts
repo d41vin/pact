@@ -33,7 +33,17 @@ export const list = query({
       notifications.map(async (notification) => {
         let fromUser = null;
         if (notification.fromUserId) {
-          fromUser = await ctx.db.get(notification.fromUserId);
+          const user = await ctx.db.get(notification.fromUserId);
+          if (user) {
+            // Include full user data for payment requests
+            fromUser = {
+              _id: user._id,
+              name: user.name,
+              username: user.username,
+              userAddress: user.userAddress,
+              profileImageUrl: user.profileImageUrl,
+            };
+          }
         }
 
         let group = null;
