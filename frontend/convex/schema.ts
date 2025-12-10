@@ -8,6 +8,10 @@ export default defineSchema({
     email: v.optional(v.string()),
     profileImageUrl: v.optional(v.string()),
     userAddress: v.string(),
+    requestPrivacy: v.optional(v.union(
+      v.literal("anyone"),
+      v.literal("friends_only")
+    )),
   })
     .index("by_userAddress", ["userAddress"])
     .index("by_username", ["username"])
@@ -47,6 +51,8 @@ export default defineSchema({
       v.literal("group_joined"),
       v.literal("payment_request"),
       v.literal("payment_received"),
+      v.literal("payment_request_declined"),
+      v.literal("payment_request_completed"),
     ),
     isRead: v.boolean(),
     fromUserId: v.optional(v.id("users")),
@@ -54,6 +60,7 @@ export default defineSchema({
     groupId: v.optional(v.id("groups")),
     invitationId: v.optional(v.id("groupInvitations")),
     paymentId: v.optional(v.id("payments")),
+    paymentRequestId: v.optional(v.id("paymentRequests")),
     amount: v.optional(v.number()),
     message: v.optional(v.string()),
   })
@@ -61,13 +68,34 @@ export default defineSchema({
     .index("by_user_unread", ["userId", "isRead"])
     .index("by_user_type", ["userId", "type"]),
 
-  // NEW: Payments table
+  // Payment Requests table
+  paymentRequests: defineTable({
+    requesterId: v.id("users"),
+    recipientId: v.id("users"),
+    amount: v.string(),
+    note: v.optional(v.string()),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("declined"),
+      v.literal("completed"),
+      v.literal("expired"),
+    ),
+    expiresAt: v.optional(v.number()),
+    completedPaymentId: v.optional(v.id("payments")),
+    declinedAt: v.optional(v.number()),
+    completedAt: v.optional(v.number()),
+  })
+    .index("by_requester", ["requesterId"])
+    .index("by_recipient", ["recipientId"])
+    .index("by_status", ["status"])
+    .index("by_recipient_status", ["recipientId", "status"]),
+
   payments: defineTable({
     senderId: v.id("users"),
     senderAddress: v.string(),
     recipientId: v.optional(v.id("users")),
     recipientAddress: v.string(),
-    amount: v.string(), // Store as string to preserve precision
+    amount: v.string(),
     note: v.optional(v.string()),
     transactionHash: v.string(),
     status: v.union(
@@ -134,6 +162,7 @@ export default defineSchema({
       v.literal("pending"),
       v.literal("accepted"),
       v.literal("cancelled"),
+      v.literal("declined"),
     ),
     respondedAt: v.optional(v.number()),
   })
