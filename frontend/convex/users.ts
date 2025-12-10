@@ -340,3 +340,31 @@ export const getRecentRecipients = query({
     return recentRecipients;
   },
 });
+
+// Update user's request privacy setting - SECURE
+export const updateRequestPrivacy = mutation({
+  args: {
+    userAddress: v.string(),
+    privacy: v.union(v.literal("anyone"), v.literal("friends_only")),
+  },
+  handler: async (ctx, args) => {
+    // Verify the caller's identity
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_userAddress", (q) =>
+        q.eq("userAddress", args.userAddress.toLowerCase())
+      )
+      .unique();
+
+    if (!user) {
+      throw new ConvexError("User not found or not authenticated");
+    }
+
+    // Update the user's privacy setting
+    await ctx.db.patch(user._id, {
+      requestPrivacy: args.privacy,
+    });
+
+    return true;
+  },
+});
