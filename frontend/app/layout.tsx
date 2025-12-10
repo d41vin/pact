@@ -8,6 +8,7 @@ import ContextProvider from "@/context";
 import { ConvexClientProvider } from "./ConvexClientProvider";
 import { BottomNav } from "@/components/bottom-nav";
 import { TopNav } from "@/components/top-nav";
+import SendPaymentSheet from "@/components/home/send-payment-sheet";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -48,6 +49,8 @@ export default async function RootLayout({
             <TopNav />
             {children}
             <BottomNav />
+            {/* Global SendPaymentSheet - responds to events from notifications on any page */}
+            <SendPaymentSheet hideTrigger />
             <Toaster richColors />
           </ConvexClientProvider>
         </ContextProvider>
