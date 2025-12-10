@@ -45,20 +45,42 @@ import { toast } from "sonner";
 import UserRecipientInput, {
   RecipientUser,
 } from "@/components/home/user-recipient-input";
+import { Id } from "@/convex/_generated/dataModel";
 
 type ViewMode = "send" | "history";
 
-export default function SendPaymentSheet() {
+interface SendPaymentSheetProps {
+  prefilledRecipient?: RecipientUser;
+  prefilledAmount?: string;
+  requestId?: Id<"paymentRequests">;
+  onRequestFulfilled?: () => void;
+  /** When true, hides the trigger button and only responds to events (for global instance) */
+  hideTrigger?: boolean;
+}
+
+export default function SendPaymentSheet({
+  prefilledRecipient,
+  prefilledAmount,
+  requestId,
+  onRequestFulfilled,
+  hideTrigger = false,
+}: SendPaymentSheetProps = {}) {
   const [open, setOpen] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("send");
   const { address } = useAppKitAccount();
 
   // Form state
   const [recipient, setRecipient] = useState<RecipientUser | string | null>(
-    null,
+    prefilledRecipient || null
   );
-  const [amount, setAmount] = useState("");
+  const [amount, setAmount] = useState(prefilledAmount || "");
   const [note, setNote] = useState("");
+
+  // Store requestId separately so it persists across form state changes
+  // This handles requestId from both props and events
+  const [activeRequestId, setActiveRequestId] = useState<Id<"paymentRequests"> | undefined>(
+    requestId
+  );
 
   // Transaction state
   const [txHash, setTxHash] = useState<`0x${string}` | undefined>();
@@ -66,6 +88,7 @@ export default function SendPaymentSheet() {
     recipient: RecipientUser | string;
     amount: string;
     note: string;
+    requestId?: Id<"paymentRequests">;
   } | null>(null);
 
   // Payment detail modal
@@ -75,7 +98,7 @@ export default function SendPaymentSheet() {
   // Get payment history
   const paymentHistory = useQuery(
     api.payments.getSentPayments,
-    address ? { userAddress: address } : "skip",
+    address ? { userAddress: address } : "skip"
   );
 
   // Wagmi hooks
@@ -92,8 +115,9 @@ export default function SendPaymentSheet() {
     }
   }, [isConfirming, txHash]);
 
-  // Convex mutation
+  // Convex mutations
   const createPayment = useMutation(api.payments.createPayment);
+  const completeRequest = useMutation(api.paymentRequests.completeRequest);
 
   // Check if recipient is an app user
   const isRecipientAppUser =
@@ -107,8 +131,6 @@ export default function SendPaymentSheet() {
       address,
       hasPendingData: !!pendingTxData,
     });
-
-
 
     if (isConfirmed && txHash && address && pendingTxData) {
       // Create payment record in Convex
@@ -132,10 +154,32 @@ export default function SendPaymentSheet() {
         amount: pendingTxData.amount,
         note: pendingTxData.note || undefined,
         transactionHash: txHash,
+        // Skip notification if fulfilling a request (completeRequest creates its own notification)
+        skipNotification: !!pendingTxData.requestId,
       })
-        .then(() => {
+        .then(async (paymentId) => {
           console.log("Payment record created successfully");
           toast.success("Payment sent successfully!");
+
+          // If this payment is fulfilling a request, complete it
+          if (pendingTxData.requestId) {
+            try {
+              await completeRequest({
+                userAddress: address,
+                requestId: pendingTxData.requestId,
+                paymentId: paymentId,
+              });
+              console.log("Payment request marked as completed");
+              // Notify parent component if callback provided
+              if (onRequestFulfilled) {
+                onRequestFulfilled();
+              }
+            } catch (error) {
+              console.error("Failed to complete request:", error);
+              // Don't show error to user since payment was successful
+            }
+          }
+
           // Clear pending data
           setPendingTxData(null);
           setTxHash(undefined);
@@ -147,7 +191,61 @@ export default function SendPaymentSheet() {
           setTxHash(undefined);
         });
     }
-  }, [isConfirmed, txHash, address, pendingTxData, createPayment]);
+  }, [
+    isConfirmed,
+    txHash,
+    address,
+    pendingTxData,
+    createPayment,
+    completeRequest,
+    onRequestFulfilled,
+  ]);
+
+  // Update form when prefilled props change
+  useEffect(() => {
+    if (prefilledRecipient) {
+      setRecipient(prefilledRecipient);
+    }
+    if (prefilledAmount) {
+      setAmount(prefilledAmount);
+    }
+  }, [prefilledRecipient, prefilledAmount]);
+
+  // Auto-open sheet when prefilled data is provided
+  useEffect(() => {
+    if (prefilledRecipient && prefilledAmount) {
+      setOpen(true);
+    }
+  }, [prefilledRecipient, prefilledAmount]);
+
+  // Listen for custom event to open with pre-filled data
+  // Only the global instance (hideTrigger=true) listens for events
+  // This prevents both instances from opening when on the home page
+  useEffect(() => {
+    if (!hideTrigger) return; // Home page instance ignores events
+
+    const handleOpenSendPayment = (event: any) => {
+      const { recipient, amount, requestId: reqId } = event.detail;
+      setRecipient(recipient);
+      setAmount(amount);
+      // Store requestId in dedicated state so it persists
+      if (reqId) {
+        setActiveRequestId(reqId);
+        setPendingTxData({
+          recipient,
+          amount,
+          note: "",
+          requestId: reqId,
+        });
+      }
+      setOpen(true);
+    };
+
+    window.addEventListener("open-send-payment", handleOpenSendPayment);
+    return () => {
+      window.removeEventListener("open-send-payment", handleOpenSendPayment);
+    };
+  }, [hideTrigger]);
 
   const resetForm = () => {
     setRecipient(null);
@@ -155,6 +253,7 @@ export default function SendPaymentSheet() {
     setNote("");
     setTxHash(undefined);
     setPendingTxData(null);
+    setActiveRequestId(undefined); // Clear requestId on form reset
   };
 
   const handleSend = () => {
@@ -180,10 +279,12 @@ export default function SendPaymentSheet() {
 
     try {
       // Store transaction data before initiating
+      // Use activeRequestId (from event or prop) to ensure request linking works
       setPendingTxData({
         recipient: recipient!,
         amount: amount,
         note: note,
+        requestId: activeRequestId,
       });
 
       const value = parseEther(amount);
@@ -212,7 +313,7 @@ export default function SendPaymentSheet() {
               toast.error("Transaction failed");
               setPendingTxData(null);
             },
-          },
+          }
         );
       }, 100);
     } catch (error) {
@@ -229,21 +330,27 @@ export default function SendPaymentSheet() {
         setOpen(isOpen);
         if (!isOpen) {
           setViewMode("send");
-          // Only reset if no pending transaction
-          if (!pendingTxData) {
+          // Only reset if no pending transaction and no prefilled data
+          if (!pendingTxData && !prefilledRecipient && !prefilledAmount) {
             resetForm();
           }
         }
       }}
     >
-      <SheetTrigger asChild>
-        <Button className="flex h-24 w-full flex-col items-center justify-center gap-2 rounded-[100px] corner-squircle bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg transition-all hover:shadow-xl">
-          <Send className="h-6 w-6" />
-          <span className="text-sm font-medium">Send</span>
-        </Button>
-      </SheetTrigger>
-      <SheetContent side="bottom" className="h-[90vh] p-0 rounded-t-[100px] corner-squircle" showCloseButton={false}>
-        <div className="flex h-full flex-col mx-auto w-full max-w-2xl">
+      {!hideTrigger && (
+        <SheetTrigger asChild>
+          <Button className="flex h-24 w-full flex-col items-center justify-center gap-2 rounded-[40px] corner-squircle bg-linear-to-br from-blue-500 to-blue-600 text-white shadow-lg transition-all hover:shadow-xl">
+            <Send className="h-6 w-6" />
+            <span className="text-sm font-medium">Send</span>
+          </Button>
+        </SheetTrigger>
+      )}
+      <SheetContent
+        side="bottom"
+        className="h-[90vh] rounded-t-[50px] corner-squircle p-0"
+        showCloseButton={false}
+      >
+        <div className="mx-auto flex h-full w-full max-w-2xl flex-col">
           {/* Header */}
           <div className="relative flex items-center justify-between px-6 py-4">
             {/* Left side */}
@@ -291,9 +398,25 @@ export default function SendPaymentSheet() {
           </SheetDescription>
 
           {/* Content */}
-          <ScrollArea className="flex-1  overflow-auto">
+          <ScrollArea className="flex-1 overflow-auto">
             {viewMode === "send" ? (
               <div className="space-y-6 p-6 pb-10">
+                {/* Show info banner if fulfilling a request */}
+                {activeRequestId && (
+                  <div className="flex items-start gap-3 rounded-lg bg-blue-50 p-4">
+                    <Info className="mt-0.5 h-5 w-5 shrink-0 text-blue-600" />
+                    <div className="flex-1">
+                      <div className="font-medium text-blue-900">
+                        Fulfilling Payment Request
+                      </div>
+                      <div className="mt-1 text-sm text-blue-700">
+                        You're sending payment for a request. The recipient and
+                        amount are pre-filled.
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Recipient Field */}
                 <div className="space-y-2">
                   <Label>Recipient</Label>
@@ -318,9 +441,7 @@ export default function SendPaymentSheet() {
 
                 {/* Note Field */}
                 <div className="space-y-2">
-                  <Label>
-                    Note (Optional)
-                  </Label>
+                  <Label>Note (Optional)</Label>
                   <Textarea
                     placeholder={
                       isRecipientAppUser
@@ -334,7 +455,7 @@ export default function SendPaymentSheet() {
                   />
                   {!isRecipientAppUser && (
                     <div className="flex items-start gap-2 text-xs text-zinc-500">
-                      <Info className="mt-0.5 h-3 w-3 flex-shrink-0" />
+                      <Info className="mt-0.5 h-3 w-3 shrink-0" />
                       <span>
                         Notes are only available when sending payments to
                         existing Pact users
@@ -346,7 +467,7 @@ export default function SendPaymentSheet() {
                 {/* Send Button */}
                 <div className="flex justify-center">
                   <Button
-                    className="w-fit"
+                    className="w-fit rounded-[15px] corner-squircle"
                     size="lg"
                     onClick={handleSend}
                     disabled={
@@ -381,7 +502,7 @@ export default function SendPaymentSheet() {
                           setSelectedPayment(payment);
                           setIsDetailModalOpen(true);
                         }}
-                        className="flex cursor-pointer items-start gap-3 rounded-[25px] corner-squircle border bg-white p-4 transition-colors hover:bg-zinc-50"
+                        className="flex cursor-pointer items-start gap-3 rounded-[40px] corner-squircle border bg-white p-4 transition-colors hover:bg-zinc-50"
                       >
                         <Avatar className="h-10 w-10">
                           {payment.recipient?.profileImageUrl ? (
@@ -412,10 +533,10 @@ export default function SendPaymentSheet() {
                                 {payment.amount} MNT
                               </div>
                               <Badge
-                                variant="secondary"
-                                className="mt-1 text-xs"
+                                variant="outline"
+                                className="mt-1 border-0 bg-green-100 text-xs text-green-800 hover:bg-green-100"
                               >
-                                {payment.status}
+                                {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
                               </Badge>
                             </div>
                           </div>
@@ -440,7 +561,10 @@ export default function SendPaymentSheet() {
 
       {/* Payment Detail Modal */}
       <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
-        <DialogContent className="sm:max-w-md rounded-[100px] corner-squircle" showCloseButton={false}>
+        <DialogContent
+          className="rounded-[40px] corner-squircle sm:max-w-md"
+          showCloseButton={false}
+        >
           <DialogHeader className="relative">
             <DialogTitle className="text-center">Payment Details</DialogTitle>
             <DialogDescription className="sr-only">
@@ -451,7 +575,7 @@ export default function SendPaymentSheet() {
                 variant="ghost"
                 size="icon"
                 autoFocus={false}
-                className="absolute -top-2 -right-2 focus:outline-none focus-visible:outline-none"
+                className="absolute -right-2 -top-2 focus:outline-none focus-visible:outline-none"
               >
                 <X className="h-4 w-4" />
                 <span className="sr-only">Close</span>
@@ -488,7 +612,7 @@ export default function SendPaymentSheet() {
               </div>
 
               {/* Amount */}
-              <div className="rounded-[100px] corner-squircle bg-gradient-to-br from-blue-50 to-indigo-50 p-6 text-center">
+              <div className="rounded-[40px] corner-squircle bg-linear-to-br from-blue-50 to-indigo-50 p-6 text-center">
                 <div className="mb-1 text-sm font-medium text-zinc-600">
                   Amount Sent
                 </div>
@@ -501,7 +625,7 @@ export default function SendPaymentSheet() {
               {selectedPayment.note && (
                 <div className="space-y-2">
                   <div className="text-sm font-medium text-zinc-700">Note</div>
-                  <div className="rounded-[50px] corner-squircle bg-zinc-50 p-4 text-sm text-zinc-600">
+                  <div className="rounded-[15px] corner-squircle bg-zinc-50 p-4 text-sm text-zinc-600">
                     {selectedPayment.note}
                   </div>
                 </div>
@@ -530,10 +654,10 @@ export default function SendPaymentSheet() {
                 <div className="flex justify-between">
                   <span className="text-zinc-500">Status</span>
                   <Badge
-                    variant="secondary"
-                    className="bg-green-100 text-green-700"
+                    variant="outline"
+                    className="border-0 bg-green-100 text-green-800 hover:bg-green-100"
                   >
-                    {selectedPayment.status}
+                    {selectedPayment.status.charAt(0).toUpperCase() + selectedPayment.status.slice(1)}
                   </Badge>
                 </div>
               </div>
@@ -542,7 +666,7 @@ export default function SendPaymentSheet() {
               <div className="flex justify-center">
                 <Button
                   variant="outline"
-                  className="w-fit rounded-[50px] corner-squircle"
+                  className="w-fit rounded-[15px] corner-squircle"
                   onClick={() => setIsDetailModalOpen(false)}
                 >
                   Close
