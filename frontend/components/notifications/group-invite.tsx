@@ -2,7 +2,8 @@
 
 import { Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useMutation } from "convex/react";
+import { Badge } from "@/components/ui/badge";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { toast } from "sonner";
@@ -42,6 +43,12 @@ export function GroupInviteNotification({
 }: GroupInviteNotificationProps) {
   const router = useRouter();
   const { address } = useAppKitAccount();
+
+  // Query invitation status
+  const invitation = useQuery(
+    api.groups.getInvitationById,
+    invitationId ? { invitationId } : "skip"
+  );
 
   const acceptInvitation = useMutation(api.groups.acceptInvitation);
   const declineInvitation = useMutation(api.groups.declineInvitation);
@@ -91,6 +98,30 @@ export function GroupInviteNotification({
     );
   }
 
+  const isPending = invitation?.status === "pending";
+
+  const renderStatusBadge = () => {
+    if (!invitation || isPending) return null;
+
+    if (invitation.status === "accepted") {
+      return (
+        <Badge variant="secondary" className="bg-green-100 text-green-700">
+          Joined
+        </Badge>
+      );
+    }
+
+    if (invitation.status === "declined") {
+      return (
+        <Badge variant="secondary" className="bg-zinc-100 text-zinc-600">
+          Declined
+        </Badge>
+      );
+    }
+
+    return null;
+  };
+
   // Regular group invitation
   return (
     <NotificationBase
@@ -102,7 +133,7 @@ export function GroupInviteNotification({
       isRead={isRead}
       onClick={handleClick}
       actions={
-        invitationId && (
+        invitationId && isPending ? (
           <div className="flex gap-2">
             <Button size="sm" onClick={handleAccept} className="flex-1">
               Accept
@@ -116,6 +147,8 @@ export function GroupInviteNotification({
               Decline
             </Button>
           </div>
+        ) : (
+          renderStatusBadge()
         )
       }
     />
