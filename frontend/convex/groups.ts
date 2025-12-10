@@ -784,6 +784,16 @@ export const leaveGroup = mutation({
 
 // ==================== INVITATIONS ====================
 
+// Get invitation by ID
+export const getInvitationById = query({
+  args: {
+    invitationId: v.id("groupInvitations"),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db.get(args.invitationId);
+  },
+});
+
 // Send group invitation
 export const sendInvitation = mutation({
   args: {
@@ -959,8 +969,11 @@ export const declineInvitation = mutation({
       throw new ConvexError("Invitation is not pending");
     }
 
-    // Just delete the invitation (no notification needed)
-    await ctx.db.delete(args.invitationId);
+    // Update status to declined
+    await ctx.db.patch(args.invitationId, {
+      status: "declined",
+      respondedAt: Date.now(),
+    });
 
     return true;
   },

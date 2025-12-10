@@ -107,6 +107,16 @@ export const getFriendshipStatus = query({
   },
 });
 
+// Get friendship by ID
+export const getFriendshipById = query({
+  args: {
+    friendshipId: v.id("friendships"),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db.get(args.friendshipId);
+  },
+});
+
 // Send friend request - SECURE
 export const sendFriendRequest = mutation({
   args: {
