@@ -24,6 +24,8 @@ export const createPayment = mutation({
         amount: v.string(),
         note: v.optional(v.string()),
         transactionHash: v.string(),
+        // Skip notification when payment is fulfilling a request (to avoid duplicate notifications)
+        skipNotification: v.optional(v.boolean()),
     },
     handler: async (ctx, args) => {
         // Verify sender
@@ -50,8 +52,8 @@ export const createPayment = mutation({
             timestamp: Date.now(),
         });
 
-        // If recipient is a user, create notification
-        if (recipient && recipient._id !== sender._id) {
+        // If recipient is a user, create notification (unless skipped for request fulfillment)
+        if (recipient && recipient._id !== sender._id && !args.skipNotification) {
             await ctx.db.insert("notifications", {
                 userId: recipient._id,
                 type: "payment_received",
