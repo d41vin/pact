@@ -50,11 +50,11 @@ export function BottomNav() {
   return (
     <div className="pointer-events-none fixed right-0 bottom-6 left-0 z-50 px-4">
       <div className="pointer-events-auto mx-auto max-w-md">
-        <div className="bg-background/95 border-border/50 w-full rounded-full border p-1.5 shadow-xl backdrop-blur-lg">
+        <div className="bg-background/95 border-border/50 w-full rounded-full corner-squircle  border p-1.5 shadow-xl backdrop-blur-lg">
           <div className="relative grid grid-cols-3 gap-1">
             {/* Animated background pill */}
             <motion.div
-              className="bg-primary absolute inset-y-0 rounded-full"
+              className="bg-primary absolute inset-y-0 rounded-full corner-squircle "
               initial={false}
               animate={{
                 x: `calc((100% + 4px) * ${tabs.findIndex(
@@ -67,9 +67,8 @@ export function BottomNav() {
                 damping: 30,
               }}
               style={{
-                width: `calc(${100 / tabs.length}% - ${
-                  ((tabs.length - 1) / tabs.length) * 4
-                }px)`,
+                width: `calc(${100 / tabs.length}% - ${((tabs.length - 1) / tabs.length) * 4
+                  }px)`,
               }}
             />
 
@@ -84,14 +83,13 @@ export function BottomNav() {
                   onClick={() => handleTabChange(tab.value)}
                   aria-label={`Navigate to ${tab.label}`}
                   aria-pressed={isActive}
-                  className="relative z-10 h-14 cursor-pointer rounded-full transition-colors duration-200"
+                  className="relative z-10 h-14 cursor-pointer rounded-full corner-squircle transition-colors duration-200"
                 >
                   <div
-                    className={`flex flex-col items-center justify-center gap-1 transition-colors duration-200 ${
-                      isActive
-                        ? "text-primary-foreground"
-                        : "text-muted-foreground"
-                    }`}
+                    className={`flex flex-col items-center justify-center gap-1 transition-colors duration-200 ${isActive
+                      ? "text-primary-foreground"
+                      : "text-muted-foreground"
+                      }`}
                   >
                     <Icon className="h-5 w-5" />
                     <span className="text-[11px] font-medium">{tab.label}</span>
