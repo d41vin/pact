@@ -169,7 +169,7 @@ export default function ActivityFeedFilters({
       <div className="flex items-center gap-2">
         {/* Search */}
         <div className="relative flex-1">
-          <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-zinc-400" />
           <Input
             placeholder="Search activities..."
             value={searchQuery}
@@ -179,7 +179,7 @@ export default function ActivityFeedFilters({
           {searchQuery && (
             <button
               onClick={() => handleSearchChange("")}
-              className="absolute top-1/2 right-3 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+              className="absolute top-1/2 right-3 -translate-y-1/2 text-zinc-400 hover:text-zinc-600"
             >
               <X className="h-4 w-4" />
             </button>
@@ -193,7 +193,7 @@ export default function ActivityFeedFilters({
               <Filter className="mr-2 h-4 w-4" />
               Filter
               {selectedTypes.length > 0 && (
-                <span className="ml-1 rounded-full bg-slate-900 px-2 py-0.5 text-xs text-white">
+                <span className="ml-1 rounded-full bg-zinc-900 px-2 py-0.5 text-xs text-white">
                   {selectedTypes.length}
                 </span>
               )}
@@ -249,19 +249,19 @@ export default function ActivityFeedFilters({
       {/* Active Filters Display */}
       {hasActiveFilters && (
         <div className="flex items-center gap-2 text-sm">
-          <span className="text-slate-600">
+          <span className="text-zinc-600">
             Showing {activities.length} result
             {activities.length !== 1 ? "s" : ""}
           </span>
           {selectedTypes.length > 0 && (
-            <span className="text-slate-500">
+            <span className="text-zinc-500">
               • {selectedTypes.length} type
               {selectedTypes.length !== 1 ? "s" : ""} selected
             </span>
           )}
           <button
             onClick={handleClearFilters}
-            className="ml-auto text-slate-500 hover:text-slate-700"
+            className="ml-auto text-zinc-500 hover:text-zinc-700"
           >
             Clear filters
           </button>

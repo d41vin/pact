@@ -61,10 +61,10 @@ export default function PermissionsSettings({
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="mb-4 text-lg font-semibold text-slate-900">
+        <h3 className="mb-4 text-lg font-semibold text-zinc-900">
           Group Permissions
         </h3>
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-zinc-600">
           Control who can perform actions in this group
         </p>
       </div>
@@ -72,14 +72,14 @@ export default function PermissionsSettings({
       {/* Who Can Invite */}
       <div className="space-y-3">
         <div className="flex items-center gap-2">
-          <Users className="h-5 w-5 text-slate-600" />
+          <Users className="h-5 w-5 text-zinc-600" />
           <Label className="text-base font-medium">
             Who can invite members
           </Label>
         </div>
 
         <div className="space-y-2 pl-7">
-          <label className="flex items-center gap-3 rounded-lg border border-slate-200 p-3 transition-colors hover:bg-slate-50">
+          <label className="flex items-center gap-3 rounded-lg border border-zinc-200 p-3 transition-colors hover:bg-zinc-50">
             <input
               type="radio"
               name="whoCanInvite"
@@ -89,14 +89,14 @@ export default function PermissionsSettings({
               className="h-4 w-4"
             />
             <div>
-              <div className="font-medium text-slate-900">Creator Only</div>
-              <div className="text-sm text-slate-500">
+              <div className="font-medium text-zinc-900">Creator Only</div>
+              <div className="text-sm text-zinc-500">
                 Only the group creator can invite new members
               </div>
             </div>
           </label>
 
-          <label className="flex items-center gap-3 rounded-lg border border-slate-200 p-3 transition-colors hover:bg-slate-50">
+          <label className="flex items-center gap-3 rounded-lg border border-zinc-200 p-3 transition-colors hover:bg-zinc-50">
             <input
               type="radio"
               name="whoCanInvite"
@@ -106,14 +106,14 @@ export default function PermissionsSettings({
               className="h-4 w-4"
             />
             <div>
-              <div className="font-medium text-slate-900">Admins Only</div>
-              <div className="text-sm text-slate-500">
+              <div className="font-medium text-zinc-900">Admins Only</div>
+              <div className="text-sm text-zinc-500">
                 Any admin can invite new members (recommended)
               </div>
             </div>
           </label>
 
-          <label className="flex items-center gap-3 rounded-lg border border-slate-200 p-3 transition-colors hover:bg-slate-50">
+          <label className="flex items-center gap-3 rounded-lg border border-zinc-200 p-3 transition-colors hover:bg-zinc-50">
             <input
               type="radio"
               name="whoCanInvite"
@@ -123,8 +123,8 @@ export default function PermissionsSettings({
               className="h-4 w-4"
             />
             <div>
-              <div className="font-medium text-slate-900">All Members</div>
-              <div className="text-sm text-slate-500">
+              <div className="font-medium text-zinc-900">All Members</div>
+              <div className="text-sm text-zinc-500">
                 Any member can invite new members
               </div>
             </div>
@@ -135,12 +135,12 @@ export default function PermissionsSettings({
       {/* Who Can Create Pacts */}
       <div className="space-y-3">
         <div className="flex items-center gap-2">
-          <FileText className="h-5 w-5 text-slate-600" />
+          <FileText className="h-5 w-5 text-zinc-600" />
           <Label className="text-base font-medium">Who can create pacts</Label>
         </div>
 
         <div className="space-y-2 pl-7">
-          <label className="flex items-center gap-3 rounded-lg border border-slate-200 p-3 transition-colors hover:bg-slate-50">
+          <label className="flex items-center gap-3 rounded-lg border border-zinc-200 p-3 transition-colors hover:bg-zinc-50">
             <input
               type="radio"
               name="whoCanCreatePacts"
@@ -150,14 +150,14 @@ export default function PermissionsSettings({
               className="h-4 w-4"
             />
             <div>
-              <div className="font-medium text-slate-900">Admins Only</div>
-              <div className="text-sm text-slate-500">
+              <div className="font-medium text-zinc-900">Admins Only</div>
+              <div className="text-sm text-zinc-500">
                 Only admins can create and manage pacts (recommended)
               </div>
             </div>
           </label>
 
-          <label className="flex items-center gap-3 rounded-lg border border-slate-200 p-3 transition-colors hover:bg-slate-50">
+          <label className="flex items-center gap-3 rounded-lg border border-zinc-200 p-3 transition-colors hover:bg-zinc-50">
             <input
               type="radio"
               name="whoCanCreatePacts"
@@ -167,8 +167,8 @@ export default function PermissionsSettings({
               className="h-4 w-4"
             />
             <div>
-              <div className="font-medium text-slate-900">All Members</div>
-              <div className="text-sm text-slate-500">
+              <div className="font-medium text-zinc-900">All Members</div>
+              <div className="text-sm text-zinc-500">
                 Any member can create and manage pacts
               </div>
             </div>
@@ -178,7 +178,7 @@ export default function PermissionsSettings({
 
       {/* Save Button */}
       {hasChanges && (
-        <div className="flex justify-end border-t border-slate-200 pt-4">
+        <div className="flex justify-end border-t border-zinc-200 pt-4">
           <Button onClick={handleSave} disabled={isLoading}>
             {isLoading ? (
               <>

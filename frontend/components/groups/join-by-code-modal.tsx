@@ -124,7 +124,7 @@ export default function JoinByCodeModal({
               {code.length === 8 && (
                 <div className="absolute top-1/2 right-3 -translate-y-1/2">
                   {validationStep === "validating" ? (
-                    <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
+                    <Loader2 className="h-4 w-4 animate-spin text-zinc-400" />
                   ) : showPreview ? (
                     <Check className="h-5 w-5 text-green-600" />
                   ) : showError ? (
@@ -133,7 +133,7 @@ export default function JoinByCodeModal({
                 </div>
               )}
             </div>
-            <p className="text-xs text-slate-500">{code.length}/8 characters</p>
+            <p className="text-xs text-zinc-500">{code.length}/8 characters</p>
           </div>
 
           {/* Error Message */}
@@ -173,11 +173,11 @@ export default function JoinByCodeModal({
                     </div>
                   )}
                   <div>
-                    <div className="font-semibold text-slate-900">
+                    <div className="font-semibold text-zinc-900">
                       {validation.group.name}
                     </div>
                     {validation.group.description && (
-                      <div className="text-sm text-slate-600">
+                      <div className="text-sm text-zinc-600">
                         {validation.group.description}
                       </div>
                     )}
@@ -188,7 +188,7 @@ export default function JoinByCodeModal({
           )}
 
           {/* Actions */}
-          <div className="flex gap-3 border-t border-slate-200 pt-4">
+          <div className="flex gap-3 border-t border-zinc-200 pt-4">
             <Button
               variant="outline"
               onClick={() => {

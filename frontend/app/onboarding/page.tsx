@@ -258,7 +258,7 @@ export default function OnboardingPage() {
                         />
                         <div className="absolute top-1/2 right-3 -translate-y-1/2">
                           {isChecking && (
-                            <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
+                            <Loader2 className="h-4 w-4 animate-spin text-zinc-400" />
                           )}
                           {!isChecking &&
                             isUsernameValid &&
@@ -272,7 +272,7 @@ export default function OnboardingPage() {
                       {usernameError ? (
                         <span className="text-red-500">{usernameError}</span>
                       ) : isChecking ? (
-                        <span className="text-slate-500">
+                        <span className="text-zinc-500">
                           Checking availability...
                         </span>
                       ) : isUsernameValid && watchedUsername ? (

@@ -291,7 +291,7 @@ export default function MembersModal({
           {/* Search & Actions */}
           <div className="flex gap-2">
             <div className="relative flex-1">
-              <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-zinc-400" />
               <Input
                 placeholder="Search members..."
                 value={searchQuery}
@@ -301,7 +301,7 @@ export default function MembersModal({
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery("")}
-                  className="absolute top-1/2 right-3 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  className="absolute top-1/2 right-3 -translate-y-1/2 text-zinc-400 hover:text-zinc-600"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -378,7 +378,7 @@ export default function MembersModal({
                   }
                 }}
               />
-              <span className="text-slate-600">
+              <span className="text-zinc-600">
                 Select all eligible members
               </span>
             </div>
@@ -388,8 +388,8 @@ export default function MembersModal({
           <ScrollArea className="h-[400px] pr-4">
             {filteredMembers.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
-                <Users className="mb-3 h-12 w-12 text-slate-300" />
-                <p className="text-sm text-slate-500">No members found</p>
+                <Users className="mb-3 h-12 w-12 text-zinc-300" />
+                <p className="text-sm text-zinc-500">No members found</p>
               </div>
             ) : (
               <div className="space-y-2">
@@ -402,11 +402,10 @@ export default function MembersModal({
                   return (
                     <div
                       key={member._id}
-                      className={`flex items-center gap-3 rounded-lg border p-3 transition-colors ${
-                        isSelected
+                      className={`flex items-center gap-3 rounded-lg border p-3 transition-colors ${isSelected
                           ? "border-blue-300 bg-blue-50"
-                          : "border-slate-200 hover:bg-slate-50"
-                      }`}
+                          : "border-zinc-200 hover:bg-zinc-50"
+                        }`}
                     >
                       {/* Checkbox for bulk selection */}
                       {canManage && (
@@ -435,7 +434,7 @@ export default function MembersModal({
 
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
-                            <div className="truncate font-medium text-slate-900">
+                            <div className="truncate font-medium text-zinc-900">
                               {member.name}
                             </div>
                             {memberIsCreator && (
@@ -452,7 +451,7 @@ export default function MembersModal({
                               </div>
                             )}
                           </div>
-                          <div className="flex items-center gap-2 text-sm text-slate-500">
+                          <div className="flex items-center gap-2 text-sm text-zinc-500">
                             <span className="truncate">@{member.username}</span>
                             <span>·</span>
                             <span className="whitespace-nowrap">
@@ -466,7 +465,7 @@ export default function MembersModal({
                                     e.stopPropagation();
                                     setShowActivityFor(member._id);
                                   }}
-                                  className="flex items-center gap-1 text-xs hover:text-slate-700"
+                                  className="flex items-center gap-1 text-xs hover:text-zinc-700"
                                 >
                                   <Activity className="h-3 w-3" />
                                   {activityCount} activities

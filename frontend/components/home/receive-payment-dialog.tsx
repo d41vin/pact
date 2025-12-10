@@ -52,14 +52,14 @@ export default function ReceivePaymentDialog() {
         <Dialog open={open} onOpenChange={setOpen}>
             {/* Button */}
             <DialogTrigger asChild>
-                <Button className="flex h-24 w-full flex-col items-center justify-center gap-2 rounded-[100px] corner-squircle bg-gradient-to-br from-green-500 to-green-600 text-white shadow-lg hover:shadow-xl">
+                <Button className="flex h-24 w-full flex-col items-center justify-center gap-2 rounded-[40px] corner-squircle bg-linear-to-br from-green-500 to-green-600 text-white shadow-lg hover:shadow-xl">
                     <QrCode className="h-6 w-6" />
                     <span className="text-sm font-medium">Receive</span>
                 </Button>
             </DialogTrigger>
 
             {/* Modal */}
-            <DialogContent className="sm:max-w-md rounded-[100px] w-fit corner-squircle" showCloseButton={false}>
+            <DialogContent className="sm:max-w-md rounded-[50px] w-fit corner-squircle" showCloseButton={false}>
                 <DialogHeader className="relative">
                     <DialogTitle className="text-center text-xl font-semibold">
                         Receive
@@ -99,7 +99,7 @@ export default function ReceivePaymentDialog() {
                             </div>
 
                             {/* Address Box */}
-                            <div className="rounded-[50px] corner-squircle bg-zinc-100 dark:bg-zinc-700 p-4">
+                            <div className="rounded-[25px] corner-squircle bg-zinc-100 dark:bg-zinc-700 p-4">
                                 <p className="break-all text-center text-xs font-mono text-zinc-700 dark:text-zinc-200">
                                     {address}
                                 </p>

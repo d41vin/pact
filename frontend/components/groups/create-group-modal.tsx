@@ -191,7 +191,7 @@ export default function CreateGroupModal({
           <div className="flex flex-col items-center gap-4">
             <div className="relative">
               {imageType === "image" && imagePreview ? (
-                <div className="relative h-24 w-24 overflow-hidden rounded-full border-4 border-white shadow-lg ring-2 ring-slate-200">
+                <div className="relative h-24 w-24 overflow-hidden rounded-full border-4 border-white shadow-lg ring-2 ring-zinc-200">
                   <img
                     src={imagePreview}
                     alt="Group"
@@ -206,7 +206,7 @@ export default function CreateGroupModal({
                 </div>
               ) : (
                 <div
-                  className="flex h-24 w-24 items-center justify-center rounded-full border-4 border-white text-5xl shadow-lg ring-2 ring-slate-200"
+                  className="flex h-24 w-24 items-center justify-center rounded-full border-4 border-white text-5xl shadow-lg ring-2 ring-zinc-200"
                   style={{ backgroundColor: selectedColor.light }}
                 >
                   {emoji}
@@ -236,7 +236,7 @@ export default function CreateGroupModal({
             </div>
 
             {showEmojiPicker && (
-              <div className="rounded-lg border border-slate-200 shadow-lg">
+              <div className="rounded-lg border border-zinc-200 shadow-lg">
                 <EmojiPicker onEmojiClick={handleEmojiSelect} />
               </div>
             )}
@@ -262,7 +262,7 @@ export default function CreateGroupModal({
               placeholder="e.g. Weekend Trip"
               maxLength={50}
             />
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-zinc-500">
               {name.length}/50 characters
             </p>
           </div>
@@ -278,7 +278,7 @@ export default function CreateGroupModal({
               maxLength={300}
               rows={3}
             />
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-zinc-500">
               {description.length}/300 characters
             </p>
           </div>
@@ -292,11 +292,10 @@ export default function CreateGroupModal({
                   key={color.value}
                   type="button"
                   onClick={() => setSelectedColor(color)}
-                  className={`h-10 w-full rounded-lg transition-all ${
-                    selectedColor.value === color.value
-                      ? "ring-2 ring-slate-900 ring-offset-2"
-                      : "hover:scale-105"
-                  }`}
+                  className={`h-10 w-full rounded-lg transition-all ${selectedColor.value === color.value
+                    ? "ring-2 ring-zinc-900 ring-offset-2"
+                    : "hover:scale-105"
+                    }`}
                   style={{ backgroundColor: color.value }}
                   title={color.name}
                 />
@@ -308,23 +307,23 @@ export default function CreateGroupModal({
           <div className="space-y-2">
             <Label>Invite Friends (Optional)</Label>
             {!friends || friends.length === 0 ? (
-              <p className="text-sm text-slate-500">No friends to invite yet</p>
+              <p className="text-sm text-zinc-500">No friends to invite yet</p>
             ) : (
-              <div className="max-h-40 space-y-2 overflow-y-auto rounded-lg border border-slate-200 p-3">
+              <div className="max-h-40 space-y-2 overflow-y-auto rounded-lg border border-zinc-200 p-3">
                 {friends.map((friend) => (
                   <label
                     key={friend._id}
-                    className="flex cursor-pointer items-center gap-3 rounded-lg p-2 transition-colors hover:bg-slate-50"
+                    className="flex cursor-pointer items-center gap-3 rounded-lg p-2 transition-colors hover:bg-zinc-50"
                   >
                     <input
                       type="checkbox"
                       checked={selectedFriends.includes(friend._id)}
                       onChange={() => toggleFriend(friend._id)}
-                      className="h-4 w-4 rounded border-slate-300"
+                      className="h-4 w-4 rounded border-zinc-300"
                     />
                     <div className="flex items-center gap-2">
                       <div
-                        className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-400 to-purple-500"
+                        className="h-8 w-8 rounded-full bg-linear-to-br from-blue-400 to-purple-500"
                         style={{
                           backgroundImage: friend.profileImageUrl
                             ? `url(${friend.profileImageUrl})`
@@ -333,10 +332,10 @@ export default function CreateGroupModal({
                         }}
                       />
                       <div className="text-sm">
-                        <div className="font-medium text-slate-900">
+                        <div className="font-medium text-zinc-900">
                           {friend.name}
                         </div>
-                        <div className="text-slate-500">@{friend.username}</div>
+                        <div className="text-zinc-500">@{friend.username}</div>
                       </div>
                     </div>
                   </label>

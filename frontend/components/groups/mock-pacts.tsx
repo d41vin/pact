@@ -166,7 +166,7 @@ export default function MockPacts({ members, accentColor }: MockPactsProps) {
     const progress = pact.goal ? (pact.balance / pact.goal) * 100 : 0;
 
     return (
-      <div className="group relative overflow-hidden rounded-xl border border-slate-200 bg-white p-6 transition-all hover:border-slate-300 hover:shadow-md">
+      <div className="group relative overflow-hidden rounded-xl border border-zinc-200 bg-white p-6 transition-all hover:border-zinc-300 hover:shadow-md">
         <div
           className="absolute inset-0 opacity-5"
           style={{ backgroundColor: pact.color }}
@@ -183,8 +183,8 @@ export default function MockPacts({ members, accentColor }: MockPactsProps) {
                 <Icon className="h-6 w-6" />
               </div>
               <div>
-                <h3 className="font-semibold text-slate-900">{pact.name}</h3>
-                <p className="text-sm text-slate-500">
+                <h3 className="font-semibold text-zinc-900">{pact.name}</h3>
+                <p className="text-sm text-zinc-500">
                   {participantCount} participant
                   {participantCount !== 1 ? "s" : ""}
                 </p>
@@ -197,12 +197,12 @@ export default function MockPacts({ members, accentColor }: MockPactsProps) {
 
           {/* Balance */}
           <div>
-            <div className="mb-1 text-sm text-slate-600">Current Balance</div>
-            <div className="text-2xl font-bold text-slate-900">
+            <div className="mb-1 text-sm text-zinc-600">Current Balance</div>
+            <div className="text-2xl font-bold text-zinc-900">
               ${pact.balance.toFixed(2)}
             </div>
             {pact.goal && (
-              <div className="text-sm text-slate-500">
+              <div className="text-sm text-zinc-500">
                 Goal: ${pact.goal.toFixed(2)}
               </div>
             )}
@@ -212,12 +212,12 @@ export default function MockPacts({ members, accentColor }: MockPactsProps) {
           {pact.goal && (
             <div className="space-y-1">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-slate-600">Progress</span>
-                <span className="font-medium text-slate-900">
+                <span className="text-zinc-600">Progress</span>
+                <span className="font-medium text-zinc-900">
                   {progress.toFixed(0)}%
                 </span>
               </div>
-              <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+              <div className="h-2 overflow-hidden rounded-full bg-zinc-100">
                 <div
                   className="h-full rounded-full transition-all"
                   style={{
@@ -264,8 +264,8 @@ export default function MockPacts({ members, accentColor }: MockPactsProps) {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-slate-900">Pacts</h2>
-            <p className="text-slate-600">
+            <h2 className="text-2xl font-bold text-zinc-900">Pacts</h2>
+            <p className="text-zinc-600">
               Financial tools for group coordination
             </p>
           </div>
@@ -299,14 +299,14 @@ export default function MockPacts({ members, accentColor }: MockPactsProps) {
 
         {/* Active Pacts */}
         {activePacts.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 py-16">
-            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-200">
-              <Wallet className="h-8 w-8 text-slate-400" />
+          <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-zinc-300 bg-zinc-50 py-16">
+            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-zinc-200">
+              <Wallet className="h-8 w-8 text-zinc-400" />
             </div>
-            <h3 className="mb-2 text-lg font-semibold text-slate-900">
+            <h3 className="mb-2 text-lg font-semibold text-zinc-900">
               No Active Pacts
             </h3>
-            <p className="mb-4 max-w-md text-center text-sm text-slate-500">
+            <p className="mb-4 max-w-md text-center text-sm text-zinc-500">
               Create your first pact to start coordinating finances with your
               group
             </p>
@@ -350,11 +350,10 @@ export default function MockPacts({ members, accentColor }: MockPactsProps) {
                     <button
                       key={template.id}
                       onClick={() => handleSelectTemplate(template)}
-                      className={`flex items-start gap-3 rounded-lg border-2 p-4 text-left transition-all ${
-                        isSelected
-                          ? "border-slate-900 bg-slate-50"
-                          : "border-slate-200 hover:border-slate-300"
-                      }`}
+                      className={`flex items-start gap-3 rounded-lg border-2 p-4 text-left transition-all ${isSelected
+                          ? "border-zinc-900 bg-zinc-50"
+                          : "border-zinc-200 hover:border-zinc-300"
+                        }`}
                     >
                       <div
                         className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white"
@@ -363,15 +362,15 @@ export default function MockPacts({ members, accentColor }: MockPactsProps) {
                         <Icon className="h-5 w-5" />
                       </div>
                       <div className="flex-1">
-                        <div className="mb-1 font-semibold text-slate-900">
+                        <div className="mb-1 font-semibold text-zinc-900">
                           {template.name}
                         </div>
-                        <div className="text-sm text-slate-600">
+                        <div className="text-sm text-zinc-600">
                           {template.description}
                         </div>
                       </div>
                       {isSelected && (
-                        <Check className="h-5 w-5 text-slate-900" />
+                        <Check className="h-5 w-5 text-zinc-900" />
                       )}
                     </button>
                   );
@@ -397,7 +396,7 @@ export default function MockPacts({ members, accentColor }: MockPactsProps) {
                 <div className="space-y-2">
                   <Label htmlFor="goal">Goal Amount (Optional)</Label>
                   <div className="relative">
-                    <DollarSign className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                    <DollarSign className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-zinc-400" />
                     <Input
                       id="goal"
                       type="number"
@@ -413,20 +412,20 @@ export default function MockPacts({ members, accentColor }: MockPactsProps) {
                 {/* Member Selection */}
                 <div className="space-y-2">
                   <Label>Participants (Optional)</Label>
-                  <div className="max-h-48 space-y-2 overflow-y-auto rounded-lg border border-slate-200 p-3">
+                  <div className="max-h-48 space-y-2 overflow-y-auto rounded-lg border border-zinc-200 p-3">
                     {members.map((member) => {
                       const isSelected = selectedMembers.has(member._id);
 
                       return (
                         <label
                           key={member._id}
-                          className="flex cursor-pointer items-center gap-3 rounded-lg p-2 transition-colors hover:bg-slate-50"
+                          className="flex cursor-pointer items-center gap-3 rounded-lg p-2 transition-colors hover:bg-zinc-50"
                         >
                           <input
                             type="checkbox"
                             checked={isSelected}
                             onChange={() => toggleMemberSelection(member._id)}
-                            className="h-4 w-4 rounded border-slate-300"
+                            className="h-4 w-4 rounded border-zinc-300"
                           />
                           <Avatar className="h-8 w-8">
                             <AvatarImage src={member.profileImageUrl} />
@@ -437,14 +436,14 @@ export default function MockPacts({ members, accentColor }: MockPactsProps) {
                               {member.name.charAt(0).toUpperCase()}
                             </AvatarFallback>
                           </Avatar>
-                          <span className="text-sm font-medium text-slate-900">
+                          <span className="text-sm font-medium text-zinc-900">
                             {member.name}
                           </span>
                         </label>
                       );
                     })}
                   </div>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-zinc-500">
                     Leave empty to include all members
                   </p>
                 </div>
@@ -453,7 +452,7 @@ export default function MockPacts({ members, accentColor }: MockPactsProps) {
           </div>
 
           {/* Actions */}
-          <div className="flex gap-3 border-t border-slate-200 pt-4">
+          <div className="flex gap-3 border-t border-zinc-200 pt-4">
             <Button
               variant="outline"
               onClick={() => {

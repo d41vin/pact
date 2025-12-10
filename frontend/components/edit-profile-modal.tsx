@@ -147,9 +147,9 @@ export default function EditProfileModal({
           {/* Profile Image */}
           <div className="flex flex-col items-center gap-4">
             <div className="relative">
-              <Avatar className="h-24 w-24 border-4 border-white shadow-lg ring-2 ring-slate-200">
+              <Avatar className="h-24 w-24 border-4 border-white shadow-lg ring-2 ring-zinc-200">
                 <AvatarImage src={previewUrl} alt={name} />
-                <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-500 text-2xl font-semibold text-white">
+                <AvatarFallback className="bg-linear-to-br from-blue-400 to-purple-500 text-2xl font-semibold text-white">
                   {name.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
@@ -212,7 +212,7 @@ export default function EditProfileModal({
               />
               <div className="absolute top-1/2 right-3 -translate-y-1/2">
                 {isChecking && (
-                  <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
+                  <Loader2 className="h-4 w-4 animate-spin text-zinc-400" />
                 )}
                 {!isChecking &&
                   isUsernameValid &&
@@ -225,7 +225,7 @@ export default function EditProfileModal({
               <p className="text-sm text-red-500">{usernameError}</p>
             )}
             {isChecking && (
-              <p className="text-sm text-slate-500">Checking availability...</p>
+              <p className="text-sm text-zinc-500">Checking availability...</p>
             )}
             {!isChecking && isUsernameValid && username !== user.username && (
               <p className="text-sm text-green-600">Username is available!</p>

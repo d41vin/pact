@@ -18,12 +18,12 @@ export default function PublicGroups({ username }: PublicGroupsProps) {
 
   if (groups === undefined) {
     return (
-      <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-        <h2 className="mb-4 text-lg font-semibold text-slate-900">
+      <div className="rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm">
+        <h2 className="mb-4 text-lg font-semibold text-zinc-900">
           Public Groups
         </h2>
         <div className="flex justify-center py-8">
-          <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+          <Loader2 className="h-6 w-6 animate-spin text-zinc-400" />
         </div>
       </div>
     );
@@ -31,18 +31,18 @@ export default function PublicGroups({ username }: PublicGroupsProps) {
 
   if (!groups || groups.length === 0) {
     return (
-      <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-        <h2 className="mb-4 text-lg font-semibold text-slate-900">
+      <div className="rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm">
+        <h2 className="mb-4 text-lg font-semibold text-zinc-900">
           Public Groups
         </h2>
         <div className="py-12 text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100">
-            <Users className="h-8 w-8 text-slate-400" />
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-zinc-100">
+            <Users className="h-8 w-8 text-zinc-400" />
           </div>
-          <h3 className="mb-2 text-lg font-semibold text-slate-900">
+          <h3 className="mb-2 text-lg font-semibold text-zinc-900">
             No public groups
           </h3>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-zinc-500">
             This user hasn't joined any public groups yet
           </p>
         </div>
@@ -51,8 +51,8 @@ export default function PublicGroups({ username }: PublicGroupsProps) {
   }
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-      <h2 className="mb-4 text-lg font-semibold text-slate-900">
+    <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
+      <h2 className="mb-4 text-lg font-semibold text-zinc-900">
         Public Groups
       </h2>
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
@@ -60,7 +60,7 @@ export default function PublicGroups({ username }: PublicGroupsProps) {
           <button
             key={group._id}
             onClick={() => router.push(`/groups/${group._id}`)}
-            className="group relative overflow-hidden rounded-xl border border-slate-200 transition-all hover:border-slate-300 hover:shadow-md"
+            className="group relative overflow-hidden rounded-xl border border-zinc-200 transition-all hover:border-zinc-300 hover:shadow-md"
             style={{
               backgroundColor: `${group.accentColor}15`,
             }}
@@ -88,7 +88,7 @@ export default function PublicGroups({ username }: PublicGroupsProps) {
 
               {/* Group Name */}
               <div className="text-center">
-                <h3 className="truncate text-sm font-semibold text-slate-900">
+                <h3 className="truncate text-sm font-semibold text-zinc-900">
                   {group.name}
                 </h3>
               </div>
@@ -100,7 +100,7 @@ export default function PublicGroups({ username }: PublicGroupsProps) {
                     {group.members.slice(0, 3).map((member: any) => (
                       <Avatar
                         key={member.userId}
-                        className="h-8 w-8 border-2 border-white ring-1 ring-slate-200"
+                        className="h-8 w-8 border-2 border-white ring-1 ring-zinc-200"
                       >
                         <AvatarImage
                           src={member.profileImageUrl}
@@ -118,7 +118,7 @@ export default function PublicGroups({ username }: PublicGroupsProps) {
                     ))}
                     {group.members.length > 3 && (
                       <div
-                        className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white text-xs font-semibold text-white ring-1 ring-slate-200"
+                        className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white text-xs font-semibold text-white ring-1 ring-zinc-200"
                         style={{
                           backgroundColor: group.accentColor,
                         }}

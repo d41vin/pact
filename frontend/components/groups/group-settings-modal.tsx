@@ -275,7 +275,7 @@ export default function GroupSettingsModal({
               <div className="flex flex-col items-center gap-4">
                 <div className="relative">
                   {imageType === "image" && imagePreview ? (
-                    <div className="relative h-24 w-24 overflow-hidden rounded-full border-4 border-white shadow-lg ring-2 ring-slate-200">
+                    <div className="relative h-24 w-24 overflow-hidden rounded-full border-4 border-white shadow-lg ring-2 ring-zinc-200">
                       <Image
                         src={imagePreview}
                         alt="Group"
@@ -292,7 +292,7 @@ export default function GroupSettingsModal({
                     </div>
                   ) : (
                     <div
-                      className="flex h-24 w-24 items-center justify-center rounded-full border-4 border-white text-5xl shadow-lg ring-2 ring-slate-200"
+                      className="flex h-24 w-24 items-center justify-center rounded-full border-4 border-white text-5xl shadow-lg ring-2 ring-zinc-200"
                       style={{ backgroundColor: selectedColor.light }}
                     >
                       {emoji}
@@ -322,7 +322,7 @@ export default function GroupSettingsModal({
                 </div>
 
                 {showEmojiPicker && (
-                  <div className="rounded-lg border border-slate-200 shadow-lg">
+                  <div className="rounded-lg border border-zinc-200 shadow-lg">
                     <EmojiPicker onEmojiClick={handleEmojiSelect} />
                   </div>
                 )}
@@ -348,7 +348,7 @@ export default function GroupSettingsModal({
                   placeholder="e.g. Weekend Trip"
                   maxLength={50}
                 />
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-zinc-500">
                   {name.length}/50 characters
                 </p>
               </div>
@@ -364,7 +364,7 @@ export default function GroupSettingsModal({
                   maxLength={300}
                   rows={3}
                 />
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-zinc-500">
                   {description.length}/300 characters
                 </p>
               </div>
@@ -378,11 +378,10 @@ export default function GroupSettingsModal({
                       key={color.value}
                       type="button"
                       onClick={() => setSelectedColor(color)}
-                      className={`h-10 w-full rounded-lg transition-all ${
-                        selectedColor.value === color.value
-                          ? "ring-2 ring-slate-900 ring-offset-2"
+                      className={`h-10 w-full rounded-lg transition-all ${selectedColor.value === color.value
+                          ? "ring-2 ring-zinc-900 ring-offset-2"
                           : "hover:scale-105"
-                      }`}
+                        }`}
                       style={{ backgroundColor: color.value }}
                       title={color.name}
                     />
@@ -393,20 +392,20 @@ export default function GroupSettingsModal({
               {/* Privacy Toggle */}
               <div className="space-y-2">
                 <Label>Privacy</Label>
-                <div className="flex items-center justify-between rounded-lg border border-slate-200 p-4">
+                <div className="flex items-center justify-between rounded-lg border border-zinc-200 p-4">
                   <div className="flex items-center gap-3">
                     {privacy === "private" ? (
-                      <Lock className="h-5 w-5 text-slate-600" />
+                      <Lock className="h-5 w-5 text-zinc-600" />
                     ) : (
-                      <Globe className="h-5 w-5 text-slate-600" />
+                      <Globe className="h-5 w-5 text-zinc-600" />
                     )}
                     <div>
-                      <div className="font-medium text-slate-900">
+                      <div className="font-medium text-zinc-900">
                         {privacy === "private"
                           ? "Private Group"
                           : "Public Group"}
                       </div>
-                      <div className="text-sm text-slate-500">
+                      <div className="text-sm text-zinc-500">
                         {privacy === "private"
                           ? "Only members can see this group"
                           : "Anyone can see this group on profiles"}
@@ -445,10 +444,10 @@ export default function GroupSettingsModal({
             <TabsContent value="codes" className="py-4">
               <div className="space-y-4">
                 <div>
-                  <h3 className="mb-2 text-lg font-semibold text-slate-900">
+                  <h3 className="mb-2 text-lg font-semibold text-zinc-900">
                     Invite Codes
                   </h3>
-                  <p className="text-sm text-slate-600">
+                  <p className="text-sm text-zinc-600">
                     Create and manage invite codes for your group
                   </p>
                 </div>
@@ -496,8 +495,8 @@ export default function GroupSettingsModal({
                   </Button>
                 </div>
               ) : (
-                <div className="rounded-lg border border-slate-200 bg-slate-50 p-6 text-center">
-                  <p className="text-sm text-slate-600">
+                <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-6 text-center">
+                  <p className="text-sm text-zinc-600">
                     Only the group creator can delete this group.
                   </p>
                 </div>
@@ -507,7 +506,7 @@ export default function GroupSettingsModal({
 
           {/* Action Buttons (General Tab Only) */}
           {activeTab === "general" && (
-            <div className="flex gap-3 border-t border-slate-200 pt-4">
+            <div className="flex gap-3 border-t border-zinc-200 pt-4">
               <Button
                 variant="outline"
                 onClick={() => onOpenChange(false)}

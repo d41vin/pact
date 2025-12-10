@@ -76,10 +76,10 @@ export default function FriendsListModal({
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col items-center justify-center py-8">
-            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100">
-              <Users className="h-8 w-8 text-slate-400" />
+            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-zinc-100">
+              <Users className="h-8 w-8 text-zinc-400" />
             </div>
-            <p className="text-center text-slate-600">
+            <p className="text-center text-zinc-600">
               You must be friends with this user to view their friends list
             </p>
           </div>
@@ -103,14 +103,14 @@ export default function FriendsListModal({
         <ScrollArea className="max-h-[400px] pr-4">
           {friends === undefined ? (
             <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+              <Loader2 className="h-6 w-6 animate-spin text-zinc-400" />
             </div>
           ) : friends.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-8">
-              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100">
-                <Users className="h-8 w-8 text-slate-400" />
+              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-zinc-100">
+                <Users className="h-8 w-8 text-zinc-400" />
               </div>
-              <p className="text-slate-600">No friends yet</p>
+              <p className="text-zinc-600">No friends yet</p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -122,7 +122,7 @@ export default function FriendsListModal({
                 return (
                   <div
                     key={friend._id}
-                    className="flex items-center justify-between rounded-lg p-3 transition-colors hover:bg-slate-50"
+                    className="flex items-center justify-between rounded-lg p-3 transition-colors hover:bg-zinc-50"
                   >
                     <button
                       onClick={() => handleProfileClick(friendUsername)}
@@ -133,15 +133,15 @@ export default function FriendsListModal({
                           src={friend.profileImageUrl}
                           alt={friendName}
                         />
-                        <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-500 text-white">
+                        <AvatarFallback className="bg-linear-to-br from-blue-400 to-purple-500 text-white">
                           {friendName.charAt(0).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
                       <div className="min-w-0 flex-1">
-                        <div className="truncate font-medium text-slate-900">
+                        <div className="truncate font-medium text-zinc-900">
                           {friendName}
                         </div>
-                        <div className="truncate text-sm text-slate-500">
+                        <div className="truncate text-sm text-zinc-500">
                           @{friendUsername}
                         </div>
                       </div>

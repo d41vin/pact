@@ -79,7 +79,7 @@ export default function QRCodeGenerator({
 
         <div className="space-y-4">
           {/* QR Code Display */}
-          <div className="flex justify-center rounded-lg border border-slate-200 bg-white p-4">
+          <div className="flex justify-center rounded-lg border border-zinc-200 bg-white p-4">
             <QRCode
               ref={qrRef}
               value={shareLink}
@@ -98,16 +98,16 @@ export default function QRCodeGenerator({
           </div>
 
           {/* Invite Code */}
-          <div className="rounded-lg bg-slate-50 p-4 text-center">
-            <div className="mb-2 text-sm text-slate-600">Invite Code</div>
-            <code className="text-2xl font-bold tracking-wider text-slate-900">
+          <div className="rounded-lg bg-zinc-50 p-4 text-center">
+            <div className="mb-2 text-sm text-zinc-600">Invite Code</div>
+            <code className="text-2xl font-bold tracking-wider text-zinc-900">
               {code}
             </code>
           </div>
 
           {/* Shareable Link */}
           <div className="space-y-2">
-            <div className="text-sm font-medium text-slate-900">
+            <div className="text-sm font-medium text-zinc-900">
               Shareable Link
             </div>
             <div className="flex gap-2">
@@ -115,7 +115,7 @@ export default function QRCodeGenerator({
                 type="text"
                 value={shareLink}
                 readOnly
-                className="flex-1 rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-700"
+                className="flex-1 rounded-md border border-zinc-300 bg-zinc-50 px-3 py-2 text-sm text-zinc-700"
               />
               <Button variant="outline" size="sm" onClick={handleCopyLink}>
                 <LinkIcon className="h-4 w-4" />
@@ -124,7 +124,7 @@ export default function QRCodeGenerator({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-3 border-t border-slate-200 pt-4">
+          <div className="flex gap-3 border-t border-zinc-200 pt-4">
             <Button
               variant="outline"
               onClick={() => onOpenChange(false)}

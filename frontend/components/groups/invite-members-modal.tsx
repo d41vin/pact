@@ -124,7 +124,7 @@ export default function InviteMembersModal({
         <div className="space-y-4">
           {/* Search */}
           <div className="relative">
-            <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-zinc-400" />
             <Input
               placeholder="Search friends..."
               value={searchQuery}
@@ -134,7 +134,7 @@ export default function InviteMembersModal({
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery("")}
-                className="absolute top-1/2 right-3 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                className="absolute top-1/2 right-3 -translate-y-1/2 text-zinc-400 hover:text-zinc-600"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -143,8 +143,8 @@ export default function InviteMembersModal({
 
           {/* Selected Count */}
           {selectedFriends.length > 0 && (
-            <div className="flex items-center justify-between rounded-lg bg-slate-50 p-3">
-              <span className="text-sm font-medium text-slate-700">
+            <div className="flex items-center justify-between rounded-lg bg-zinc-50 p-3">
+              <span className="text-sm font-medium text-zinc-700">
                 {selectedFriends.length} friend
                 {selectedFriends.length !== 1 ? "s" : ""} selected
               </span>
@@ -162,22 +162,22 @@ export default function InviteMembersModal({
           <ScrollArea className="h-[300px]">
             {!friends ? (
               <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+                <Loader2 className="h-6 w-6 animate-spin text-zinc-400" />
               </div>
             ) : availableFriends.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
-                <UserPlus className="mb-3 h-12 w-12 text-slate-300" />
-                <p className="mb-2 text-sm font-medium text-slate-900">
+                <UserPlus className="mb-3 h-12 w-12 text-zinc-300" />
+                <p className="mb-2 text-sm font-medium text-zinc-900">
                   No friends to invite
                 </p>
-                <p className="text-sm text-slate-500">
+                <p className="text-sm text-zinc-500">
                   All your friends are already in this group
                 </p>
               </div>
             ) : filteredFriends.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
-                <Search className="mb-3 h-12 w-12 text-slate-300" />
-                <p className="text-sm text-slate-500">No friends found</p>
+                <Search className="mb-3 h-12 w-12 text-zinc-300" />
+                <p className="text-sm text-zinc-500">No friends found</p>
               </div>
             ) : (
               <div className="space-y-2 pr-4">
@@ -188,11 +188,10 @@ export default function InviteMembersModal({
                     <button
                       key={friend._id}
                       onClick={() => toggleFriend(friend._id)}
-                      className={`flex w-full items-center gap-3 rounded-lg border-2 p-3 text-left transition-all ${
-                        isSelected
-                          ? "border-slate-900 bg-slate-50"
-                          : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
-                      }`}
+                      className={`flex w-full items-center gap-3 rounded-lg border-2 p-3 text-left transition-all ${isSelected
+                        ? "border-zinc-900 bg-zinc-50"
+                        : "border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50"
+                        }`}
                     >
                       <div className="relative">
                         <Avatar className="h-12 w-12">
@@ -218,10 +217,10 @@ export default function InviteMembersModal({
                       </div>
 
                       <div className="min-w-0 flex-1">
-                        <div className="truncate font-medium text-slate-900">
+                        <div className="truncate font-medium text-zinc-900">
                           {friend.name || "Unknown"}
                         </div>
-                        <div className="truncate text-sm text-slate-500">
+                        <div className="truncate text-sm text-zinc-500">
                           @{friend.username || "unknown"}
                         </div>
                       </div>
@@ -234,7 +233,7 @@ export default function InviteMembersModal({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-3 border-t border-slate-200 pt-4">
+        <div className="flex gap-3 border-t border-zinc-200 pt-4">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}

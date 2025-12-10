@@ -45,7 +45,7 @@ const StatCard = ({
   change?: string;
   color: string;
 }) => (
-  <div className="rounded-lg border border-slate-200 bg-white p-4">
+  <div className="rounded-lg border border-zinc-200 bg-white p-4">
     <div className="mb-2 flex items-center gap-2">
       <div
         className="rounded-full p-2"
@@ -53,10 +53,10 @@ const StatCard = ({
       >
         <Icon className="h-4 w-4" style={{ color }} />
       </div>
-      <span className="text-sm text-slate-600">{label}</span>
+      <span className="text-sm text-zinc-600">{label}</span>
     </div>
-    <div className="text-2xl font-bold text-slate-900">{value}</div>
-    {change && <div className="mt-1 text-xs text-slate-500">{change}</div>}
+    <div className="text-2xl font-bold text-zinc-900">{value}</div>
+    {change && <div className="mt-1 text-xs text-zinc-500">{change}</div>}
   </div>
 );
 
@@ -157,7 +157,7 @@ export default function GroupAnalytics({
     <div className="space-y-6">
       {/* Overview Stats */}
       <div>
-        <h3 className="mb-4 text-lg font-semibold text-slate-900">Overview</h3>
+        <h3 className="mb-4 text-lg font-semibold text-zinc-900">Overview</h3>
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           <StatCard
             icon={Users}
@@ -191,19 +191,19 @@ export default function GroupAnalytics({
 
       {/* Most Active Members */}
       <div>
-        <h3 className="mb-4 text-lg font-semibold text-slate-900">
+        <h3 className="mb-4 text-lg font-semibold text-zinc-900">
           Most Active Members
         </h3>
-        <div className="space-y-2 rounded-lg border border-slate-200 bg-white p-4">
+        <div className="space-y-2 rounded-lg border border-zinc-200 bg-white p-4">
           {topMembers.length === 0 ? (
-            <p className="py-4 text-center text-sm text-slate-500">
+            <p className="py-4 text-center text-sm text-zinc-500">
               No activity data yet
             </p>
           ) : (
             topMembers.map(({ member, count }, index) => (
               <div
                 key={member._id}
-                className="flex items-center justify-between rounded-lg p-2 hover:bg-slate-50"
+                className="flex items-center justify-between rounded-lg p-2 hover:bg-zinc-50"
               >
                 <div className="flex items-center gap-3">
                   <div
@@ -214,7 +214,7 @@ export default function GroupAnalytics({
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-slate-900">
+                      <span className="font-medium text-zinc-900">
                         {member.name}
                       </span>
                       {member._id === creatorId && (
@@ -227,12 +227,12 @@ export default function GroupAnalytics({
                         />
                       )}
                     </div>
-                    <div className="text-xs text-slate-500">
+                    <div className="text-xs text-zinc-500">
                       @{member.username}
                     </div>
                   </div>
                 </div>
-                <div className="text-sm font-semibold text-slate-700">
+                <div className="text-sm font-semibold text-zinc-700">
                   {count} {count === 1 ? "action" : "actions"}
                 </div>
               </div>
@@ -243,12 +243,12 @@ export default function GroupAnalytics({
 
       {/* Activity Breakdown */}
       <div>
-        <h3 className="mb-4 text-lg font-semibold text-slate-900">
+        <h3 className="mb-4 text-lg font-semibold text-zinc-900">
           Activity Breakdown
         </h3>
-        <div className="space-y-2 rounded-lg border border-slate-200 bg-white p-4">
+        <div className="space-y-2 rounded-lg border border-zinc-200 bg-white p-4">
           {topActivityTypes.length === 0 ? (
-            <p className="py-4 text-center text-sm text-slate-500">
+            <p className="py-4 text-center text-sm text-zinc-500">
               No activity yet
             </p>
           ) : (
@@ -257,14 +257,14 @@ export default function GroupAnalytics({
               return (
                 <div key={type} className="space-y-1">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="font-medium text-slate-900 capitalize">
+                    <span className="font-medium text-zinc-900 capitalize">
                       {type.replace(/_/g, " ")}
                     </span>
-                    <span className="text-slate-600">
+                    <span className="text-zinc-600">
                       {count} ({percentage.toFixed(0)}%)
                     </span>
                   </div>
-                  <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+                  <div className="h-2 overflow-hidden rounded-full bg-zinc-100">
                     <div
                       className="h-full rounded-full transition-all"
                       style={{
@@ -282,34 +282,34 @@ export default function GroupAnalytics({
 
       {/* Recent Growth */}
       <div>
-        <h3 className="mb-4 text-lg font-semibold text-slate-900">
+        <h3 className="mb-4 text-lg font-semibold text-zinc-900">
           Member Growth
         </h3>
-        <div className="grid grid-cols-3 gap-4 rounded-lg border border-slate-200 bg-white p-4">
+        <div className="grid grid-cols-3 gap-4 rounded-lg border border-zinc-200 bg-white p-4">
           <div className="text-center">
             <div className="mb-1 flex items-center justify-center gap-1">
-              <Calendar className="h-4 w-4 text-slate-600" />
-              <span className="text-sm text-slate-600">This Week</span>
+              <Calendar className="h-4 w-4 text-zinc-600" />
+              <span className="text-sm text-zinc-600">This Week</span>
             </div>
-            <div className="text-2xl font-bold text-slate-900">
+            <div className="text-2xl font-bold text-zinc-900">
               +{recentJoins}
             </div>
           </div>
           <div className="text-center">
             <div className="mb-1 flex items-center justify-center gap-1">
-              <Calendar className="h-4 w-4 text-slate-600" />
-              <span className="text-sm text-slate-600">This Month</span>
+              <Calendar className="h-4 w-4 text-zinc-600" />
+              <span className="text-sm text-zinc-600">This Month</span>
             </div>
-            <div className="text-2xl font-bold text-slate-900">
+            <div className="text-2xl font-bold text-zinc-900">
               +{monthlyJoins}
             </div>
           </div>
           <div className="text-center">
             <div className="mb-1 flex items-center justify-center gap-1">
-              <TrendingUp className="h-4 w-4 text-slate-600" />
-              <span className="text-sm text-slate-600">Total</span>
+              <TrendingUp className="h-4 w-4 text-zinc-600" />
+              <span className="text-sm text-zinc-600">Total</span>
             </div>
-            <div className="text-2xl font-bold text-slate-900">
+            <div className="text-2xl font-bold text-zinc-900">
               {members.length}
             </div>
           </div>

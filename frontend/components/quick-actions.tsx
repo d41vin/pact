@@ -48,8 +48,8 @@ export default function QuickActions() {
 
   return (
     <>
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-        <h2 className="text-lg font-semibold text-slate-900 mb-4">Quick Actions</h2>
+      <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm p-6">
+        <h2 className="text-lg font-semibold text-zinc-900 mb-4">Quick Actions</h2>
         <div className="grid grid-cols-4 gap-3">
           {actions.map((action) => {
             const Icon = action.icon
@@ -57,12 +57,12 @@ export default function QuickActions() {
               <button
                 key={action.id}
                 onClick={() => handleActionClick(action.id)}
-                className="flex flex-col items-center gap-2 p-4 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors group"
+                className="flex flex-col items-center gap-2 p-4 rounded-xl bg-zinc-50 hover:bg-zinc-100 transition-colors group"
               >
-                <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${action.color} flex items-center justify-center text-white shadow-md group-hover:shadow-lg transition-shadow`}>
+                <div className={`w-12 h-12 rounded-full bg-linear-to-br ${action.color} flex items-center justify-center text-white shadow-md group-hover:shadow-lg transition-shadow`}>
                   <Icon className="w-6 h-6" />
                 </div>
-                <span className="text-sm font-medium text-slate-700">{action.label}</span>
+                <span className="text-sm font-medium text-zinc-700">{action.label}</span>
               </button>
             )
           })}
@@ -78,7 +78,7 @@ export default function QuickActions() {
               Send money to friends or contacts
             </DialogDescription>
           </DialogHeader>
-          <div className="py-6 text-center text-slate-500">
+          <div className="py-6 text-center text-zinc-500">
             {/* TODO: Implement send payment form */}
             Send payment functionality coming soon
           </div>
@@ -94,7 +94,7 @@ export default function QuickActions() {
               Share your QR code or wallet address
             </DialogDescription>
           </DialogHeader>
-          <div className="py-6 text-center text-slate-500">
+          <div className="py-6 text-center text-zinc-500">
             {/* TODO: Implement QR code display */}
             Receive payment functionality coming soon
           </div>
@@ -110,7 +110,7 @@ export default function QuickActions() {
               Request money from friends or contacts
             </DialogDescription>
           </DialogHeader>
-          <div className="py-6 text-center text-slate-500">
+          <div className="py-6 text-center text-zinc-500">
             {/* TODO: Implement payment request form */}
             Request payment functionality coming soon
           </div>
@@ -126,7 +126,7 @@ export default function QuickActions() {
               Split expenses with friends or groups
             </DialogDescription>
           </DialogHeader>
-          <div className="py-6 text-center text-slate-500">
+          <div className="py-6 text-center text-zinc-500">
             {/* TODO: Implement bill splitting form */}
             Bill splitting functionality coming soon
           </div>

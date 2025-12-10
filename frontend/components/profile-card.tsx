@@ -321,8 +321,8 @@ export default function ProfileCard({ user, isOwnProfile }: ProfileCardProps) {
 
       case "blocked":
         return (
-          <div className="rounded-lg bg-slate-100 p-4 text-center">
-            <p className="text-sm text-slate-600">This user is not available</p>
+          <div className="rounded-lg bg-zinc-100 p-4 text-center">
+            <p className="text-sm text-zinc-600">This user is not available</p>
           </div>
         );
 
@@ -333,12 +333,12 @@ export default function ProfileCard({ user, isOwnProfile }: ProfileCardProps) {
 
   return (
     <>
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
         <div className="p-8">
           {/* Avatar */}
           <div className="mb-4 flex justify-center">
             <div className="relative">
-              <Avatar className="h-24 w-24 border-4 border-white shadow-lg ring-2 ring-slate-200">
+              <Avatar className="h-24 w-24 border-4 border-white shadow-lg ring-2 ring-zinc-200">
                 <AvatarImage src={user.profileImageUrl} alt={user.name} />
                 <AvatarFallback className="bg-linear-to-br from-blue-400 to-purple-500 text-2xl font-semibold text-white">
                   {user.name.charAt(0).toUpperCase()}
@@ -349,25 +349,25 @@ export default function ProfileCard({ user, isOwnProfile }: ProfileCardProps) {
 
           {/* Name & Username */}
           <div className="mb-3 text-center">
-            <h1 className="mb-1 text-2xl font-bold text-slate-900">
+            <h1 className="mb-1 text-2xl font-bold text-zinc-900">
               {user.name}
             </h1>
-            <p className="text-slate-500">@{user.username}</p>
+            <p className="text-zinc-500">@{user.username}</p>
           </div>
 
           {/* Wallet Address */}
           <div className="mb-6 flex items-center justify-center gap-2">
             <button
               onClick={handleCopyAddress}
-              className="group flex items-center gap-2 rounded-lg bg-slate-100 px-3 py-1.5 transition-colors hover:bg-slate-200"
+              className="group flex items-center gap-2 rounded-lg bg-zinc-100 px-3 py-1.5 transition-colors hover:bg-zinc-200"
             >
-              <span className="font-mono text-sm text-slate-600">
+              <span className="font-mono text-sm text-zinc-600">
                 {truncateAddress(user.userAddress)}
               </span>
               {copied ? (
                 <Check className="h-3.5 w-3.5 text-green-600" />
               ) : (
-                <Copy className="h-3.5 w-3.5 text-slate-400 transition-colors group-hover:text-slate-600" />
+                <Copy className="h-3.5 w-3.5 text-zinc-400 transition-colors group-hover:text-zinc-600" />
               )}
             </button>
           </div>
@@ -377,22 +377,21 @@ export default function ProfileCard({ user, isOwnProfile }: ProfileCardProps) {
             <button
               onClick={() => setFriendsModalOpen(true)}
               disabled={!canViewFriendsList}
-              className={`rounded-lg bg-slate-50 p-3 text-center transition-all ${
-                canViewFriendsList
-                  ? "cursor-pointer hover:bg-slate-100"
+              className={`rounded-lg bg-zinc-50 p-3 text-center transition-all ${canViewFriendsList
+                  ? "cursor-pointer hover:bg-zinc-100"
                   : "cursor-not-allowed opacity-60"
-              }`}
+                }`}
             >
-              <div className="text-2xl font-bold text-slate-900">
+              <div className="text-2xl font-bold text-zinc-900">
                 {friendCount ?? 0}
               </div>
-              <div className="text-sm text-slate-500">Friends</div>
+              <div className="text-sm text-zinc-500">Friends</div>
             </button>
-            <div className="cursor-not-allowed rounded-lg bg-slate-50 p-3 text-center opacity-60">
-              <div className="text-2xl font-bold text-slate-900">
+            <div className="cursor-not-allowed rounded-lg bg-zinc-50 p-3 text-center opacity-60">
+              <div className="text-2xl font-bold text-zinc-900">
                 {groupsCount}
               </div>
-              <div className="text-sm text-slate-500">Groups</div>
+              <div className="text-sm text-zinc-500">Groups</div>
             </div>
           </div>
 

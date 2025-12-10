@@ -21,7 +21,7 @@ export default function AccountSettings() {
   if (!user) {
     return (
       <div className="p-8">
-        <p className="text-slate-500">Loading...</p>
+        <p className="text-zinc-500">Loading...</p>
       </div>
     );
   }
@@ -29,28 +29,28 @@ export default function AccountSettings() {
   return (
     <>
       <div className="p-8">
-        <h2 className="mb-6 text-2xl font-bold text-slate-900">Account</h2>
+        <h2 className="mb-6 text-2xl font-bold text-zinc-900">Account</h2>
 
         <div className="space-y-6">
           {/* Profile Section */}
           <div>
-            <h3 className="mb-4 text-lg font-semibold text-slate-900">
+            <h3 className="mb-4 text-lg font-semibold text-zinc-900">
               Profile Information
             </h3>
             <div className="flex items-center gap-4">
               <Avatar className="h-20 w-20">
                 <AvatarImage src={user.profileImageUrl} alt={user.name} />
-                <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-500 text-xl font-semibold text-white">
+                <AvatarFallback className="bg-linear-to-br from-blue-400 to-purple-500 text-xl font-semibold text-white">
                   {user.name.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1">
-                <div className="text-lg font-semibold text-slate-900">
+                <div className="text-lg font-semibold text-zinc-900">
                   {user.name}
                 </div>
-                <div className="text-slate-500">@{user.username}</div>
+                <div className="text-zinc-500">@{user.username}</div>
                 {user.email && (
-                  <div className="mt-1 text-sm text-slate-500">
+                  <div className="mt-1 text-sm text-zinc-500">
                     {user.email}
                   </div>
                 )}
@@ -62,18 +62,18 @@ export default function AccountSettings() {
             </div>
           </div>
 
-          <div className="border-t border-slate-200" />
+          <div className="border-t border-zinc-200" />
 
           {/* Wallet Section */}
           <div>
-            <h3 className="mb-4 text-lg font-semibold text-slate-900">
+            <h3 className="mb-4 text-lg font-semibold text-zinc-900">
               Wallet
             </h3>
-            <div className="rounded-lg bg-slate-50 p-4">
-              <div className="mb-1 text-sm text-slate-600">
+            <div className="rounded-lg bg-zinc-50 p-4">
+              <div className="mb-1 text-sm text-zinc-600">
                 Connected Wallet
               </div>
-              <div className="font-mono text-sm break-all text-slate-900">
+              <div className="font-mono text-sm break-all text-zinc-900">
                 {address}
               </div>
             </div>

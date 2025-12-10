@@ -126,8 +126,8 @@ export default function SendGroupInviteModal({
         <div className="space-y-4">
           {/* Selected Count */}
           {selectedGroups.length > 0 && (
-            <div className="flex items-center justify-between rounded-lg bg-slate-50 p-3">
-              <span className="text-sm font-medium text-slate-700">
+            <div className="flex items-center justify-between rounded-lg bg-zinc-50 p-3">
+              <span className="text-sm font-medium text-zinc-700">
                 {selectedGroups.length} group
                 {selectedGroups.length !== 1 ? "s" : ""} selected
               </span>
@@ -145,15 +145,15 @@ export default function SendGroupInviteModal({
           <ScrollArea className="h-[300px]">
             {!userGroups ? (
               <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+                <Loader2 className="h-6 w-6 animate-spin text-zinc-400" />
               </div>
             ) : availableGroups.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
-                <Users className="mb-3 h-12 w-12 text-slate-300" />
-                <p className="mb-2 text-sm font-medium text-slate-900">
+                <Users className="mb-3 h-12 w-12 text-zinc-300" />
+                <p className="mb-2 text-sm font-medium text-zinc-900">
                   No groups available
                 </p>
-                <p className="text-sm text-slate-500">
+                <p className="text-sm text-zinc-500">
                   {friendGroupIds.size > 0
                     ? `${friendName} is already in all your groups`
                     : "You don't have permission to invite members to any groups"}
@@ -168,14 +168,13 @@ export default function SendGroupInviteModal({
                     <button
                       key={group._id}
                       onClick={() => toggleGroup(group._id)}
-                      className={`flex w-full items-center gap-3 rounded-lg border-2 p-3 text-left transition-all ${
-                        isSelected
-                          ? "border-slate-900 bg-slate-50"
-                          : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
-                      }`}
+                      className={`flex w-full items-center gap-3 rounded-lg border-2 p-3 text-left transition-all ${isSelected
+                        ? "border-zinc-900 bg-zinc-50"
+                        : "border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50"
+                        }`}
                     >
                       {/* Group Icon/Image */}
-                      <div className="relative flex-shrink-0">
+                      <div className="relative shrink-0">
                         {group.imageType === "emoji" ? (
                           <div
                             className="flex h-12 w-12 items-center justify-center rounded-full text-2xl"
@@ -207,10 +206,10 @@ export default function SendGroupInviteModal({
 
                       {/* Group Info */}
                       <div className="min-w-0 flex-1">
-                        <div className="truncate font-medium text-slate-900">
+                        <div className="truncate font-medium text-zinc-900">
                           {group.name}
                         </div>
-                        <div className="flex items-center gap-2 text-sm text-slate-500">
+                        <div className="flex items-center gap-2 text-sm text-zinc-500">
                           <span>{group.memberCount} members</span>
                           {group.userRole === "admin" && (
                             <>
@@ -229,7 +228,7 @@ export default function SendGroupInviteModal({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-3 border-t border-slate-200 pt-4">
+        <div className="flex gap-3 border-t border-zinc-200 pt-4">
           <Button
             variant="outline"
             onClick={() => {

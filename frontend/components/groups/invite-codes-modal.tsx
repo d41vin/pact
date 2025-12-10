@@ -191,8 +191,8 @@ export default function InviteCodesModal({
 
             {/* Create Form */}
             {showCreateForm && (
-              <div className="space-y-4 rounded-lg border border-slate-200 bg-slate-50 p-4">
-                <h3 className="font-semibold text-slate-900">
+              <div className="space-y-4 rounded-lg border border-zinc-200 bg-zinc-50 p-4">
+                <h3 className="font-semibold text-zinc-900">
                   Create Invite Code
                 </h3>
 
@@ -203,7 +203,7 @@ export default function InviteCodesModal({
                     id="expires"
                     value={expiresIn}
                     onChange={(e) => setExpiresIn(e.target.value)}
-                    className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"
+                    className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm"
                   >
                     <option value="never">Never</option>
                     <option value="1">1 hour</option>
@@ -258,7 +258,7 @@ export default function InviteCodesModal({
 
             {/* Codes List */}
             <div>
-              <h3 className="mb-3 font-semibold text-slate-900">
+              <h3 className="mb-3 font-semibold text-zinc-900">
                 Active Codes{" "}
                 {codes && `(${codes.filter((c) => c.isActive).length})`}
               </h3>
@@ -266,15 +266,15 @@ export default function InviteCodesModal({
               <ScrollArea className="h-[300px]">
                 {!codes ? (
                   <div className="flex items-center justify-center py-8">
-                    <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+                    <Loader2 className="h-6 w-6 animate-spin text-zinc-400" />
                   </div>
                 ) : codes.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-12 text-center">
-                    <LinkIcon className="mb-3 h-12 w-12 text-slate-300" />
-                    <p className="mb-2 text-sm font-medium text-slate-900">
+                    <LinkIcon className="mb-3 h-12 w-12 text-zinc-300" />
+                    <p className="mb-2 text-sm font-medium text-zinc-900">
                       No invite codes yet
                     </p>
-                    <p className="text-sm text-slate-500">
+                    <p className="text-sm text-zinc-500">
                       Create a code to share with others
                     </p>
                   </div>
@@ -290,21 +290,20 @@ export default function InviteCodesModal({
                       return (
                         <div
                           key={code._id}
-                          className={`rounded-lg border p-4 transition-colors ${
-                            canUse
-                              ? "border-slate-200 bg-white"
-                              : "border-slate-200 bg-slate-50 opacity-60"
-                          }`}
+                          className={`rounded-lg border p-4 transition-colors ${canUse
+                              ? "border-zinc-200 bg-white"
+                              : "border-zinc-200 bg-zinc-50 opacity-60"
+                            }`}
                         >
                           <div className="mb-3 flex items-start justify-between">
                             <div className="flex-1">
                               <div className="mb-1 flex items-center gap-2">
-                                <code className="rounded bg-slate-100 px-2 py-1 font-mono text-lg font-semibold text-slate-900">
+                                <code className="rounded bg-zinc-100 px-2 py-1 font-mono text-lg font-semibold text-zinc-900">
                                   {code.code}
                                 </code>
                                 <button
                                   onClick={() => handleCopyCode(code.code)}
-                                  className="text-slate-400 transition-colors hover:text-slate-600"
+                                  className="text-zinc-400 transition-colors hover:text-zinc-600"
                                 >
                                   {copiedCode === code.code ? (
                                     <Check className="h-4 w-4 text-green-600" />
@@ -314,14 +313,14 @@ export default function InviteCodesModal({
                                 </button>
                                 <button
                                   onClick={() => handleShowQR(code.code)}
-                                  className="text-slate-400 transition-colors hover:text-slate-600"
+                                  className="text-zinc-400 transition-colors hover:text-zinc-600"
                                   title="Show QR Code"
                                 >
                                   <QrCode className="h-4 w-4" />
                                 </button>
                               </div>
 
-                              <div className="space-y-1 text-sm text-slate-500">
+                              <div className="space-y-1 text-sm text-zinc-500">
                                 <div>
                                   Created by {code.creator?.name || "Unknown"}{" "}
                                   on {formatShortDate(code._creationTime)}
@@ -353,7 +352,7 @@ export default function InviteCodesModal({
                                   handleToggleActive(code._id, code.isActive)
                                 }
                                 disabled={isExpired}
-                                className="rounded p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 disabled:cursor-not-allowed disabled:opacity-50"
+                                className="rounded p-2 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-600 disabled:cursor-not-allowed disabled:opacity-50"
                                 title={
                                   code.isActive ? "Deactivate" : "Reactivate"
                                 }
@@ -366,7 +365,7 @@ export default function InviteCodesModal({
                               </button>
                               <button
                                 onClick={() => handleDeleteCode(code._id)}
-                                className="rounded p-2 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600"
+                                className="rounded p-2 text-zinc-400 transition-colors hover:bg-red-50 hover:text-red-600"
                                 title="Delete"
                               >
                                 <Trash2 className="h-4 w-4" />

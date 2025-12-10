@@ -42,26 +42,26 @@ export default function BlockedUsersManagement() {
   if (!blockedUsers) {
     return (
       <div className="flex items-center justify-center py-8">
-        <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+        <Loader2 className="h-6 w-6 animate-spin text-zinc-400" />
       </div>
     );
   }
 
   return (
     <div>
-      <h3 className="mb-4 text-lg font-semibold text-slate-900">
+      <h3 className="mb-4 text-lg font-semibold text-zinc-900">
         Blocked Users
       </h3>
 
       {blockedUsers.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 text-center">
-          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100">
-            <UserX className="h-8 w-8 text-slate-400" />
+          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-zinc-100">
+            <UserX className="h-8 w-8 text-zinc-400" />
           </div>
-          <h4 className="mb-2 text-lg font-semibold text-slate-900">
+          <h4 className="mb-2 text-lg font-semibold text-zinc-900">
             No blocked users
           </h4>
-          <p className="max-w-sm text-sm text-slate-500">
+          <p className="max-w-sm text-sm text-zinc-500">
             When you block someone, they won't be able to send you friend
             requests or see your profile.
           </p>
@@ -71,24 +71,24 @@ export default function BlockedUsersManagement() {
           {blockedUsers.map((blockedUser) => (
             <div
               key={blockedUser._id}
-              className="flex items-center gap-4 rounded-lg border border-slate-200 p-4 transition-colors hover:bg-slate-50"
+              className="flex items-center gap-4 rounded-lg border border-zinc-200 p-4 transition-colors hover:bg-zinc-50"
             >
               <Avatar className="h-12 w-12">
                 <AvatarImage
                   src={blockedUser.profileImageUrl}
                   alt={blockedUser.name}
                 />
-                <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-500 text-white">
+                <AvatarFallback className="bg-linear-to-br from-blue-400 to-purple-500 text-white">
                   {blockedUser.name
                     ? blockedUser.name.charAt(0).toUpperCase()
                     : "U"}
                 </AvatarFallback>
               </Avatar>
               <div className="min-w-0 flex-1">
-                <div className="truncate font-medium text-slate-900">
+                <div className="truncate font-medium text-zinc-900">
                   {blockedUser.name}
                 </div>
-                <div className="truncate text-sm text-slate-500">
+                <div className="truncate text-sm text-zinc-500">
                   @{blockedUser.username}
                 </div>
               </div>

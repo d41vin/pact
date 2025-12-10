@@ -89,18 +89,18 @@ export function PaymentReceivedNotification({
                 </AvatarFallback>
               </Avatar>
               <div className="min-w-0 flex-1">
-                <div className="font-semibold text-slate-900">
+                <div className="font-semibold text-zinc-900">
                   {fromUser.name}
                 </div>
-                <div className="text-sm text-slate-500">
+                <div className="text-sm text-zinc-500">
                   @{fromUser.username}
                 </div>
               </div>
             </div>
 
             {/* Amount */}
-            <div className="rounded-lg bg-gradient-to-br from-green-50 to-emerald-50 p-6 text-center">
-              <div className="mb-1 text-sm font-medium text-slate-600">
+            <div className="rounded-lg bg-linear-to-br from-green-50 to-emerald-50 p-6 text-center">
+              <div className="mb-1 text-sm font-medium text-zinc-600">
                 Amount Received
               </div>
               <div className="text-4xl font-bold text-green-600">
@@ -111,8 +111,8 @@ export function PaymentReceivedNotification({
             {/* Note */}
             {message && (
               <div className="space-y-2">
-                <div className="text-sm font-medium text-slate-700">Note</div>
-                <div className="rounded-lg bg-slate-50 p-4 text-sm text-slate-600">
+                <div className="text-sm font-medium text-zinc-700">Note</div>
+                <div className="rounded-lg bg-zinc-50 p-4 text-sm text-zinc-600">
                   {message}
                 </div>
               </div>
@@ -121,14 +121,14 @@ export function PaymentReceivedNotification({
             {/* Transaction Details */}
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
-                <span className="text-slate-500">Date</span>
-                <span className="font-medium text-slate-900">
+                <span className="text-zinc-500">Date</span>
+                <span className="font-medium text-zinc-900">
                   {formatFullDate(timestamp)}
                 </span>
               </div>
               {payment?.transactionHash && (
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500">Transaction</span>
+                  <span className="text-zinc-500">Transaction</span>
                   <a
                     href={`https://explorer.testnet.mantle.xyz/tx/${payment.transactionHash}`}
                     target="_blank"
@@ -141,7 +141,7 @@ export function PaymentReceivedNotification({
                 </div>
               )}
               <div className="flex justify-between">
-                <span className="text-slate-500">Status</span>
+                <span className="text-zinc-500">Status</span>
                 <Badge
                   variant="secondary"
                   className="bg-green-100 text-green-700"

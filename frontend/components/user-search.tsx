@@ -230,7 +230,7 @@ export default function UserSearch() {
             transition={{ duration: 0.2 }}
             aria-label="Search users"
           >
-            <Search className="h-5 w-5 text-slate-700" />
+            <Search className="h-5 w-5 text-zinc-700" />
           </motion.button>
         ) : (
           // Expanded state - search input
@@ -243,14 +243,14 @@ export default function UserSearch() {
             transition={{ duration: 0.3, ease: "easeInOut" }}
           >
             <div className="relative flex items-center rounded-full bg-white px-4 py-2.5 shadow-lg">
-              <Search className="mr-3 h-5 w-5 flex-shrink-0 text-slate-400" />
+              <Search className="mr-3 h-5 w-5 shrink-0 text-zinc-400" />
               <input
                 ref={inputRef}
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value.slice(0, 50))}
                 placeholder="Search users..."
-                className="flex-1 bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400"
+                className="flex-1 bg-transparent text-sm text-zinc-700 outline-none placeholder:text-zinc-400"
                 aria-label="Search for users by name or username"
               />
               {isLoading && (
@@ -259,13 +259,13 @@ export default function UserSearch() {
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0 }}
                 >
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin text-slate-400" />
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin text-zinc-400" />
                 </motion.div>
               )}
               {query && !isLoading && (
                 <motion.button
                   onClick={() => setQuery("")}
-                  className="mr-2 text-slate-400 hover:text-slate-600"
+                  className="mr-2 text-zinc-400 hover:text-zinc-600"
                   initial={{ opacity: 0, scale: 0 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0 }}
@@ -276,7 +276,7 @@ export default function UserSearch() {
               )}
               <button
                 onClick={handleClose}
-                className="flex-shrink-0 text-slate-400 hover:text-slate-600"
+                className="shrink-0 text-zinc-400 hover:text-zinc-600"
                 aria-label="Close search"
               >
                 <X className="h-5 w-5" />
@@ -289,50 +289,93 @@ export default function UserSearch() {
                 showRecentSearches ||
                 showNoResults ||
                 showMinCharsMessage) && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.2 }}
-                  className="absolute top-full z-50 mt-2 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl"
-                >
-                  {/* Minimum characters message */}
-                  {showMinCharsMessage && (
-                    <div className="px-4 py-3 text-center text-sm text-slate-500">
-                      Type at least {MIN_SEARCH_LENGTH} characters to search
-                    </div>
-                  )}
-
-                  {/* Recent searches */}
-                  {showRecentSearches && (
-                    <div>
-                      <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-4 py-2">
-                        <span className="text-xs font-medium tracking-wide text-slate-500 uppercase">
-                          Recent Searches
-                        </span>
-                        <button
-                          onClick={clearRecentSearches}
-                          className="text-xs text-slate-400 transition-colors hover:text-slate-600"
-                        >
-                          Clear
-                        </button>
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.2 }}
+                    className="absolute top-full z-50 mt-2 w-full overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-xl"
+                  >
+                    {/* Minimum characters message */}
+                    {showMinCharsMessage && (
+                      <div className="px-4 py-3 text-center text-sm text-zinc-500">
+                        Type at least {MIN_SEARCH_LENGTH} characters to search
                       </div>
-                      <div className="max-h-80 overflow-y-auto">
-                        {recentSearches.map((user, index) => (
+                    )}
+
+                    {/* Recent searches */}
+                    {showRecentSearches && (
+                      <div>
+                        <div className="flex items-center justify-between border-b border-zinc-200 bg-zinc-50 px-4 py-2">
+                          <span className="text-xs font-medium tracking-wide text-zinc-500 uppercase">
+                            Recent Searches
+                          </span>
                           <button
+                            onClick={clearRecentSearches}
+                            className="text-xs text-zinc-400 transition-colors hover:text-zinc-600"
+                          >
+                            Clear
+                          </button>
+                        </div>
+                        <div className="max-h-80 overflow-y-auto">
+                          {recentSearches.map((user, index) => (
+                            <button
+                              key={user.id}
+                              ref={(el) => {
+                                resultsRef.current[index] = el;
+                              }}
+                              onClick={() => handleUserSelect(user)}
+                              onMouseEnter={() => setSelectedIndex(index)}
+                              className={`flex w-full items-center gap-3 border-b border-zinc-100 px-4 py-3 text-left transition-colors last:border-b-0 ${selectedIndex === index
+                                ? "bg-blue-50"
+                                : "hover:bg-zinc-50"
+                                }`}
+                            >
+                              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-blue-400 to-purple-500 font-medium text-white">
+                                {user.avatar ? (
+                                  <img
+                                    src={user.avatar}
+                                    alt=""
+                                    className="h-full w-full rounded-full object-cover"
+                                  />
+                                ) : (
+                                  <User className="h-5 w-5" />
+                                )}
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <div className="truncate font-medium text-zinc-900">
+                                  {user.name}
+                                </div>
+                                <div className="truncate text-sm text-zinc-500">
+                                  @{user.username}
+                                </div>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Search results */}
+                    {showResults && (
+                      <div className="max-h-80 overflow-y-auto">
+                        {results.map((user, index) => (
+                          <motion.button
                             key={user.id}
                             ref={(el) => {
                               resultsRef.current[index] = el;
                             }}
                             onClick={() => handleUserSelect(user)}
                             onMouseEnter={() => setSelectedIndex(index)}
-                            className={`flex w-full items-center gap-3 border-b border-slate-100 px-4 py-3 text-left transition-colors last:border-b-0 ${
-                              selectedIndex === index
-                                ? "bg-blue-50"
-                                : "hover:bg-slate-50"
-                            }`}
+                            className={`flex w-full items-center gap-3 border-b border-zinc-100 px-4 py-3 text-left transition-colors last:border-b-0 ${selectedIndex === index
+                              ? "bg-blue-50"
+                              : "hover:bg-zinc-50"
+                              }`}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: index * 0.03 }}
                           >
-                            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-400 to-purple-500 font-medium text-white">
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-blue-400 to-purple-500 font-medium text-white">
                               {user.avatar ? (
                                 <img
                                   src={user.avatar}
@@ -344,83 +387,38 @@ export default function UserSearch() {
                               )}
                             </div>
                             <div className="min-w-0 flex-1">
-                              <div className="truncate font-medium text-slate-900">
-                                {user.name}
+                              <div className="truncate font-medium text-zinc-900">
+                                <HighlightMatch text={user.name} query={query} />
                               </div>
-                              <div className="truncate text-sm text-slate-500">
-                                @{user.username}
+                              <div className="truncate text-sm text-zinc-500">
+                                @
+                                <HighlightMatch
+                                  text={user.username}
+                                  query={query}
+                                />
                               </div>
                             </div>
-                          </button>
+                          </motion.button>
                         ))}
                       </div>
-                    </div>
-                  )}
+                    )}
 
-                  {/* Search results */}
-                  {showResults && (
-                    <div className="max-h-80 overflow-y-auto">
-                      {results.map((user, index) => (
-                        <motion.button
-                          key={user.id}
-                          ref={(el) => {
-                            resultsRef.current[index] = el;
-                          }}
-                          onClick={() => handleUserSelect(user)}
-                          onMouseEnter={() => setSelectedIndex(index)}
-                          className={`flex w-full items-center gap-3 border-b border-slate-100 px-4 py-3 text-left transition-colors last:border-b-0 ${
-                            selectedIndex === index
-                              ? "bg-blue-50"
-                              : "hover:bg-slate-50"
-                          }`}
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: index * 0.03 }}
-                        >
-                          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-400 to-purple-500 font-medium text-white">
-                            {user.avatar ? (
-                              <img
-                                src={user.avatar}
-                                alt=""
-                                className="h-full w-full rounded-full object-cover"
-                              />
-                            ) : (
-                              <User className="h-5 w-5" />
-                            )}
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <div className="truncate font-medium text-slate-900">
-                              <HighlightMatch text={user.name} query={query} />
-                            </div>
-                            <div className="truncate text-sm text-slate-500">
-                              @
-                              <HighlightMatch
-                                text={user.username}
-                                query={query}
-                              />
-                            </div>
-                          </div>
-                        </motion.button>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* No results message */}
-                  {showNoResults && (
-                    <div className="px-4 py-8 text-center">
-                      <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
-                        <Search className="h-6 w-6 text-slate-400" />
+                    {/* No results message */}
+                    {showNoResults && (
+                      <div className="px-4 py-8 text-center">
+                        <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-zinc-100">
+                          <Search className="h-6 w-6 text-zinc-400" />
+                        </div>
+                        <div className="mb-1 font-medium text-zinc-900">
+                          No users found
+                        </div>
+                        <div className="text-sm text-zinc-500">
+                          Try searching with a different name or username
+                        </div>
                       </div>
-                      <div className="mb-1 font-medium text-slate-900">
-                        No users found
-                      </div>
-                      <div className="text-sm text-slate-500">
-                        Try searching with a different name or username
-                      </div>
-                    </div>
-                  )}
-                </motion.div>
-              )}
+                    )}
+                  </motion.div>
+                )}
             </AnimatePresence>
           </motion.div>
         )}

@@ -14,7 +14,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { User, X, Users, Clock, Loader2 } from "lucide-react";
+import { User, X, Users, Clock, Loader2, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatTimeAgo } from "@/lib/date-utils";
 
@@ -26,6 +26,7 @@ export interface RecipientUser {
   profileImageUrl?: string;
   isFriend?: boolean;
   lastPaymentDate?: number;
+  requestPrivacy?: "anyone" | "friends_only";
 }
 
 interface UserRecipientInputProps {
@@ -33,6 +34,7 @@ interface UserRecipientInputProps {
   onChange: (value: RecipientUser | string | null) => void;
   placeholder?: string;
   className?: string;
+  mode?: "payment" | "request";
 }
 
 export default function UserRecipientInput({
@@ -40,6 +42,7 @@ export default function UserRecipientInput({
   onChange,
   placeholder = "Search user or paste address",
   className,
+  mode = "payment",
 }: UserRecipientInputProps) {
   const { address } = useAppKitAccount();
   const [inputValue, setInputValue] = useState("");
@@ -48,15 +51,30 @@ export default function UserRecipientInput({
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // Sync selectedUser with value prop when it changes
+  useEffect(() => {
+    if (value && typeof value === "object" && value !== null) {
+      setSelectedUser(value as RecipientUser);
+    } else if (value === null) {
+      setSelectedUser(null);
+    }
+  }, [value]);
+
+  // Get current user
+  const currentUser = useQuery(
+    api.users.getUser,
+    address ? { userAddress: address } : "skip"
+  );
+
   // Search users
   const searchResults = useQuery(
     api.users.searchUsers,
     inputValue.trim().length > 0
       ? {
-          query: inputValue.trim(),
-          currentUserAddress: address,
-        }
-      : "skip",
+        query: inputValue.trim(),
+        currentUserAddress: address,
+      }
+      : "skip"
   );
 
   // Validate if input is a valid wallet address
@@ -68,13 +86,15 @@ export default function UserRecipientInput({
   const isCompleteAddress = isValidAddress(inputValue.trim());
   const addressCheck = useQuery(
     api.payments.checkUserByAddress,
-    isCompleteAddress ? { address: inputValue.trim() } : "skip",
+    isCompleteAddress && mode === "payment" ? { address: inputValue.trim() } : "skip"
   );
 
   // Get recent recipients
   const recentRecipients = useQuery(
     api.users.getRecentRecipients,
-    address && !inputValue.trim() && isOpen ? { userAddress: address } : "skip",
+    address && !inputValue.trim() && isOpen && mode === "payment"
+      ? { userAddress: address }
+      : "skip"
   );
 
   // Check if input is a wallet address format (even if incomplete)
@@ -97,8 +117,31 @@ export default function UserRecipientInput({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Check if user can receive request
+  const canReceiveCheck = (user: RecipientUser): { canReceive: boolean; reason?: string } => {
+    if (mode !== "request") return { canReceive: true };
+    if (!currentUser) return { canReceive: false, reason: "Not logged in" };
+    if (user._id === currentUser._id) {
+      return { canReceive: false, reason: "Cannot request from yourself" };
+    }
+
+    const privacy = user.requestPrivacy || "anyone";
+    if (privacy === "friends_only" && !user.isFriend) {
+      return { canReceive: false, reason: "Only accepts requests from friends" };
+    }
+
+    return { canReceive: true };
+  };
+
   // Handle user selection
   const handleSelectUser = (user: RecipientUser) => {
+    if (mode === "request") {
+      const check = canReceiveCheck(user);
+      if (!check.canReceive) {
+        return; // Don't select if can't receive
+      }
+    }
+
     setSelectedUser(user);
     setInputValue("");
     setIsOpen(false);
@@ -119,10 +162,9 @@ export default function UserRecipientInput({
     setInputValue(newValue);
     setIsOpen(true);
 
-    // If it's a valid wallet address, set it as raw address (will be validated by addressCheck)
-    if (isValidAddress(newValue)) {
-      // Don't set immediately - let addressCheck query run first
-      // We'll handle this in the dropdown display
+    // For request mode, don't allow raw addresses
+    if (mode === "payment" && isValidAddress(newValue)) {
+      // Will be handled by addressCheck query
     } else {
       onChange(null);
     }
@@ -136,7 +178,7 @@ export default function UserRecipientInput({
   // If user is selected, show the card view
   if (selectedUser) {
     return (
-      <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
+      <div className="flex items-center gap-3 rounded-lg border border-zinc-200 bg-zinc-50 p-3">
         <Avatar className="h-10 w-10">
           <AvatarImage src={selectedUser.profileImageUrl} />
           <AvatarFallback>
@@ -145,7 +187,7 @@ export default function UserRecipientInput({
         </Avatar>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <div className="font-medium text-slate-900">
+            <div className="font-medium text-zinc-900">
               {selectedUser.name}
             </div>
             {selectedUser.isFriend && (
@@ -155,13 +197,13 @@ export default function UserRecipientInput({
               </Badge>
             )}
           </div>
-          <div className="text-sm text-slate-500">
+          <div className="text-sm text-zinc-500">
             @{selectedUser.username} • {formatAddress(selectedUser.userAddress)}
           </div>
         </div>
         <button
           onClick={handleClear}
-          className="flex-shrink-0 rounded-full p-1 text-slate-400 transition-colors hover:bg-slate-200 hover:text-slate-600"
+          className="shrink-0 rounded-full p-1 text-zinc-400 transition-colors hover:bg-zinc-200 hover:text-zinc-600"
         >
           <X className="h-4 w-4" />
         </button>
@@ -184,12 +226,13 @@ export default function UserRecipientInput({
       {isOpen && (
         <div
           ref={dropdownRef}
-          className="absolute top-full z-50 mt-2 w-full rounded-lg border border-slate-200 bg-white shadow-lg"
+          className="absolute top-full z-50 mt-2 w-full rounded-lg border border-zinc-200 bg-white shadow-lg"
         >
           <Command className="rounded-lg">
             <CommandList>
-              {/* Recent Recipients */}
-              {!inputValue.trim() &&
+              {/* Recent Recipients - Only for payment mode */}
+              {mode === "payment" &&
+                !inputValue.trim() &&
                 recentRecipients &&
                 recentRecipients.length > 0 && (
                   <CommandGroup heading="Recent">
@@ -216,7 +259,7 @@ export default function UserRecipientInput({
                               </Badge>
                             )}
                           </div>
-                          <div className="flex items-center gap-2 text-xs text-slate-500">
+                          <div className="flex items-center gap-2 text-xs text-zinc-500">
                             <span>@{recipient.username}</span>
                             {recipient.lastPaymentDate && (
                               <>
@@ -237,10 +280,11 @@ export default function UserRecipientInput({
               {/* Search Results */}
               {inputValue.trim() && (
                 <>
-                  {/* Show user from address check first if it's a complete address */}
-                  {isCompleteAddress &&
-                  addressCheck?.exists &&
-                  addressCheck.user ? (
+                  {/* Show user from address check first if it's a complete address (payment mode only) */}
+                  {mode === "payment" &&
+                    isCompleteAddress &&
+                    addressCheck?.exists &&
+                    addressCheck.user ? (
                     <CommandGroup heading="User Found">
                       <CommandItem
                         onSelect={() => {
@@ -275,7 +319,7 @@ export default function UserRecipientInput({
                               </Badge>
                             )}
                           </div>
-                          <div className="text-xs text-slate-500">
+                          <div className="text-xs text-zinc-500">
                             @{addressCheck.user.username}
                           </div>
                         </div>
@@ -285,85 +329,101 @@ export default function UserRecipientInput({
                     <CommandGroup
                       heading={looksLikeAddress ? "User Found" : "Users"}
                     >
-                      {searchResults.map((user) => (
-                        <CommandItem
-                          key={user._id}
-                          onSelect={() => handleSelectUser(user)}
-                          className="flex cursor-pointer items-center gap-3 px-3 py-2"
-                        >
-                          <Avatar className="h-8 w-8">
-                            <AvatarImage src={user.profileImageUrl} />
-                            <AvatarFallback>
-                              <User className="h-4 w-4" />
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2">
-                              <span className="font-medium">{user.name}</span>
-                              {user.isFriend && (
-                                <Badge variant="secondary" className="text-xs">
-                                  Friend
-                                </Badge>
+                      {searchResults.map((user) => {
+                        const checkResult = canReceiveCheck(user);
+                        const isDisabled = mode === "request" && !checkResult.canReceive;
+
+                        return (
+                          <CommandItem
+                            key={user._id}
+                            onSelect={() => !isDisabled && handleSelectUser(user)}
+                            disabled={isDisabled}
+                            className={cn(
+                              "flex cursor-pointer items-center gap-3 px-3 py-2",
+                              isDisabled && "cursor-not-allowed opacity-50"
+                            )}
+                          >
+                            <Avatar className="h-8 w-8">
+                              <AvatarImage src={user.profileImageUrl} />
+                              <AvatarFallback>
+                                <User className="h-4 w-4" />
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium">{user.name}</span>
+                                {user.isFriend && (
+                                  <Badge variant="secondary" className="text-xs">
+                                    Friend
+                                  </Badge>
+                                )}
+                              </div>
+                              <div className="text-xs text-zinc-500">
+                                @{user.username}
+                              </div>
+                              {isDisabled && checkResult.reason && (
+                                <div className="mt-1 flex items-center gap-1 text-xs text-amber-600">
+                                  <AlertCircle className="h-3 w-3" />
+                                  <span>{checkResult.reason}</span>
+                                </div>
                               )}
                             </div>
-                            <div className="text-xs text-slate-500">
-                              @{user.username}
-                            </div>
-                          </div>
-                        </CommandItem>
-                      ))}
+                          </CommandItem>
+                        );
+                      })}
                     </CommandGroup>
-                  ) : looksLikeAddress ? (
+                  ) : looksLikeAddress && mode === "payment" ? (
                     <CommandEmpty className="px-3 py-6 text-center">
                       {isValidAddress(inputValue.trim()) ? (
                         addressCheck === undefined ? (
                           <div className="flex items-center justify-center gap-2">
-                            <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
-                            <span className="text-sm text-slate-500">
+                            <Loader2 className="h-4 w-4 animate-spin text-zinc-400" />
+                            <span className="text-sm text-zinc-500">
                               Checking address...
                             </span>
                           </div>
                         ) : addressCheck?.exists ? (
                           <div className="space-y-2">
-                            <div className="text-sm font-medium text-slate-900">
+                            <div className="text-sm font-medium text-zinc-900">
                               User Found
                             </div>
-                            <div className="text-xs text-slate-500">
+                            <div className="text-xs text-zinc-500">
                               Select the user above
                             </div>
                           </div>
                         ) : (
                           <div className="space-y-2">
-                            <div className="text-sm font-medium text-slate-900">
+                            <div className="text-sm font-medium text-zinc-900">
                               Send to external address
                             </div>
-                            <div className="text-xs text-slate-500">
+                            <div className="text-xs text-zinc-500">
                               {formatAddress(inputValue.trim())}
                             </div>
-                            <div className="text-xs text-slate-400">
+                            <div className="text-xs text-zinc-400">
                               No Pact user found with this address
                             </div>
                             <button
                               onClick={() => {
-                                // Set as raw address and close dropdown
                                 onChange(inputValue.trim());
                                 setIsOpen(false);
                               }}
-                              className="mt-2 rounded-md bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-200"
+                              className="mt-2 rounded-md bg-zinc-100 px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-200"
                             >
                               Use this address
                             </button>
                           </div>
                         )
                       ) : (
-                        <div className="text-sm text-slate-500">
+                        <div className="text-sm text-zinc-500">
                           Enter a valid wallet address
                         </div>
                       )}
                     </CommandEmpty>
                   ) : (
-                    <CommandEmpty className="px-3 py-6 text-center text-sm text-slate-500">
-                      No users found
+                    <CommandEmpty className="px-3 py-6 text-center text-sm text-zinc-500">
+                      {mode === "request"
+                        ? "No users found. Payment requests can only be sent to app users."
+                        : "No users found"}
                     </CommandEmpty>
                   )}
                 </>
@@ -372,8 +432,10 @@ export default function UserRecipientInput({
               {/* Empty state when no input and no recent */}
               {!inputValue.trim() &&
                 (!recentRecipients || recentRecipients.length === 0) && (
-                  <CommandEmpty className="px-3 py-6 text-center text-sm text-slate-500">
-                    Search by name, username, or paste wallet address
+                  <CommandEmpty className="px-3 py-6 text-center text-sm text-zinc-500">
+                    {mode === "request"
+                      ? "Search by name or username"
+                      : "Search by name, username, or paste wallet address"}
                   </CommandEmpty>
                 )}
             </CommandList>
