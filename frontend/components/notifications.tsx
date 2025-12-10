@@ -20,7 +20,11 @@ import { FriendAcceptedNotification } from "@/components/notifications/friend-ac
 import { GroupInviteNotification } from "@/components/notifications/group-invite";
 import { GroupJoinedNotification } from "@/components/notifications/group-joined";
 import { PaymentReceivedNotification } from "@/components/notifications/payments-received";
-
+import {
+  PaymentRequestNotification,
+  PaymentRequestDeclinedNotification,
+  PaymentRequestCompletedNotification,
+} from "@/components/notifications/payment-request";
 
 export default function Notifications() {
   const [isOpen, setIsOpen] = useState(false);
@@ -29,13 +33,13 @@ export default function Notifications() {
   // Get current user
   const currentUser = useQuery(
     api.users.getUser,
-    address ? { userAddress: address } : "skip",
+    address ? { userAddress: address } : "skip"
   );
 
   // Get notifications for current user
   const notifications = useQuery(
     api.notifications.list,
-    currentUser ? { userId: currentUser._id } : "skip",
+    currentUser ? { userId: currentUser._id } : "skip"
   );
 
   const markAllAsRead = useMutation(api.notifications.markAllAsRead);
@@ -50,6 +54,18 @@ export default function Notifications() {
       });
     }
   }, [isOpen, address, unreadCount, markAllAsRead]);
+
+  // Listen for close notification sheet event (triggered when send payment is initiated)
+  useEffect(() => {
+    const handleCloseSheet = () => {
+      setIsOpen(false);
+    };
+
+    window.addEventListener("close-notification-sheet", handleCloseSheet);
+    return () => {
+      window.removeEventListener("close-notification-sheet", handleCloseSheet);
+    };
+  }, []);
 
   const renderNotification = (notification: any, index: number) => {
     const commonProps = {
@@ -108,6 +124,37 @@ export default function Notifications() {
             message={notification.message}
           />
         );
+      case "payment_request":
+        return (
+          <PaymentRequestNotification
+            key={notification._id}
+            {...commonProps}
+            fromUser={notification.fromUser}
+            paymentRequestId={notification.paymentRequestId}
+            amount={notification.amount || 0}
+            message={notification.message}
+          />
+        );
+      case "payment_request_declined":
+        return (
+          <PaymentRequestDeclinedNotification
+            key={notification._id}
+            {...commonProps}
+            fromUser={notification.fromUser}
+            paymentRequestId={notification.paymentRequestId}
+            amount={notification.amount || 0}
+          />
+        );
+      case "payment_request_completed":
+        return (
+          <PaymentRequestCompletedNotification
+            key={notification._id}
+            {...commonProps}
+            fromUser={notification.fromUser}
+            paymentRequestId={notification.paymentRequestId}
+            amount={notification.amount || 0}
+          />
+        );
       default:
         return null;
     }
@@ -120,12 +167,12 @@ export default function Notifications() {
           className="relative flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-md transition-shadow hover:shadow-lg"
           aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ""}`}
         >
-          <Bell className="h-5 w-5 text-slate-700" />
+          <Bell className="h-5 w-5 text-zinc-700" />
           {unreadCount > 0 && (
             <motion.span
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white"
+              className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white"
             >
               {unreadCount > 9 ? "9+" : unreadCount}
             </motion.span>
@@ -134,7 +181,7 @@ export default function Notifications() {
       </SheetTrigger>
       <SheetContent side="right" className="w-full p-0 sm:max-w-md">
         <div className="flex h-full flex-col">
-          <SheetHeader className="border-b border-slate-200 px-6 py-4">
+          <SheetHeader className="border-b border-zinc-200 px-6 py-4">
             <SheetTitle className="text-xl font-semibold">
               Notifications
             </SheetTitle>
@@ -143,22 +190,22 @@ export default function Notifications() {
             </SheetDescription>
           </SheetHeader>
 
-          <ScrollArea className="flex-1">
+          <ScrollArea className="flex-1 overflow-y-auto">
             {!notifications || notifications.length === 0 ? (
               <div className="flex h-full flex-col items-center justify-center px-6 py-12">
-                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100">
-                  <Bell className="h-8 w-8 text-slate-400" />
+                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-zinc-100">
+                  <Bell className="h-8 w-8 text-zinc-400" />
                 </div>
-                <h3 className="mb-2 text-lg font-semibold text-slate-900">
+                <h3 className="mb-2 text-lg font-semibold text-zinc-900">
                   No notifications
                 </h3>
-                <p className="text-center text-sm text-slate-500">
+                <p className="text-center text-sm text-zinc-500">
                   You're all caught up! We'll notify you when something new
                   happens.
                 </p>
               </div>
             ) : (
-              <div className="divide-y divide-slate-100">
+              <div className="divide-y divide-zinc-100">
                 <AnimatePresence initial={false}>
                   {notifications.map((notification, index) => (
                     <motion.div
