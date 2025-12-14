@@ -3,12 +3,10 @@ import { Geist, Geist_Mono, Poppins } from "next/font/google";
 import "@/styles/globals.css";
 import { Toaster } from "@/components/ui/sonner";
 
-import { headers } from "next/headers"; // added
+import { headers } from "next/headers";
 import ContextProvider from "@/context";
 import { ConvexClientProvider } from "./ConvexClientProvider";
-import { BottomNav } from "@/components/bottom-nav";
-import { TopNav } from "@/components/top-nav";
-import SendPaymentSheet from "@/components/home/send-payment-sheet";
+import { LayoutWrapper } from "@/components/layout-wrapper";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -39,6 +37,7 @@ export default async function RootLayout({
 }>) {
   const headersObj = await headers();
   const cookies = headersObj.get("cookie");
+
   return (
     <html lang="en">
       <body
@@ -46,11 +45,7 @@ export default async function RootLayout({
       >
         <ContextProvider cookies={cookies}>
           <ConvexClientProvider>
-            <TopNav />
-            {children}
-            <BottomNav />
-            {/* Global SendPaymentSheet - responds to events from notifications on any page */}
-            <SendPaymentSheet hideTrigger />
+            <LayoutWrapper>{children}</LayoutWrapper>
             <Toaster richColors />
           </ConvexClientProvider>
         </ContextProvider>
