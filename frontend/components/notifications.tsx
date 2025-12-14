@@ -25,18 +25,17 @@ import {
   PaymentRequestDeclinedNotification,
   PaymentRequestCompletedNotification,
 } from "@/components/notifications/payment-request";
+import { PaymentLinkReceivedNotification } from "@/components/notifications/payment-link";
 
 export default function Notifications() {
   const [isOpen, setIsOpen] = useState(false);
   const { address } = useAppKitAccount();
 
-  // Get current user
   const currentUser = useQuery(
     api.users.getUser,
     address ? { userAddress: address } : "skip"
   );
 
-  // Get notifications for current user
   const notifications = useQuery(
     api.notifications.list,
     currentUser ? { userId: currentUser._id } : "skip"
@@ -46,7 +45,6 @@ export default function Notifications() {
 
   const unreadCount = notifications?.filter((n) => !n.isRead).length ?? 0;
 
-  // Auto-mark all as read when notification panel opens
   useEffect(() => {
     if (isOpen && address && unreadCount > 0) {
       markAllAsRead({ userAddress: address }).catch((error) => {
@@ -55,7 +53,6 @@ export default function Notifications() {
     }
   }, [isOpen, address, unreadCount, markAllAsRead]);
 
-  // Listen for close notification sheet event (triggered when send payment is initiated)
   useEffect(() => {
     const handleCloseSheet = () => {
       setIsOpen(false);
@@ -153,6 +150,18 @@ export default function Notifications() {
             fromUser={notification.fromUser}
             paymentRequestId={notification.paymentRequestId}
             amount={notification.amount || 0}
+          />
+        );
+      case "payment_link_received":
+        return (
+          <PaymentLinkReceivedNotification
+            key={notification._id}
+            {...commonProps}
+            fromUser={notification.fromUser}
+            paymentId={notification.paymentId}
+            paymentLinkId={notification.paymentLinkId}
+            amount={notification.amount || 0}
+            message={notification.message}
           />
         );
       default:

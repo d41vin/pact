@@ -9,3 +9,4 @@ export {
     PaymentRequestDeclinedNotification,
     PaymentRequestCompletedNotification,
 } from "./payment-request";
+export { PaymentLinkReceivedNotification } from "./payment-link";
