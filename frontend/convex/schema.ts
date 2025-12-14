@@ -53,6 +53,7 @@ export default defineSchema({
       v.literal("payment_received"),
       v.literal("payment_request_declined"),
       v.literal("payment_request_completed"),
+      v.literal("payment_link_received"),
     ),
     isRead: v.boolean(),
     fromUserId: v.optional(v.id("users")),
@@ -61,6 +62,7 @@ export default defineSchema({
     invitationId: v.optional(v.id("groupInvitations")),
     paymentId: v.optional(v.id("payments")),
     paymentRequestId: v.optional(v.id("paymentRequests")),
+    paymentLinkId: v.optional(v.id("paymentLinks")),
     amount: v.optional(v.number()),
     message: v.optional(v.string()),
   })
@@ -68,7 +70,6 @@ export default defineSchema({
     .index("by_user_unread", ["userId", "isRead"])
     .index("by_user_type", ["userId", "type"]),
 
-  // Payment Requests table
   paymentRequests: defineTable({
     requesterId: v.id("users"),
     recipientId: v.id("users"),
@@ -112,6 +113,49 @@ export default defineSchema({
     .index("by_recipient_address", ["recipientAddress"])
     .index("by_transaction_hash", ["transactionHash"])
     .index("by_status", ["status"]),
+
+  // Payment Links
+  paymentLinks: defineTable({
+    creatorId: v.id("users"),
+    title: v.string(),
+    description: v.optional(v.string()),
+    imageOrEmoji: v.string(),
+    imageType: v.union(v.literal("emoji"), v.literal("image")),
+    amount: v.string(),
+    currency: v.literal("MNT"),
+    linkType: v.union(v.literal("single-use"), v.literal("reusable")),
+    status: v.union(
+      v.literal("active"),
+      v.literal("paused"),
+      v.literal("completed"),
+      v.literal("expired"),
+      v.literal("inactive"),
+    ),
+    shortId: v.string(),
+    expiresAt: v.optional(v.number()),
+    viewCount: v.number(),
+    paymentCount: v.number(),
+    totalCollected: v.string(),
+    lastPaymentAt: v.optional(v.number()),
+  })
+    .index("by_creator", ["creatorId"])
+    .index("by_shortId", ["shortId"])
+    .index("by_status", ["status"])
+    .index("by_creator_status", ["creatorId", "status"]),
+
+  paymentLinkPayments: defineTable({
+    paymentLinkId: v.id("paymentLinks"),
+    paymentId: v.id("payments"),
+    payerUserId: v.optional(v.id("users")),
+    payerAddress: v.string(),
+    amount: v.string(),
+    transactionHash: v.string(),
+    status: v.union(v.literal("completed"), v.literal("failed")),
+    timestamp: v.number(),
+  })
+    .index("by_paymentLink", ["paymentLinkId"])
+    .index("by_payer", ["payerUserId"])
+    .index("by_transaction", ["transactionHash"]),
 
   groups: defineTable({
     name: v.string(),
