@@ -9,33 +9,27 @@ import { Spinner } from "@/components/ui/spinner";
 import SendPaymentSheet from "@/components/home/send-payment-sheet";
 import ReceivePaymentDialog from "@/components/home/receive-payment-dialog";
 import RequestPaymentSheet from "@/components/home/request-payment-sheet";
+import PaymentLinkSheet from "@/components/home/payment-link-sheet";
 import { Link2, Split, MoreHorizontal, Settings } from "lucide-react";
 
 export default function HomePage() {
   const router = useRouter();
   const { address, isConnected, status } = useAppKitAccount();
 
-  //Fetch the user's profile from Convex using their connected wallet address.
   const user = useQuery(
     api.users.getUser,
     address ? { userAddress: address } : "skip"
   );
 
-  // Handle redirects based on auth and data state.
   useEffect(() => {
-    // If wallet is disconnected, send to the login page.
     if (status === "disconnected") {
       router.replace("/");
     }
-
-    // If connected, but the user query has returned null (no profile found),
-    // they need to onboard.
     if (isConnected && user === null) {
       router.replace("/onboarding");
     }
   }, [status, isConnected, user, router]);
 
-  // Show a loading state while connecting or fetching user data.
   if (status === "connecting" || user === undefined) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -44,8 +38,6 @@ export default function HomePage() {
     );
   }
 
-
-  // If the user exists, render the home page content.
   if (user) {
     return (
       <main className="min-h-screen bg-linear-to-b from-zinc-50 to-white px-4 pb-32 pt-8">
@@ -90,10 +82,7 @@ export default function HomePage() {
 
               {/* Payment Link Button */}
               <div className="w-full sm:w-[calc(50%-0.5rem)] lg:w-[calc(25%-0.75rem)]">
-                <button className="flex h-24 w-full flex-col items-center justify-center gap-2 rounded-[40px] corner-squircle bg-linear-to-br from-purple-500 to-purple-600 text-white shadow-lg transition-all hover:shadow-xl">
-                  <Link2 className="h-6 w-6" />
-                  <span className="text-sm font-medium">Payment Link</span>
-                </button>
+                <PaymentLinkSheet />
               </div>
 
               {/* Claim Link Button */}
@@ -153,6 +142,5 @@ export default function HomePage() {
     );
   }
 
-  // As a fallback, render nothing while redirect logic is in flight.
   return null;
 }
