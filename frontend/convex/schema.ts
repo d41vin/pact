@@ -54,6 +54,7 @@ export default defineSchema({
       v.literal("payment_request_declined"),
       v.literal("payment_request_completed"),
       v.literal("payment_link_received"),
+      v.literal("claim_link_claimed"),
     ),
     isRead: v.boolean(),
     fromUserId: v.optional(v.id("users")),
@@ -63,6 +64,7 @@ export default defineSchema({
     paymentId: v.optional(v.id("payments")),
     paymentRequestId: v.optional(v.id("paymentRequests")),
     paymentLinkId: v.optional(v.id("paymentLinks")),
+    claimLinkId: v.optional(v.id("claimLinks")),
     amount: v.optional(v.number()),
     message: v.optional(v.string()),
   })
@@ -155,6 +157,67 @@ export default defineSchema({
   })
     .index("by_paymentLink", ["paymentLinkId"])
     .index("by_payer", ["payerUserId"])
+    .index("by_transaction", ["transactionHash"]),
+
+  claimLinks: defineTable({
+    creatorId: v.id("users"),
+    contractAddress: v.string(),
+    title: v.string(),
+    description: v.optional(v.string()),
+    imageOrEmoji: v.string(),
+    imageType: v.union(v.literal("emoji"), v.literal("image")),
+
+    // Asset info
+    assetType: v.union(v.literal("native"), v.literal("erc20")),
+    assetAddress: v.optional(v.string()),
+    assetSymbol: v.optional(v.string()),
+    assetDecimals: v.optional(v.number()),
+    totalAmount: v.string(),
+
+    // Access control
+    accessMode: v.union(v.literal("anyone"), v.literal("allowlist")),
+    splitMode: v.union(v.literal("none"), v.literal("equal"), v.literal("custom")),
+    maxClaimers: v.optional(v.number()), // Only for anyone + equal
+    allowlist: v.optional(v.array(v.string())),
+    customAmounts: v.optional(v.array(v.string())),
+
+    // Cryptographic proof (for anyone mode)
+    proofAddress: v.optional(v.string()), // ✅ PUBLIC KEY ONLY
+
+    // Status
+    status: v.union(
+      v.literal("active"),
+      v.literal("paused"),
+      v.literal("completed"),
+      v.literal("expired"),
+      v.literal("cancelled")
+    ),
+    shortId: v.string(),
+    expiresAt: v.optional(v.number()), // ⚠️ IN SECONDS (not milliseconds)
+
+    // Stats
+    viewCount: v.number(),
+    claimCount: v.number(),
+    totalClaimed: v.string(),
+    lastClaimAt: v.optional(v.number()), // ⚠️ IN SECONDS
+  })
+    .index("by_creator", ["creatorId"])
+    .index("by_shortId", ["shortId"])
+    .index("by_contract", ["contractAddress"])
+    .index("by_status", ["status"]),
+
+  claimLinkClaims: defineTable({
+    claimLinkId: v.id("claimLinks"),
+    claimerUserId: v.optional(v.id("users")),
+    claimerAddress: v.string(),
+    amount: v.string(), // ⚠️ Actual claimed amount (from contract/event)
+    transactionHash: v.string(),
+    status: v.union(v.literal("completed"), v.literal("failed")),
+    timestamp: v.number(), // ⚠️ IN SECONDS
+  })
+    .index("by_claimLink", ["claimLinkId"])
+    .index("by_claimer", ["claimerUserId"])
+    .index("by_address", ["claimerAddress"])
     .index("by_transaction", ["transactionHash"]),
 
   groups: defineTable({

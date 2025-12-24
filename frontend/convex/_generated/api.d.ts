@@ -9,6 +9,7 @@
  */
 
 import type * as blocks from "../blocks.js";
+import type * as claimLinks from "../claimLinks.js";
 import type * as friendships from "../friendships.js";
 import type * as groups from "../groups.js";
 import type * as inviteCodes from "../inviteCodes.js";
@@ -29,6 +30,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   blocks: typeof blocks;
+  claimLinks: typeof claimLinks;
   friendships: typeof friendships;
   groups: typeof groups;
   inviteCodes: typeof inviteCodes;

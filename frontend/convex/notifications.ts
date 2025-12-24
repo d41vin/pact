@@ -51,10 +51,16 @@ export const list = query({
           group = await ctx.db.get(notification.groupId);
         }
 
+        let claimLink = null;
+        if (notification.claimLinkId) {
+          claimLink = await ctx.db.get(notification.claimLinkId);
+        }
+
         return {
           ...notification,
           fromUser,
           group,
+          claimLink,
         };
       }),
     );
