@@ -5,11 +5,13 @@ import { useRouter } from "next/navigation";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useAppKitAccount } from "@reown/appkit/react";
+import { useBalance } from "wagmi";
 import { Spinner } from "@/components/ui/spinner";
 import SendPaymentSheet from "@/components/home/send-payment-sheet";
 import ReceivePaymentDialog from "@/components/home/receive-payment-dialog";
 import RequestPaymentSheet from "@/components/home/request-payment-sheet";
 import PaymentLinkSheet from "@/components/home/payment-link-sheet";
+import ClaimLinkSheet from "@/components/home/claim-link-sheet";
 import { Link2, Split, MoreHorizontal, Settings } from "lucide-react";
 
 export default function HomePage() {
@@ -29,6 +31,9 @@ export default function HomePage() {
       router.replace("/onboarding");
     }
   }, [status, isConnected, user, router]);
+
+  const { data: balanceData } = useBalance({ address: address as `0x${string}` });
+  const formattedBalance = balanceData ? parseFloat(balanceData.formatted).toFixed(5) : "0.00000";
 
   if (status === "connecting" || user === undefined) {
     return (
@@ -55,7 +60,18 @@ export default function HomePage() {
               <h1 className="mb-2 bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-3xl font-bold text-transparent">
                 Welcome back, {user.name}!
               </h1>
-              <p className="text-zinc-600">@{user.username}</p>
+              <p className="mb-6 text-zinc-600">@{user.username}</p>
+
+              {/* Wallet Balance */}
+              <div className="inline-flex items-center gap-2 px-6 py-3 rounded-[20px] bg-zinc-50 border border-zinc-200 shadow-xs">
+                <div className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                </div>
+                <span className="font-mono text-lg font-semibold text-zinc-900 tracking-tight">
+                  {formattedBalance} MNT
+                </span>
+              </div>
             </div>
           </div>
 
@@ -87,10 +103,7 @@ export default function HomePage() {
 
               {/* Claim Link Button */}
               <div className="w-full sm:w-[calc(50%-0.5rem)] lg:w-[calc(25%-0.75rem)]">
-                <button className="flex h-24 w-full flex-col items-center justify-center gap-2 rounded-[40px] corner-squircle bg-linear-to-br from-pink-500 to-pink-600 text-white shadow-lg transition-all hover:shadow-xl">
-                  <Link2 className="h-6 w-6" />
-                  <span className="text-sm font-medium">Claim Link</span>
-                </button>
+                <ClaimLinkSheet />
               </div>
 
               {/* Split Bill Button */}

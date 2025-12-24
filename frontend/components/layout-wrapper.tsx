@@ -9,13 +9,15 @@ import SendPaymentSheet from "@/components/home/send-payment-sheet";
 export function LayoutWrapper({ children }: { children: ReactNode }) {
     const pathname = usePathname();
 
-    // Check if we're on a payment link page
+    // Check if we're on a payment link page or claim page
     const isPaymentLinkPage = pathname?.startsWith("/pay/");
+    const isClaimPage = pathname?.startsWith("/claim/");
+    const shouldHideNav = isPaymentLinkPage || isClaimPage;
 
     return (
         <>
-            {/* Only show navigation for non-payment-link pages */}
-            {!isPaymentLinkPage && (
+            {/* Only show navigation for main app pages */}
+            {!shouldHideNav && (
                 <>
                     <TopNav />
                     <SendPaymentSheet hideTrigger />

@@ -26,6 +26,7 @@ import {
   PaymentRequestCompletedNotification,
 } from "@/components/notifications/payment-request";
 import { PaymentLinkReceivedNotification } from "@/components/notifications/payment-link";
+import { ClaimLinkClaimedNotification } from "@/components/notifications/claim-link";
 
 export default function Notifications() {
   const [isOpen, setIsOpen] = useState(false);
@@ -161,6 +162,17 @@ export default function Notifications() {
             paymentId={notification.paymentId}
             paymentLinkId={notification.paymentLinkId}
             amount={notification.amount || 0}
+            message={notification.message}
+          />
+        );
+      case "claim_link_claimed":
+        return (
+          <ClaimLinkClaimedNotification
+            key={notification._id}
+            {...commonProps}
+            fromUser={notification.fromUser}
+            claimLinkId={notification.claimLinkId}
+            claimLink={notification.claimLink}
             message={notification.message}
           />
         );
