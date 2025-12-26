@@ -96,7 +96,7 @@ describe("ClaimLinkImplementation", () => {
 
     assert.equal(events.length, 1);
 
-    const claimLinkAddress = events[0].args.claimLink as `0x${string}`;
+    const claimLinkAddress = (events[0] as any).args.claimLink as `0x${string}`;
 
     const claimLink = await viem.getContractAt(
       "ClaimLinkImplementation",
@@ -155,7 +155,7 @@ describe("ClaimLinkImplementation", () => {
       toBlock: receipt.blockNumber
     });
 
-    const claimLinkAddress = events[0].args.claimLink as `0x${string}`;
+    const claimLinkAddress = (events[0] as any).args.claimLink as `0x${string}`;
 
     const claimLink = await viem.getContractAt(
       "ClaimLinkImplementation",
@@ -176,8 +176,7 @@ describe("ClaimLinkImplementation", () => {
   });
 
   it("handles expiration correctly", async () => {
-    const { factory, user1 } =
-      await networkHelpers.loadFixture(deployFactoryFixture);
+    const { factory } = await networkHelpers.loadFixture(deployFactoryFixture);
 
     const amount = parseEther("1");
     const expiration = (await nowInSeconds()) + 10;
@@ -209,7 +208,7 @@ describe("ClaimLinkImplementation", () => {
       toBlock: receipt.blockNumber
     });
 
-    const claimLinkAddress = events[0].args.claimLink as `0x${string}`;
+    const claimLinkAddress = (events[0] as any).args.claimLink as `0x${string}`;
 
     const claimLink = await viem.getContractAt(
       "ClaimLinkImplementation",
@@ -257,7 +256,7 @@ describe("ClaimLinkImplementation", () => {
       toBlock: receipt.blockNumber
     });
 
-    const claimLinkAddress = events[0].args.claimLink as `0x${string}`;
+    const claimLinkAddress = (events[0] as any).args.claimLink as `0x${string}`;
 
     const claimLink = await viem.getContractAt(
       "ClaimLinkImplementation",
