@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { useAppKitAccount } from "@reown/appkit/react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -660,19 +661,19 @@ export default function ClaimLinkSheet() {
                     <TabsContent value="image" className="mt-4">
                       <div className="flex flex-col items-center gap-4">
                         {imagePreview ? (
-                          <div className="relative">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
+                          <div className="relative h-32 w-32">
+                            <Image
                               src={imagePreview}
                               alt="Preview"
-                              className="h-32 w-32 rounded-lg object-cover"
+                              fill
+                              className="rounded-lg object-cover"
                             />
                             <button
                               onClick={() => {
                                 setImageFile(null);
                                 setImagePreview("");
                               }}
-                              className="absolute -top-2 -right-2 rounded-full bg-red-500 p-1 text-white"
+                              className="absolute -top-2 -right-2 z-10 rounded-full bg-red-500 p-1 text-white"
                             >
                               <X className="h-4 w-4" />
                             </button>
@@ -1163,12 +1164,14 @@ export default function ClaimLinkSheet() {
                         {selectedLink.imageOrEmoji}
                       </span>
                     ) : (
-                      /* eslint-disable-next-line @next/next/no-img-element */
-                      <img
-                        src={selectedLink.imageOrEmoji}
-                        alt={selectedLink.title}
-                        className="h-24 w-24 rounded-lg object-cover"
-                      />
+                      <div className="relative h-24 w-24">
+                        <Image
+                          src={selectedLink.imageOrEmoji}
+                          alt={selectedLink.title}
+                          fill
+                          className="rounded-lg object-cover"
+                        />
+                      </div>
                     )}
                   </div>
 
@@ -1419,12 +1422,14 @@ function ClaimLinkCard({
           {link.imageType === "emoji" ? (
             <span className="text-3xl">{link.imageOrEmoji}</span>
           ) : (
-            /* eslint-disable-next-line @next/next/no-img-element */
-            <img
-              src={link.imageOrEmoji}
-              alt={link.title}
-              className="h-12 w-12 rounded-lg object-cover"
-            />
+            <div className="relative h-12 w-12">
+              <Image
+                src={link.imageOrEmoji}
+                alt={link.title}
+                fill
+                className="rounded-lg object-cover"
+              />
+            </div>
           )}
         </div>
 
