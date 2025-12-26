@@ -1,24 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import { useAppKitAccount } from "@reown/appkit/react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { useWriteContract, usePublicClient, useReadContract } from "wagmi";
-import {
-  parseEther,
-  parseUnits,
-  formatEther,
-  formatUnits,
-  decodeEventLog,
-} from "viem";
+import { useWriteContract, usePublicClient } from "wagmi";
+import { parseEther, formatEther, decodeEventLog } from "viem";
 import { Id } from "@/convex/_generated/dataModel";
 import {
   Sheet,
   SheetContent,
   SheetDescription,
-  SheetHeader,
   SheetTitle,
   SheetTrigger,
   SheetClose,
@@ -59,14 +51,9 @@ import {
   Loader2,
   ArrowLeft,
   Copy,
-  Share2,
-  QrCode as QrCodeIcon,
   Eye,
   Pause,
   Play,
-  Clock,
-  ExternalLink,
-  Edit,
   Ban,
   User,
 } from "lucide-react";
@@ -81,12 +68,11 @@ import { dateToSeconds, secondsToMillis } from "@/lib/timestamp-utils";
 import {
   CLAIM_LINK_FACTORY_ADDRESS,
   ClaimLinkFactoryABI,
-  ClaimLinkImplementationABI,
   AssetType,
   AccessMode as ContractAccessMode,
   SplitMode as ContractSplitMode,
 } from "@/lib/contracts/claim-link-abis";
-import { formatFullDate, formatExpiry, formatAddress } from "@/lib/date-utils";
+import { formatFullDate, formatAddress } from "@/lib/date-utils";
 
 type ViewMode = "create" | "list" | "details" | "success";
 type AccessMode = "anyone" | "allowlist";
@@ -100,9 +86,10 @@ type StatusFilter =
   | "cancelled";
 type SortOption = "recent" | "amount" | "claims";
 
-// Type for claim link from Convex
+// Type for claim link from Convex (matches actual query return type)
 interface ClaimLink {
   _id: Id<"claimLinks">;
+  _creationTime: number;
   creatorId: Id<"users">;
   contractAddress: string;
   title: string;
@@ -119,33 +106,33 @@ interface ClaimLink {
   allowlist?: string[];
   customAmounts?: string[];
   maxClaimers?: number;
-  proofAddress: string;
+  proofAddress?: string;
   privateKey?: string;
-  status: "active" | "paused" | "completed" | "cancelled";
+  status: "active" | "paused" | "completed" | "cancelled" | "expired";
   shortId: string;
   expiresAt?: number;
   viewCount: number;
   claimCount: number;
   totalClaimed: string;
   lastClaimAt?: number;
-  claims?: ClaimLinkClaim[];
-}
-
-// Type for claim from Convex
-interface ClaimLinkClaim {
-  _id: Id<"claimLinkClaims">;
-  claimLinkId: Id<"claimLinks">;
-  claimerUserId?: Id<"users">;
-  claimerAddress: string;
-  amount: string;
-  transactionHash: string;
-  status: "completed" | "failed";
-  timestamp: number;
-  claimer?: {
-    name: string;
-    username: string;
-    profileImageUrl?: string;
-  };
+  isExpired?: boolean;
+  claims?: Array<{
+    _id: Id<"claimLinkClaims">;
+    _creationTime: number;
+    claimLinkId: Id<"claimLinks">;
+    claimerUserId?: Id<"users">;
+    claimerAddress: string;
+    amount: string;
+    transactionHash: string;
+    status: "completed" | "failed";
+    timestamp: number;
+    claimer: {
+      _id: Id<"users">;
+      name: string;
+      username: string;
+      profileImageUrl?: string;
+    } | null;
+  }>;
 }
 
 export default function ClaimLinkSheet() {
@@ -189,8 +176,6 @@ export default function ClaimLinkSheet() {
 
   // Success state
   const [createdLinkUrl, setCreatedLinkUrl] = useState("");
-  const [privateKey, setPrivateKey] = useState<`0x${string}` | null>(null);
-  const [publicKey, setPublicKey] = useState<`0x${string}` | null>(null);
 
   // List/Details state
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
@@ -229,7 +214,7 @@ export default function ClaimLinkSheet() {
         setViewMode("list");
       }
     }
-  }, [open, claimLinks]);
+  }, [open, claimLinks, statusFilter, viewMode]);
 
   const resetForm = () => {
     setVisualTab("emoji");
@@ -245,8 +230,6 @@ export default function ClaimLinkSheet() {
     setMaxClaimers("5");
     setAllowlist([""]);
     setCustomAmounts([""]);
-    setPrivateKey(null);
-    setPublicKey(null);
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -399,8 +382,6 @@ export default function ClaimLinkSheet() {
         | undefined;
       if (accessMode === "anyone") {
         keypair = generateClaimKeyPair();
-        setPrivateKey(keypair.privateKey);
-        setPublicKey(keypair.address);
       }
 
       // 3. Calculate contract parameters
@@ -1328,7 +1309,7 @@ export default function ClaimLinkSheet() {
                   <h3 className="font-semibold text-zinc-900">Claim History</h3>
                   {selectedLink.claims && selectedLink.claims.length > 0 ? (
                     <div className="space-y-2">
-                      {selectedLink.claims.map((claim: ClaimLinkClaim) => (
+                      {selectedLink.claims.map((claim) => (
                         <div
                           key={claim._id}
                           className="flex items-center gap-3 rounded-lg border border-zinc-200 p-3"
