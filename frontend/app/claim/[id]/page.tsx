@@ -6,7 +6,7 @@ import { useAppKit, useAppKitAccount } from "@reown/appkit/react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useWriteContract, usePublicClient } from "wagmi";
-import { formatEther, parseEther } from "viem";
+import { parseEther, formatEther } from "viem";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -102,6 +102,14 @@ export default function ClaimPage() {
         setIsClaiming(true);
 
         try {
+            // Get actual claimable amount from contract
+            const claimableAmountWei = await publicClient.readContract({
+                address: claimLink.contractAddress as `0x${string}`,
+                abi: ClaimLinkImplementationABI,
+                functionName: 'getClaimableAmount',
+                args: [address as `0x${string}`],
+            });
+
             // Generate proof if in "anyone" mode
             let proof: `0x${string}` | undefined;
             if (claimLink.accessMode === "anyone") {
@@ -141,25 +149,11 @@ export default function ClaimPage() {
             // Wait for transaction receipt
             const receipt = await publicClient.waitForTransactionReceipt({ hash });
 
-            // Calculate claimed amount
-            let amountClaimed: string;
-            if (claimLink.splitMode === "equal") {
-                const divisor = claimLink.accessMode === "anyone"
-                    ? (claimLink.maxClaimers || 1)
-                    : (claimLink.allowlist?.length || 1);
-                amountClaimed = (parseFloat(claimLink.totalAmount) / divisor).toString();
-            } else {
-                // For custom split, need to find amount for this address
-                const idx = claimLink.allowlist?.findIndex((a: string) =>
-                    a.toLowerCase() === address.toLowerCase()
-                );
-                amountClaimed = idx !== undefined && idx >= 0 && claimLink.customAmounts
-                    ? claimLink.customAmounts[idx]
-                    : claimLink.totalAmount;
-            }
 
-            // Convert to wei for recording
-            const amountWei = parseEther(amountClaimed).toString();
+            // Calculate claimed amount from contract read
+            const amountWei = claimableAmountWei.toString();
+            const amountClaimed = formatEther(claimableAmountWei);
+
 
             toast.loading("Recording claim...", { id: "claim" });
 
