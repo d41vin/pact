@@ -76,3 +76,41 @@ export function formatExpiry(timestamp?: number): string {
 
   return format(timestamp, "MMM d, yyyy, h:mm a");
 }
+
+/**
+ * Format amount to MNT with appropriate decimal places
+ * Handles both wei (BigInt string) and ether (decimal string) formats
+ *
+ * @param amount - Amount as string (can be wei or ether)
+ * @returns Formatted amount string (e.g., "0.001 MNT", "1.5 MNT")
+ *
+ * @example
+ * formatAmount("1000000000000000") // "0.001 MNT" (wei)
+ * formatAmount("0.001") // "0.001 MNT" (ether)
+ * formatAmount("1.5") // "1.5000 MNT" (ether)
+ */
+export function formatAmount(amount: string): string {
+  // Check if it's already in ether format (contains decimal point or is small)
+  const isEther = amount.includes(".") || parseFloat(amount) < 1000;
+
+  let ether: number;
+  if (isEther) {
+    // Already in ether format
+    ether = parseFloat(amount);
+  } else {
+    // In wei format - convert to ether
+    const wei = BigInt(amount);
+    ether = Number(wei) / 1e18;
+  }
+
+  // Format with appropriate decimal places
+  if (ether >= 1) {
+    return `${ether.toFixed(4)} MNT`;
+  } else if (ether >= 0.0001) {
+    return `${ether.toFixed(6)} MNT`;
+  } else if (ether === 0) {
+    return `0 MNT`;
+  } else {
+    return `${ether.toExponential(2)} MNT`;
+  }
+}
