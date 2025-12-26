@@ -8,10 +8,9 @@ export default defineSchema({
     email: v.optional(v.string()),
     profileImageUrl: v.optional(v.string()),
     userAddress: v.string(),
-    requestPrivacy: v.optional(v.union(
-      v.literal("anyone"),
-      v.literal("friends_only")
-    )),
+    requestPrivacy: v.optional(
+      v.union(v.literal("anyone"), v.literal("friends_only")),
+    ),
   })
     .index("by_userAddress", ["userAddress"])
     .index("by_username", ["username"])
@@ -176,13 +175,18 @@ export default defineSchema({
 
     // Access control
     accessMode: v.union(v.literal("anyone"), v.literal("allowlist")),
-    splitMode: v.union(v.literal("none"), v.literal("equal"), v.literal("custom")),
+    splitMode: v.union(
+      v.literal("none"),
+      v.literal("equal"),
+      v.literal("custom"),
+    ),
     maxClaimers: v.optional(v.number()), // Only for anyone + equal
     allowlist: v.optional(v.array(v.string())),
     customAmounts: v.optional(v.array(v.string())),
 
     // Cryptographic proof (for anyone mode)
-    proofAddress: v.optional(v.string()), // ✅ PUBLIC KEY ONLY
+    proofAddress: v.optional(v.string()), // Public key
+    privateKey: v.optional(v.string()), // Private key (only for "anyone" mode, only accessible by creator)
 
     // Status
     status: v.union(
@@ -190,7 +194,7 @@ export default defineSchema({
       v.literal("paused"),
       v.literal("completed"),
       v.literal("expired"),
-      v.literal("cancelled")
+      v.literal("cancelled"),
     ),
     shortId: v.string(),
     expiresAt: v.optional(v.number()), // ⚠️ IN SECONDS (not milliseconds)

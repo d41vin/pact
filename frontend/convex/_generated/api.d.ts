@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as activityFeed from "../activityFeed.js";
 import type * as blocks from "../blocks.js";
 import type * as claimLinks from "../claimLinks.js";
 import type * as friendships from "../friendships.js";
@@ -29,6 +30,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  activityFeed: typeof activityFeed;
   blocks: typeof blocks;
   claimLinks: typeof claimLinks;
   friendships: typeof friendships;
