@@ -1,15 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { useAppKitAccount } from "@reown/appkit/react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import {
-  useWriteContract,
-  useWaitForTransactionReceipt,
-  usePublicClient,
-  useReadContract,
-} from "wagmi";
+import { useWriteContract, usePublicClient, useReadContract } from "wagmi";
 import {
   parseEther,
   parseUnits,
@@ -103,6 +99,54 @@ type StatusFilter =
   | "expired"
   | "cancelled";
 type SortOption = "recent" | "amount" | "claims";
+
+// Type for claim link from Convex
+interface ClaimLink {
+  _id: Id<"claimLinks">;
+  creatorId: Id<"users">;
+  contractAddress: string;
+  title: string;
+  description?: string;
+  imageOrEmoji: string;
+  imageType: "emoji" | "image";
+  assetType: "native" | "erc20";
+  assetAddress?: string;
+  assetSymbol?: string;
+  assetDecimals?: number;
+  totalAmount: string;
+  accessMode: "anyone" | "allowlist";
+  splitMode: "none" | "equal" | "custom";
+  allowlist?: string[];
+  customAmounts?: string[];
+  maxClaimers?: number;
+  proofAddress: string;
+  privateKey?: string;
+  status: "active" | "paused" | "completed" | "cancelled";
+  shortId: string;
+  expiresAt?: number;
+  viewCount: number;
+  claimCount: number;
+  totalClaimed: string;
+  lastClaimAt?: number;
+  claims?: ClaimLinkClaim[];
+}
+
+// Type for claim from Convex
+interface ClaimLinkClaim {
+  _id: Id<"claimLinkClaims">;
+  claimLinkId: Id<"claimLinks">;
+  claimerUserId?: Id<"users">;
+  claimerAddress: string;
+  amount: string;
+  transactionHash: string;
+  status: "completed" | "failed";
+  timestamp: number;
+  claimer?: {
+    name: string;
+    username: string;
+    profileImageUrl?: string;
+  };
+}
 
 export default function ClaimLinkSheet() {
   const [open, setOpen] = useState(false);
@@ -373,12 +417,12 @@ export default function ClaimLinkSheet() {
 
       const expirationTimeInSeconds = expirationDate
         ? BigInt(dateToSeconds(expirationDate))
-        : 0n;
+        : BigInt(0);
 
       const contractMaxClaimers =
         accessMode === "anyone" && splitMode === "equal"
           ? BigInt(parseInt(maxClaimers))
-          : 0n;
+          : BigInt(0);
 
       const contractAllowlist =
         accessMode === "allowlist"
@@ -429,8 +473,13 @@ export default function ClaimLinkSheet() {
             data: log.data,
             topics: log.topics,
           });
-          if (decoded.eventName === "ClaimLinkDeployed") {
-            deployedContractAddress = (decoded.args as any).claimLink;
+          if (
+            decoded.eventName === "ClaimLinkDeployed" &&
+            decoded.args &&
+            typeof decoded.args === "object" &&
+            "claimLink" in decoded.args
+          ) {
+            deployedContractAddress = decoded.args.claimLink as `0x${string}`;
             break;
           }
         } catch {
@@ -481,9 +530,11 @@ export default function ClaimLinkSheet() {
       setCreatedLinkUrl(linkUrl);
       setViewMode("success");
       toast.success("Claim link created!", { id: "deploy" });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Create claim link error:", error);
-      toast.error(error.message || "Failed to create claim link", {
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to create claim link";
+      toast.error(errorMessage, {
         id: "deploy",
       });
     } finally {
@@ -512,12 +563,14 @@ export default function ClaimLinkSheet() {
             ? "Link resumed"
             : "Link cancelled",
       );
-    } catch (error: any) {
-      toast.error(error.message || "Failed to update link");
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to update link";
+      toast.error(errorMessage);
     }
   };
 
-  const sortLinks = (links: any[]) => {
+  const sortLinks = (links: ClaimLink[]) => {
     switch (sortOption) {
       case "amount":
         return [...links].sort(
@@ -616,7 +669,7 @@ export default function ClaimLinkSheet() {
                   <Label>Visual (Image or Emoji)</Label>
                   <Tabs
                     value={visualTab}
-                    onValueChange={(v) => setVisualTab(v as any)}
+                    onValueChange={(v) => setVisualTab(v as "emoji" | "image")}
                   >
                     <TabsList className="grid w-fit grid-cols-2">
                       <TabsTrigger value="image">Image</TabsTrigger>
@@ -627,6 +680,7 @@ export default function ClaimLinkSheet() {
                       <div className="flex flex-col items-center gap-4">
                         {imagePreview ? (
                           <div className="relative">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
                               src={imagePreview}
                               alt="Preview"
@@ -1128,6 +1182,7 @@ export default function ClaimLinkSheet() {
                         {selectedLink.imageOrEmoji}
                       </span>
                     ) : (
+                      /* eslint-disable-next-line @next/next/no-img-element */
                       <img
                         src={selectedLink.imageOrEmoji}
                         alt={selectedLink.title}
@@ -1273,7 +1328,7 @@ export default function ClaimLinkSheet() {
                   <h3 className="font-semibold text-zinc-900">Claim History</h3>
                   {selectedLink.claims && selectedLink.claims.length > 0 ? (
                     <div className="space-y-2">
-                      {selectedLink.claims.map((claim: any) => (
+                      {selectedLink.claims.map((claim: ClaimLinkClaim) => (
                         <div
                           key={claim._id}
                           className="flex items-center gap-3 rounded-lg border border-zinc-200 p-3"
@@ -1365,7 +1420,13 @@ function getStatusBadge(status: string) {
 }
 
 // Helper component for claim link cards
-function ClaimLinkCard({ link, onClick }: { link: any; onClick: () => void }) {
+function ClaimLinkCard({
+  link,
+  onClick,
+}: {
+  link: ClaimLink;
+  onClick: () => void;
+}) {
   return (
     <div
       onClick={onClick}
@@ -1377,6 +1438,7 @@ function ClaimLinkCard({ link, onClick }: { link: any; onClick: () => void }) {
           {link.imageType === "emoji" ? (
             <span className="text-3xl">{link.imageOrEmoji}</span>
           ) : (
+            /* eslint-disable-next-line @next/next/no-img-element */
             <img
               src={link.imageOrEmoji}
               alt={link.title}
