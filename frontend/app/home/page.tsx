@@ -12,7 +12,8 @@ import ReceivePaymentDialog from "@/components/home/receive-payment-dialog";
 import RequestPaymentSheet from "@/components/home/request-payment-sheet";
 import PaymentLinkSheet from "@/components/home/payment-link-sheet";
 import ClaimLinkSheet from "@/components/home/claim-link-sheet";
-import { Link2, Split, MoreHorizontal, Settings } from "lucide-react";
+import RecentActivityFeed from "@/components/home/recent-activity-feed";
+import { Split, MoreHorizontal, Settings } from "lucide-react";
 
 export default function HomePage() {
   const router = useRouter();
@@ -20,7 +21,7 @@ export default function HomePage() {
 
   const user = useQuery(
     api.users.getUser,
-    address ? { userAddress: address } : "skip"
+    address ? { userAddress: address } : "skip",
   );
 
   useEffect(() => {
@@ -32,8 +33,12 @@ export default function HomePage() {
     }
   }, [status, isConnected, user, router]);
 
-  const { data: balanceData } = useBalance({ address: address as `0x${string}` });
-  const formattedBalance = balanceData ? parseFloat(balanceData.formatted).toFixed(5) : "0.00000";
+  const { data: balanceData } = useBalance({
+    address: address as `0x${string}`,
+  });
+  const formattedBalance = balanceData
+    ? parseFloat(balanceData.formatted).toFixed(5)
+    : "0.00000";
 
   if (status === "connecting" || user === undefined) {
     return (
@@ -45,13 +50,13 @@ export default function HomePage() {
 
   if (user) {
     return (
-      <main className="min-h-screen bg-linear-to-b from-zinc-50 to-white px-4 pb-32 pt-8">
+      <main className="min-h-screen bg-linear-to-b from-zinc-50 to-white px-4 pt-8 pb-32">
         <div className="mx-auto max-w-4xl">
           {/* Welcome Section */}
-          <div className="relative mb-8 rounded-[40px] corner-squircle border border-zinc-200 bg-white p-6 shadow-sm">
+          <div className="corner-squircle relative mb-8 rounded-[40px] border border-zinc-200 bg-white p-6 shadow-sm">
             <button
               onClick={() => router.push("/settings")}
-              className="absolute right-8 top-6 flex h-10 w-10 items-center justify-center rounded-full bg-zinc-100 text-zinc-900 transition-colors hover:bg-zinc-200 hover:text-zinc-900"
+              className="absolute top-6 right-8 flex h-10 w-10 items-center justify-center rounded-full bg-zinc-100 text-zinc-900 transition-colors hover:bg-zinc-200 hover:text-zinc-900"
               aria-label="Settings"
             >
               <Settings className="h-5 w-5" />
@@ -63,12 +68,12 @@ export default function HomePage() {
               <p className="mb-6 text-zinc-600">@{user.username}</p>
 
               {/* Wallet Balance */}
-              <div className="inline-flex items-center gap-2 px-6 py-3 rounded-[20px] bg-zinc-50 border border-zinc-200 shadow-xs">
+              <div className="inline-flex items-center gap-2 rounded-[20px] border border-zinc-200 bg-zinc-50 px-6 py-3 shadow-xs">
                 <div className="relative flex h-3 w-3">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75"></span>
+                  <span className="relative inline-flex h-3 w-3 rounded-full bg-green-500"></span>
                 </div>
-                <span className="font-mono text-lg font-semibold text-zinc-900 tracking-tight">
+                <span className="font-mono text-lg font-semibold tracking-tight text-zinc-900">
                   {formattedBalance} MNT
                 </span>
               </div>
@@ -108,7 +113,7 @@ export default function HomePage() {
 
               {/* Split Bill Button */}
               <div className="w-full sm:w-[calc(50%-0.5rem)] lg:w-[calc(25%-0.75rem)]">
-                <button className="flex h-24 w-full flex-col items-center justify-center gap-2 rounded-[40px] corner-squircle bg-linear-to-br from-teal-500 to-teal-600 text-white shadow-lg transition-all hover:shadow-xl">
+                <button className="corner-squircle flex h-24 w-full flex-col items-center justify-center gap-2 rounded-[40px] bg-linear-to-br from-teal-500 to-teal-600 text-white shadow-lg transition-all hover:shadow-xl">
                   <Split className="h-6 w-6" />
                   <span className="text-sm font-medium">Split Bill</span>
                 </button>
@@ -116,7 +121,7 @@ export default function HomePage() {
 
               {/* More Button */}
               <div className="w-full sm:w-[calc(50%-0.5rem)] lg:w-[calc(25%-0.75rem)]">
-                <button className="flex h-24 w-full flex-col items-center justify-center gap-2 rounded-[40px] corner-squircle bg-linear-to-br from-zinc-500 to-zinc-600 text-white shadow-lg transition-all hover:shadow-xl">
+                <button className="corner-squircle flex h-24 w-full flex-col items-center justify-center gap-2 rounded-[40px] bg-linear-to-br from-zinc-500 to-zinc-600 text-white shadow-lg transition-all hover:shadow-xl">
                   <MoreHorizontal className="h-6 w-6" />
                   <span className="text-sm font-medium">More</span>
                 </button>
@@ -124,31 +129,12 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Recent Activity Section - Placeholder */}
-          <div className="mt-8 rounded-[40px] corner-squircle border border-zinc-200 bg-white p-6 shadow-sm">
+          {/* Recent Activity Section */}
+          <div className="corner-squircle mt-8 rounded-[40px] border border-zinc-200 bg-white p-6 shadow-sm">
             <h2 className="mb-4 text-xl font-semibold text-zinc-900">
               Recent Activity
             </h2>
-            <div className="flex flex-col items-center justify-center py-8 text-center">
-              <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-zinc-100">
-                <svg
-                  className="h-6 w-6 text-zinc-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              </div>
-              <p className="text-sm text-zinc-500">
-                Your recent transactions will appear here
-              </p>
-            </div>
+            <RecentActivityFeed userId={user._id} />
           </div>
         </div>
       </main>
