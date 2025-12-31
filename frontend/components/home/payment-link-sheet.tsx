@@ -66,7 +66,8 @@ import { cn } from "@/lib/utils";
 import EmojiPicker from "emoji-picker-react";
 import { PaymentLinkCard } from "@/components/home/payment-link-card";
 import { PaymentLinkQRModal } from "@/components/home/payment-link-qr-modal";
-import { formatFullDate, formatExpiry, formatAddress } from "@/lib/date-utils";
+import { formatFullDate, formatExpiry } from "@/lib/date-utils";
+import { formatAddress } from "@/lib/format-utils";
 
 type ViewMode = "create" | "list" | "details" | "edit" | "success";
 type StatusFilter = "all" | "active" | "completed" | "expired";
@@ -1062,7 +1063,7 @@ export default function PaymentLinkSheet() {
                                                     ) : (
                                                         <div className="flex-1">
                                                             <div className="text-sm font-medium text-zinc-900">
-                                                                {formatAddress(payment.payerAddress)}
+                                                                {formatAddress(payment.transactionHash)}
                                                             </div>
                                                             <div className="text-xs text-zinc-500">
                                                                 External wallet

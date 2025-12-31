@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useAppKitAccount } from "@reown/appkit/react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { Id } from "@/convex/_generated/dataModel";
+import { Id, Doc } from "@/convex/_generated/dataModel";
 import { useSendTransaction, useWaitForTransactionReceipt } from "wagmi";
 import { parseEther } from "viem";
 import {
@@ -68,7 +68,8 @@ import EmojiPicker from "emoji-picker-react";
 import UserRecipientInput, {
   RecipientUser,
 } from "@/components/home/user-recipient-input";
-import { formatFullDate, formatExpiry, formatAmount } from "@/lib/date-utils";
+import { formatFullDate, formatExpiry } from "@/lib/date-utils";
+import { formatEtherToMnt, formatMntValue } from "@/lib/format-utils";
 
 type ViewMode = "create" | "list" | "details";
 type SplitMode = "equal" | "custom";
@@ -127,7 +128,19 @@ export default function SplitBillSheet({
   const [showReminderModal, setShowReminderModal] = useState(false);
   const [showExtendModal, setShowExtendModal] = useState(false);
   const [markPaidNote, setMarkPaidNote] = useState("");
-  const [selectedParticipantForMark, setSelectedParticipantForMark] = useState<any>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
+
+  interface Participant {
+    userId?: Id<"users">;
+    user?: {
+      _id: Id<"users">;
+      name: string;
+      username: string;
+    } | null;
+    amount: string;
+    [key: string]: unknown;
+  }
+
+  const [selectedParticipantForMark, setSelectedParticipantForMark] = useState<Participant | null>(null);
   const [newExpirationDate, setNewExpirationDate] = useState<
     Date | undefined
   >();
@@ -190,7 +203,7 @@ export default function SplitBillSheet({
       const customEvent = event as CustomEvent<{ splitBillId: string }>;
       const { splitBillId } = customEvent.detail;
       if (splitBillId) {
-        setSelectedSplitId(splitBillId);
+        setSelectedSplitId(splitBillId as Id<"splitBills">);
         setViewMode("details");
         setOpen(true);
       }
@@ -271,7 +284,7 @@ export default function SplitBillSheet({
   const calculateEqualAmount = () => {
     if (!amount || participants.length === 0) return "0";
     const amountNum = parseFloat(amount);
-    return formatAmount((amountNum / participants.length).toString()).replace(" MNT", "");
+    return formatMntValue((amountNum / participants.length).toString());
   };
 
   const calculateCustomSum = () => {
@@ -307,7 +320,7 @@ export default function SplitBillSheet({
       const totalAmt = parseFloat(amount);
       if (Math.abs(sum - totalAmt) > 0.000001) {
         toast.error(
-          `Custom amounts (${formatAmount(sum.toString())}) must equal total amount (${formatAmount(totalAmt.toString())})`,
+          `Custom amounts (${formatEtherToMnt(sum.toString())}) must equal total amount (${formatEtherToMnt(totalAmt.toString())})`,
         );
         return false;
       }
@@ -449,11 +462,17 @@ export default function SplitBillSheet({
   const handleMarkAsPaid = async () => {
     if (!address || !selectedSplitId || !selectedParticipantForMark) return;
 
+    const participantUserId = selectedParticipantForMark.userId ?? selectedParticipantForMark.user?._id;
+    if (!participantUserId) {
+      toast.error("Cannot identify participant user");
+      return;
+    }
+
     try {
       await markAsPaidOutsideApp({
         userAddress: address,
         splitBillId: selectedSplitId,
-        participantUserId: selectedParticipantForMark.userId,
+        participantUserId: participantUserId,
         note: markPaidNote || undefined,
       });
       toast.success("Marked as paid");
@@ -558,8 +577,14 @@ export default function SplitBillSheet({
     }
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const sortSplits = (splits: any[]) => {
+  // Sort splits based on selected option
+  interface SplitWithParticipants extends Doc<"splitBills"> {
+    activeParticipantCount: number;
+    paidCount: number;
+    // Explicitly extended to include all Doc properties
+  }
+
+  const sortSplits = (splits: SplitWithParticipants[]) => {
     switch (sortOption) {
       case "amount":
         return [...splits].sort(
@@ -928,7 +953,7 @@ export default function SplitBillSheet({
                           </p>
                           {splitMode === "custom" && (
                             <div className="mt-2 text-sm text-zinc-600">
-                              Total: {formatAmount(calculateCustomSum().toString())} /{" "}
+                              Total: {formatMntValue(calculateCustomSum().toString())} /{" "}
                               {amount || "0"} MNT
                             </div>
                           )}
@@ -1136,7 +1161,7 @@ export default function SplitBillSheet({
                                       {getStatusBadge(split.status)}
                                     </div>
                                     <div className="mb-2 text-sm text-zinc-600">
-                                      {formatAmount(split.totalAmount)} total
+                                      {formatEtherToMnt(split.totalAmount)} total
                                     </div>
                                     <div className="mb-3 text-sm text-zinc-500">
                                       {split.paidCount}/
@@ -1217,7 +1242,7 @@ export default function SplitBillSheet({
                                         From {split.creator?.name || "Unknown"}
                                       </div>
                                       <div className="mb-3 text-sm text-zinc-500">
-                                        Your share: {formatAmount(participation.amount)}
+                                        Your share: {formatEtherToMnt(participation.amount)}
                                       </div>
                                       <div className="text-xs text-zinc-400">
                                         Created{" "}
@@ -1273,8 +1298,8 @@ export default function SplitBillSheet({
                       Collected
                     </div>
                     <div className="text-4xl font-bold text-teal-600">
-                      {formatAmount(selectedSplit.totalCollected)} /{" "}
-                      {formatAmount(selectedSplit.totalAmount)}
+                      {formatEtherToMnt(selectedSplit.totalCollected)} /{" "}
+                      {formatEtherToMnt(selectedSplit.totalAmount)}
                     </div>
                     <div className="mt-2 text-sm text-teal-600">
                       {selectedSplit.paidCount}/
@@ -1299,7 +1324,7 @@ export default function SplitBillSheet({
                         Your Share
                       </h3>
                       <div className="text-2xl font-bold text-zinc-900">
-                        {formatAmount(myParticipation.amount)}
+                        {formatEtherToMnt(myParticipation.amount)}
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="text-sm text-zinc-600">Status:</span>
@@ -1369,7 +1394,7 @@ export default function SplitBillSheet({
                         </div>
                         <div className="text-right">
                           <div className="text-sm font-semibold text-zinc-900">
-                            {formatAmount(p.amount)}
+                            {formatEtherToMnt(p.amount)}
                           </div>
                           {getParticipantStatusBadge(p.status)}
                           {isCreator &&
@@ -1466,7 +1491,7 @@ export default function SplitBillSheet({
                   {selectedParticipantForMark.user?.name}
                 </div>
                 <div className="text-sm text-zinc-600">
-                  Amount: {formatAmount(selectedParticipantForMark.amount)}
+                  Amount: {formatEtherToMnt(selectedParticipantForMark.amount)}
                 </div>
               </div>
             )}

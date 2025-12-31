@@ -73,7 +73,8 @@ import {
   AccessMode as ContractAccessMode,
   SplitMode as ContractSplitMode,
 } from "@/lib/contracts/claim-link-abis";
-import { formatFullDate, formatAddress } from "@/lib/date-utils";
+import { formatFullDate } from "@/lib/date-utils";
+import { formatAddress, formatEtherToMnt, formatMntValue } from "@/lib/format-utils";
 
 type ViewMode = "create" | "list" | "details" | "success";
 type AccessMode = "anyone" | "allowlist";
@@ -190,9 +191,9 @@ export default function ClaimLinkSheet() {
     api.claimLinks.listClaimLinks,
     user
       ? {
-          userId: user._id,
-          status: statusFilter === "all" ? undefined : statusFilter,
-        }
+        userId: user._id,
+        status: statusFilter === "all" ? undefined : statusFilter,
+      }
       : "skip",
   );
 
@@ -837,9 +838,7 @@ export default function ClaimLinkSheet() {
                       <span>
                         First {maxClaimers} people to claim will each get{" "}
                         {amount && maxClaimers
-                          ? (
-                              parseFloat(amount) / parseInt(maxClaimers)
-                            ).toFixed(6)
+                          ? formatMntValue((parseFloat(amount) / parseInt(maxClaimers)).toString())
                           : "0"}{" "}
                         MNT
                       </span>
@@ -907,9 +906,8 @@ export default function ClaimLinkSheet() {
                         <span>
                           Each address will receive{" "}
                           {amount && allowlist.length
-                            ? (parseFloat(amount) / allowlist.length).toFixed(6)
-                            : "0"}{" "}
-                          MNT
+                            ? formatEtherToMnt((parseFloat(amount) / allowlist.length).toString())
+                            : "0.00 MNT"}
                         </span>
                       </div>
                     )}
@@ -1039,7 +1037,7 @@ export default function ClaimLinkSheet() {
                       if (navigator.share) {
                         navigator
                           .share({ url: createdLinkUrl })
-                          .catch(() => {});
+                          .catch(() => { });
                       } else {
                         handleCopyCreatedLink();
                       }
@@ -1205,12 +1203,8 @@ export default function ClaimLinkSheet() {
                     Remaining
                   </div>
                   <div className="text-4xl font-bold text-pink-600">
-                    {Math.max(
-                      0,
-                      parseFloat(selectedLink.totalAmount) -
-                        parseFloat(selectedLink.totalClaimed),
-                    ).toFixed(6)}{" "}
-                    MNT
+                    {formatMntValue(selectedLink.maxClaimers ? (parseFloat(selectedLink.totalAmount) / selectedLink.maxClaimers).toString() : selectedLink.totalAmount)}
+                    <span className="text-2xl font-medium text-pink-400"> MNT</span>
                   </div>
                   <div className="mt-2 text-sm text-pink-600">
                     {selectedLink.claimCount}/{selectedLink.maxClaimers || "∞"}{" "}
@@ -1242,11 +1236,11 @@ export default function ClaimLinkSheet() {
                       // Create full shareable URL with private key if in "anyone" mode
                       const url =
                         selectedLink.accessMode === "anyone" &&
-                        selectedLink.privateKey
+                          selectedLink.privateKey
                           ? createClaimLinkURL(
-                              selectedLink.shortId,
-                              selectedLink.privateKey as `0x${string}`,
-                            )
+                            selectedLink.shortId,
+                            selectedLink.privateKey as `0x${string}`,
+                          )
                           : `${window.location.origin}/claim/${selectedLink.shortId}`;
                       navigator.clipboard.writeText(url);
                       toast.success("Link copied!");
@@ -1449,11 +1443,10 @@ function ClaimLinkCard({
 
           <div className="mb-3 text-sm text-zinc-500">
             {link.claimCount} claim{link.claimCount !== 1 ? "s" : ""} •{" "}
-            {Math.max(
+            {formatEtherToMnt(Math.max(
               0,
               parseFloat(link.totalAmount) - parseFloat(link.totalClaimed),
-            ).toFixed(6)}{" "}
-            MNT remaining
+            ).toString())} remaining
           </div>
 
           <div className="text-xs text-zinc-400">

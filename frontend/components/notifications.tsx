@@ -14,6 +14,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { Id, Doc } from "@/convex/_generated/dataModel";
 import { useAppKitAccount } from "@reown/appkit/react";
 import { FriendRequestNotification } from "@/components/notifications/friend-request";
 import { FriendAcceptedNotification } from "@/components/notifications/friend-accepted";
@@ -74,8 +75,32 @@ export default function Notifications() {
     };
   }, []);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
-  const renderNotification = (notification: any, index: number) => {
+  interface NotificationData {
+    _id: Id<"notifications">;
+    _creationTime: number;
+    type: string;
+    isRead: boolean;
+    fromUser?: {
+      _id: Id<"users">;
+      name: string;
+      username: string;
+      userAddress: string;
+      profileImageUrl?: string;
+    } | null;
+    friendshipId?: Id<"friendships">;
+    splitBillId?: Id<"splitBills">;
+    amount?: number;
+    message?: string;
+    invitationId?: Id<"groupInvitations">;
+    group?: Doc<"groups"> | null;
+    paymentId?: Id<"payments">;
+    paymentRequestId?: Id<"paymentRequests">;
+    paymentLinkId?: Id<"paymentLinks">;
+    claimLinkId?: Id<"claimLinks">;
+    claimLink?: Doc<"claimLinks"> | null;
+  }
+
+  const renderNotification = (notification: NotificationData) => {
     const commonProps = {
       notificationId: notification._id,
       timestamp: notification._creationTime,
@@ -89,7 +114,7 @@ export default function Notifications() {
             key={notification._id}
             {...commonProps}
             friendshipId={notification.friendshipId!}
-            fromUser={notification.fromUser}
+            fromUser={notification.fromUser!}
           />
         );
       case "friend_accepted":
@@ -97,7 +122,7 @@ export default function Notifications() {
           <FriendAcceptedNotification
             key={notification._id}
             {...commonProps}
-            fromUser={notification.fromUser}
+            fromUser={notification.fromUser!}
           />
         );
       case "split_bill_request":
@@ -105,9 +130,9 @@ export default function Notifications() {
           <SplitBillRequestNotification
             key={notification._id}
             {...commonProps}
-            fromUser={notification.fromUser}
-            splitBillId={notification.splitBillId}
-            amount={notification.amount}
+            fromUser={notification.fromUser!}
+            splitBillId={notification.splitBillId!}
+            amount={notification.amount ?? 0}
           />
         );
       case "split_bill_paid":
@@ -115,9 +140,9 @@ export default function Notifications() {
           <SplitBillPaidNotification
             key={notification._id}
             {...commonProps}
-            fromUser={notification.fromUser}
-            splitBillId={notification.splitBillId}
-            amount={notification.amount}
+            fromUser={notification.fromUser!}
+            splitBillId={notification.splitBillId!}
+            amount={notification.amount ?? 0}
           />
         );
       case "split_bill_reminder":
@@ -125,9 +150,9 @@ export default function Notifications() {
           <SplitBillReminderNotification
             key={notification._id}
             {...commonProps}
-            fromUser={notification.fromUser}
-            splitBillId={notification.splitBillId}
-            amount={notification.amount}
+            fromUser={notification.fromUser!}
+            splitBillId={notification.splitBillId!}
+            amount={notification.amount ?? 0}
           />
         );
       case "split_bill_declined":
@@ -135,8 +160,8 @@ export default function Notifications() {
           <SplitBillDeclinedNotification
             key={notification._id}
             {...commonProps}
-            fromUser={notification.fromUser}
-            splitBillId={notification.splitBillId}
+            fromUser={notification.fromUser!}
+            splitBillId={notification.splitBillId!}
           />
         );
       case "split_bill_completed":
@@ -144,8 +169,8 @@ export default function Notifications() {
           <SplitBillCompletedNotification
             key={notification._id}
             {...commonProps}
-            fromUser={notification.fromUser}
-            splitBillId={notification.splitBillId}
+            fromUser={notification.fromUser!}
+            splitBillId={notification.splitBillId!}
           />
         );
       case "split_bill_closed":
@@ -153,8 +178,8 @@ export default function Notifications() {
           <SplitBillClosedNotification
             key={notification._id}
             {...commonProps}
-            fromUser={notification.fromUser}
-            splitBillId={notification.splitBillId}
+            fromUser={notification.fromUser!}
+            splitBillId={notification.splitBillId!}
           />
         );
       case "split_bill_cancelled":
@@ -162,8 +187,8 @@ export default function Notifications() {
           <SplitBillCancelledNotification
             key={notification._id}
             {...commonProps}
-            fromUser={notification.fromUser}
-            splitBillId={notification.splitBillId}
+            fromUser={notification.fromUser!}
+            splitBillId={notification.splitBillId!}
           />
         );
       case "group_invite":
@@ -171,9 +196,9 @@ export default function Notifications() {
           <GroupInviteNotification
             key={notification._id}
             {...commonProps}
-            invitationId={notification.invitationId}
-            fromUser={notification.fromUser}
-            group={notification.group}
+            invitationId={notification.invitationId!}
+            fromUser={notification.fromUser!}
+            group={notification.group ?? undefined}
             message={notification.message}
           />
         );
@@ -182,8 +207,8 @@ export default function Notifications() {
           <GroupJoinedNotification
             key={notification._id}
             {...commonProps}
-            fromUser={notification.fromUser}
-            group={notification.group}
+            fromUser={notification.fromUser!}
+            group={notification.group ?? undefined}
             message={notification.message}
           />
         );
@@ -192,9 +217,9 @@ export default function Notifications() {
           <PaymentReceivedNotification
             key={notification._id}
             {...commonProps}
-            fromUser={notification.fromUser}
-            paymentId={notification.paymentId}
-            amount={notification.amount}
+            fromUser={notification.fromUser!}
+            paymentId={notification.paymentId!}
+            amount={notification.amount ?? 0}
             message={notification.message}
           />
         );
@@ -203,9 +228,9 @@ export default function Notifications() {
           <PaymentRequestNotification
             key={notification._id}
             {...commonProps}
-            fromUser={notification.fromUser}
+            fromUser={notification.fromUser!}
             paymentRequestId={notification.paymentRequestId}
-            amount={notification.amount || 0}
+            amount={notification.amount ?? 0}
             message={notification.message}
           />
         );
@@ -214,9 +239,9 @@ export default function Notifications() {
           <PaymentRequestDeclinedNotification
             key={notification._id}
             {...commonProps}
-            fromUser={notification.fromUser}
+            fromUser={notification.fromUser!}
             paymentRequestId={notification.paymentRequestId}
-            amount={notification.amount || 0}
+            amount={notification.amount ?? 0}
           />
         );
       case "payment_request_completed":
@@ -224,9 +249,9 @@ export default function Notifications() {
           <PaymentRequestCompletedNotification
             key={notification._id}
             {...commonProps}
-            fromUser={notification.fromUser}
+            fromUser={notification.fromUser!}
             paymentRequestId={notification.paymentRequestId}
-            amount={notification.amount || 0}
+            amount={notification.amount ?? 0}
           />
         );
       case "payment_link_received":
@@ -234,10 +259,10 @@ export default function Notifications() {
           <PaymentLinkReceivedNotification
             key={notification._id}
             {...commonProps}
-            fromUser={notification.fromUser}
-            paymentId={notification.paymentId}
-            paymentLinkId={notification.paymentLinkId}
-            amount={notification.amount || 0}
+            fromUser={notification.fromUser!}
+            paymentId={notification.paymentId!}
+            paymentLinkId={notification.paymentLinkId!}
+            amount={notification.amount ?? 0}
             message={notification.message}
           />
         );
@@ -246,9 +271,16 @@ export default function Notifications() {
           <ClaimLinkClaimedNotification
             key={notification._id}
             {...commonProps}
-            fromUser={notification.fromUser}
-            claimLinkId={notification.claimLinkId}
-            claimLink={notification.claimLink}
+            fromUser={notification.fromUser!}
+            claimLinkId={notification.claimLinkId!}
+            claimLink={
+              notification.claimLink
+                ? (notification.claimLink as unknown as {
+                  title: string;
+                  imageOrEmoji: string;
+                })
+                : undefined
+            }
             message={notification.message}
           />
         );
@@ -312,7 +344,7 @@ export default function Notifications() {
                       exit={{ opacity: 0, x: -20 }}
                       transition={{ delay: index * 0.05 }}
                     >
-                      {renderNotification(notification, index)}
+                      {renderNotification(notification)}
                     </motion.div>
                   ))}
                 </AnimatePresence>

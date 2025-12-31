@@ -30,7 +30,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { User, ExternalLink } from "lucide-react";
-import { formatFullDate, formatAddress, formatAmount } from "@/lib/date-utils";
+import { formatFullDate } from "@/lib/date-utils";
+import { formatAddress, formatEtherToMnt, formatSmartMnt } from "@/lib/format-utils";
 
 interface RecentActivityFeedProps {
   userId: Id<"users">;
@@ -217,7 +218,7 @@ export default function RecentActivityFeed({
               title={`${config.titlePrefix} ${userName}`}
               description={description}
               amount={
-                activity.amount ? formatAmount(activity.amount) : undefined
+                activity.amount ? formatSmartMnt(activity.amount) : undefined
               }
               amountPrefix={config.amountPrefix}
               amountClass={config.amountClass}
@@ -339,21 +340,19 @@ function ActivityDetailModal({
 
           {/* Amount */}
           <div
-            className={`rounded-lg p-6 text-center ${
-              isReceived
-                ? "bg-linear-to-br from-green-50 to-emerald-50"
-                : "bg-linear-to-br from-blue-50 to-indigo-50"
-            }`}
+            className={`rounded-lg p-6 text-center ${isReceived
+              ? "bg-linear-to-br from-green-50 to-emerald-50"
+              : "bg-linear-to-br from-blue-50 to-indigo-50"
+              }`}
           >
             <div className="mb-1 text-sm font-medium text-zinc-600">
               {isReceived ? "Amount Received" : "Amount Sent"}
             </div>
             <div
-              className={`text-4xl font-bold ${
-                isReceived ? "text-green-600" : "text-blue-600"
-              }`}
+              className={`text-4xl font-bold ${isReceived ? "text-green-600" : "text-blue-600"
+                }`}
             >
-              {formatAmount(payment.amount)}
+              {formatSmartMnt(payment.amount)}
             </div>
           </div>
 
@@ -501,7 +500,7 @@ function ActivityDetailModal({
               Requested Amount
             </div>
             <div className="text-4xl font-bold text-amber-600">
-              {formatAmount(paymentRequest.amount)}
+              {formatSmartMnt(paymentRequest.amount)}
             </div>
           </div>
 
@@ -618,7 +617,7 @@ function ActivityDetailModal({
                 Amount Claimed
               </div>
               <div className="text-4xl font-bold text-pink-600">
-                {formatAmount(recentClaim.amount)}
+                {formatSmartMnt(recentClaim.amount)}
               </div>
             </div>
           )}

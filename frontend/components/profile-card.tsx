@@ -18,6 +18,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useQuery, useMutation } from "convex/react";
+import { formatAddress } from "@/lib/format-utils";
 import { api } from "@/convex/_generated/api";
 import { useAppKitAccount } from "@reown/appkit/react";
 import { Id } from "@/convex/_generated/dataModel";
@@ -44,10 +45,7 @@ interface ProfileCardProps {
   isOwnProfile: boolean;
 }
 
-const truncateAddress = (address: string) => {
-  if (address.length <= 10) return address;
-  return `${address.slice(0, 6)}...${address.slice(-4)}`;
-};
+
 
 export default function ProfileCard({ user, isOwnProfile }: ProfileCardProps) {
   const [copied, setCopied] = useState(false);
@@ -362,7 +360,7 @@ export default function ProfileCard({ user, isOwnProfile }: ProfileCardProps) {
               className="group flex items-center gap-2 rounded-lg bg-zinc-100 px-3 py-1.5 transition-colors hover:bg-zinc-200"
             >
               <span className="font-mono text-sm text-zinc-600">
-                {truncateAddress(user.userAddress)}
+                {formatAddress(user.userAddress)}
               </span>
               {copied ? (
                 <Check className="h-3.5 w-3.5 text-green-600" />
@@ -378,8 +376,8 @@ export default function ProfileCard({ user, isOwnProfile }: ProfileCardProps) {
               onClick={() => setFriendsModalOpen(true)}
               disabled={!canViewFriendsList}
               className={`rounded-lg bg-zinc-50 p-3 text-center transition-all ${canViewFriendsList
-                  ? "cursor-pointer hover:bg-zinc-100"
-                  : "cursor-not-allowed opacity-60"
+                ? "cursor-pointer hover:bg-zinc-100"
+                : "cursor-not-allowed opacity-60"
                 }`}
             >
               <div className="text-2xl font-bold text-zinc-900">

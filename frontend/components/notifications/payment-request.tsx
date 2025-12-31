@@ -20,7 +20,8 @@ import {
 } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { formatFullDate, formatExpiry, formatAddress } from "@/lib/date-utils";
+import { formatFullDate, formatExpiry } from "@/lib/date-utils";
+import { formatAddress } from "@/lib/format-utils";
 import { User, X, Clock, ExternalLink } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 

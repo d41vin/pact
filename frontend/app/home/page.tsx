@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { formatMntValue } from "@/lib/format-utils";
 import { useAppKitAccount } from "@reown/appkit/react";
 import { useBalance } from "wagmi";
 import { Spinner } from "@/components/ui/spinner";
@@ -38,8 +39,8 @@ export default function HomePage() {
     address: address as `0x${string}`,
   });
   const formattedBalance = balanceData
-    ? parseFloat(balanceData.formatted).toFixed(5)
-    : "0.00000";
+    ? formatMntValue(balanceData.formatted)
+    : "0.00";
 
   if (status === "connecting" || user === undefined) {
     return (

@@ -17,7 +17,8 @@ import { Button } from "@/components/ui/button";
 import { User } from "lucide-react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { formatFullDate, formatAddress } from "@/lib/date-utils";
+import { formatFullDate } from "@/lib/date-utils";
+import { formatAddress } from "@/lib/format-utils";
 
 interface PaymentReceivedNotificationProps {
   notificationId: Id<"notifications">;

@@ -28,7 +28,8 @@ import {
     Home,
 } from "lucide-react";
 import { toast } from "sonner";
-import { formatFullDate, formatExpiry, formatAddress } from "@/lib/date-utils";
+import { formatAddress } from "@/lib/format-utils";
+import { formatFullDate, formatExpiry } from "@/lib/date-utils";
 
 export default function PaymentLinkPage() {
     const params = useParams();

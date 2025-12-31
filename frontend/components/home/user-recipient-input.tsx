@@ -17,6 +17,7 @@ import {
 import { User, X, Users, Clock, Loader2, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatTimeAgo } from "@/lib/date-utils";
+import { formatAddress } from "@/lib/format-utils";
 
 export interface RecipientUser {
   _id: string;
@@ -170,10 +171,7 @@ export default function UserRecipientInput({
     }
   };
 
-  // Format address for display
-  const formatAddress = (addr: string) => {
-    return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
-  };
+
 
   // If user is selected, show the card view
   if (selectedUser) {

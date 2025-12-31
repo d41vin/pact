@@ -34,7 +34,8 @@ import {
   getPrivateKeyFromURL,
   generateClaimProof,
 } from "@/lib/crypto/proof-utils";
-import { formatExpiry, formatAddress } from "@/lib/date-utils";
+import { formatExpiry } from "@/lib/date-utils";
+import { formatAddress, formatEtherToMnt } from "@/lib/format-utils";
 import { ClaimLinkImplementationABI } from "@/lib/contracts/claim-link-abis";
 
 // Type for claim link data
@@ -46,13 +47,12 @@ type ClaimLinkData = {
   [key: string]: unknown;
 };
 
-// Helper function to calculate claimable amount
 function getClaimableAmount(claimLink: ClaimLinkData): string {
   const remaining = Math.max(
     0,
     parseFloat(claimLink.totalAmount) - parseFloat(claimLink.totalClaimed),
   );
-  return remaining.toFixed(6);
+  return formatEtherToMnt(remaining.toString());
 }
 
 // Helper function to get block explorer URL
@@ -186,7 +186,7 @@ export default function ClaimPage() {
         claimerAddress: address,
         claimLinkId: claimLink._id,
         transactionHash: hash,
-        amount: amountWei,
+        amount: amountClaimed, // Store as Ether string for consistency
       });
 
       setClaimedAmount(amountClaimed);
@@ -473,11 +473,11 @@ export default function ClaimPage() {
               </div>
               <div className="text-2xl font-bold text-zinc-900">
                 {claimLink.splitMode === "equal"
-                  ? (
-                      parseFloat(claimLink.totalAmount) /
-                      (claimLink.maxClaimers || 1)
-                    ).toFixed(6)
-                  : claimLink.totalAmount}{" "}
+                  ? formatEtherToMnt((
+                    parseFloat(claimLink.totalAmount) /
+                    (claimLink.maxClaimers || 1)
+                  ).toString())
+                  : formatEtherToMnt(claimLink.totalAmount)}
                 MNT
               </div>
             </div>
@@ -536,13 +536,14 @@ export default function ClaimPage() {
             <div className="text-center">
               <div className="mb-1 text-sm text-zinc-600">You claimed</div>
               <div className="text-3xl font-bold text-zinc-900">
-                {claimedAmount ||
-                  (claimLink?.splitMode === "equal"
-                    ? (
-                        parseFloat(claimLink?.totalAmount || "0") /
-                        (claimLink?.maxClaimers || 1)
-                      ).toFixed(6)
-                    : claimLink?.totalAmount || "0")}{" "}
+                {claimedAmount
+                  ? formatEtherToMnt(claimedAmount)
+                  : (claimLink?.splitMode === "equal"
+                    ? formatEtherToMnt((
+                      parseFloat(claimLink?.totalAmount || "0") /
+                      (claimLink?.maxClaimers || 1)
+                    ).toString())
+                    : formatEtherToMnt(claimLink?.totalAmount || "0"))}
                 MNT
               </div>
               <div className="mt-1 text-sm text-zinc-600">

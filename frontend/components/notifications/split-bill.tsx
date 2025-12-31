@@ -27,7 +27,8 @@ import { Button } from "@/components/ui/button";
 import { User, X } from "lucide-react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { formatFullDate, formatAmount, formatAddress } from "@/lib/date-utils";
+import { formatFullDate } from "@/lib/date-utils";
+import { formatAddress, formatEtherToMnt } from "@/lib/format-utils";
 import { useAppKitAccount } from "@reown/appkit/react";
 import { Send, ExternalLink } from "lucide-react";
 
@@ -83,7 +84,7 @@ export function SplitBillRequestNotification({
         avatar={fromUser.profileImageUrl}
         fallbackIcon={<Split className="h-5 w-5" />}
         title="Split Bill Request"
-        description={`${fromUser.name} added you to a split bill${amount ? ` • Your share: ${formatAmount(amount.toString())}` : ""}`}
+        description={`${fromUser.name} added you to a split bill${amount ? ` • Your share: ${formatEtherToMnt(amount.toString())}` : ""}`}
         timestamp={timestamp}
         isRead={isRead}
         onClick={handleClick}
@@ -154,7 +155,7 @@ export function SplitBillRequestNotification({
                   Your Share
                 </div>
                 <div className="text-3xl font-bold text-teal-600">
-                  {formatAmount((amount || 0).toString())}
+                  {formatEtherToMnt((amount || 0).toString())}
                 </div>
               </div>
 
@@ -250,7 +251,7 @@ export function SplitBillPaidNotification({
         avatar={fromUser.profileImageUrl}
         fallbackIcon={<Check className="h-5 w-5" />}
         title="Payment Received"
-        description={`${fromUser.name} paid their share${amount ? ` • ${formatAmount(amount.toString())}` : ""}`}
+        description={`${fromUser.name} paid their share${amount ? ` • ${formatEtherToMnt(amount.toString())}` : ""}`}
         timestamp={timestamp}
         isRead={isRead}
         onClick={() => setIsModalOpen(true)}
@@ -297,7 +298,7 @@ export function SplitBillPaidNotification({
                   Amount Received
                 </div>
                 <div className="text-3xl font-bold text-green-600">
-                  {formatAmount((amount || 0).toString())}
+                  {formatEtherToMnt((amount || 0).toString())}
                 </div>
               </div>
             </div>
@@ -379,9 +380,9 @@ export function SplitBillReminderNotification({
   );
 
   const participant = splitDetails?.participants.find(
-    (p) => p.user?.walletAddress?.toLowerCase() === address?.toLowerCase(),
+    (p) => p.user?.userAddress?.toLowerCase() === address?.toLowerCase(),
   );
-  const isPaid = participant?.status === "paid" || participant?.status === "confirmed";
+  const isPaid = participant?.status === "paid" || participant?.status === "marked_paid";
 
   const handleViewDetails = () => {
     window.dispatchEvent(new CustomEvent("close-notification-sheet"));
@@ -399,7 +400,7 @@ export function SplitBillReminderNotification({
         avatar={fromUser.profileImageUrl}
         fallbackIcon={<Bell className="h-5 w-5" />}
         title="Payment Reminder"
-        description={`${fromUser.name} sent a reminder${amount ? ` • Your share: ${formatAmount(amount.toString())}` : ""}`}
+        description={`${fromUser.name} sent a reminder${amount ? ` • Your share: ${formatEtherToMnt(amount.toString())}` : ""}`}
         timestamp={timestamp}
         isRead={isRead}
         onClick={() => setIsModalOpen(true)}
@@ -454,7 +455,7 @@ export function SplitBillReminderNotification({
                   "text-3xl font-bold",
                   isPaid ? "text-green-600" : "text-amber-600"
                 )}>
-                  {formatAmount((amount || 0).toString())}
+                  {formatEtherToMnt((amount || 0).toString())}
                 </div>
                 {isPaid && (
                   <Badge className="mt-2 bg-green-100 text-green-700 border-green-200">

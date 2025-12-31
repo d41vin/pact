@@ -36,6 +36,7 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover";
 import { formatFullDate, formatExpiry } from "@/lib/date-utils";
+import { formatEtherToMnt } from "@/lib/format-utils";
 import { format } from "date-fns";
 import {
     HandCoins,
@@ -203,7 +204,7 @@ export default function RequestPaymentSheet() {
                         </div>
                         <div className="text-right">
                             <div className="font-semibold text-zinc-900">
-                                {request.amount} MNT
+                                {formatEtherToMnt(request.amount)}
                             </div>
                             {getStatusBadge(request.status)}
                         </div>
@@ -598,7 +599,7 @@ function RequestDetailModal({
                             {isSender ? "Requested Amount" : "You Requested"}
                         </div>
                         <div className="text-4xl font-bold text-amber-600">
-                            {request.amount} MNT
+                            {formatEtherToMnt(request.amount)}
                         </div>
                     </div>
 

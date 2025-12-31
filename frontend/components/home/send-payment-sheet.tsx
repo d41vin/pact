@@ -30,7 +30,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { formatFullDate, formatAddress } from "@/lib/date-utils";
+import { formatAddress, formatEtherToMnt } from "@/lib/format-utils";
+import { formatFullDate } from "@/lib/date-utils";
 import {
   Send,
   History,
@@ -530,7 +531,7 @@ export default function SendPaymentSheet({
                             </div>
                             <div className="text-right">
                               <div className="font-semibold text-zinc-900">
-                                {payment.amount} MNT
+                                {formatEtherToMnt(payment.amount)}
                               </div>
                               <Badge
                                 variant="outline"
@@ -617,7 +618,7 @@ export default function SendPaymentSheet({
                   Amount Sent
                 </div>
                 <div className="text-4xl font-bold text-blue-600">
-                  {selectedPayment.amount} MNT
+                  {formatEtherToMnt(selectedPayment.amount)}
                 </div>
               </div>
 
