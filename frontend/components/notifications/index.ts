@@ -5,8 +5,18 @@ export { GroupInviteNotification } from "./group-invite";
 export { GroupJoinedNotification } from "./group-joined";
 export { PaymentReceivedNotification } from "./payments-received";
 export {
-    PaymentRequestNotification,
-    PaymentRequestDeclinedNotification,
-    PaymentRequestCompletedNotification,
+  PaymentRequestNotification,
+  PaymentRequestDeclinedNotification,
+  PaymentRequestCompletedNotification,
 } from "./payment-request";
 export { PaymentLinkReceivedNotification } from "./payment-link";
+export { ClaimLinkClaimedNotification } from "./claim-link";
+export {
+  SplitBillRequestNotification,
+  SplitBillPaidNotification,
+  SplitBillReminderNotification,
+  SplitBillDeclinedNotification,
+  SplitBillCompletedNotification,
+  SplitBillClosedNotification,
+  SplitBillCancelledNotification,
+} from "./split-bill";

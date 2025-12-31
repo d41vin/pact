@@ -27,6 +27,15 @@ import {
 } from "@/components/notifications/payment-request";
 import { PaymentLinkReceivedNotification } from "@/components/notifications/payment-link";
 import { ClaimLinkClaimedNotification } from "@/components/notifications/claim-link";
+import {
+  SplitBillRequestNotification,
+  SplitBillPaidNotification,
+  SplitBillReminderNotification,
+  SplitBillDeclinedNotification,
+  SplitBillCompletedNotification,
+  SplitBillClosedNotification,
+  SplitBillCancelledNotification,
+} from "@/components/notifications/split-bill";
 
 export default function Notifications() {
   const [isOpen, setIsOpen] = useState(false);
@@ -34,12 +43,12 @@ export default function Notifications() {
 
   const currentUser = useQuery(
     api.users.getUser,
-    address ? { userAddress: address } : "skip"
+    address ? { userAddress: address } : "skip",
   );
 
   const notifications = useQuery(
     api.notifications.list,
-    currentUser ? { userId: currentUser._id } : "skip"
+    currentUser ? { userId: currentUser._id } : "skip",
   );
 
   const markAllAsRead = useMutation(api.notifications.markAllAsRead);
@@ -65,6 +74,7 @@ export default function Notifications() {
     };
   }, []);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
   const renderNotification = (notification: any, index: number) => {
     const commonProps = {
       notificationId: notification._id,
@@ -88,6 +98,72 @@ export default function Notifications() {
             key={notification._id}
             {...commonProps}
             fromUser={notification.fromUser}
+          />
+        );
+      case "split_bill_request":
+        return (
+          <SplitBillRequestNotification
+            key={notification._id}
+            {...commonProps}
+            fromUser={notification.fromUser}
+            splitBillId={notification.splitBillId}
+            amount={notification.amount}
+          />
+        );
+      case "split_bill_paid":
+        return (
+          <SplitBillPaidNotification
+            key={notification._id}
+            {...commonProps}
+            fromUser={notification.fromUser}
+            splitBillId={notification.splitBillId}
+            amount={notification.amount}
+          />
+        );
+      case "split_bill_reminder":
+        return (
+          <SplitBillReminderNotification
+            key={notification._id}
+            {...commonProps}
+            fromUser={notification.fromUser}
+            splitBillId={notification.splitBillId}
+            amount={notification.amount}
+          />
+        );
+      case "split_bill_declined":
+        return (
+          <SplitBillDeclinedNotification
+            key={notification._id}
+            {...commonProps}
+            fromUser={notification.fromUser}
+            splitBillId={notification.splitBillId}
+          />
+        );
+      case "split_bill_completed":
+        return (
+          <SplitBillCompletedNotification
+            key={notification._id}
+            {...commonProps}
+            fromUser={notification.fromUser}
+            splitBillId={notification.splitBillId}
+          />
+        );
+      case "split_bill_closed":
+        return (
+          <SplitBillClosedNotification
+            key={notification._id}
+            {...commonProps}
+            fromUser={notification.fromUser}
+            splitBillId={notification.splitBillId}
+          />
+        );
+      case "split_bill_cancelled":
+        return (
+          <SplitBillCancelledNotification
+            key={notification._id}
+            {...commonProps}
+            fromUser={notification.fromUser}
+            splitBillId={notification.splitBillId}
           />
         );
       case "group_invite":
@@ -193,7 +269,7 @@ export default function Notifications() {
             <motion.span
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white"
+              className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white"
             >
               {unreadCount > 9 ? "9+" : unreadCount}
             </motion.span>
@@ -221,8 +297,8 @@ export default function Notifications() {
                   No notifications
                 </h3>
                 <p className="text-center text-sm text-zinc-500">
-                  You're all caught up! We'll notify you when something new
-                  happens.
+                  You&apos;re all caught up! We&apos;ll notify you when
+                  something new happens.
                 </p>
               </div>
             ) : (
