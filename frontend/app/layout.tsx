@@ -42,6 +42,7 @@ export default async function RootLayout({
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} antialiased`}
+        suppressHydrationWarning
       >
         <ContextProvider cookies={cookies}>
           <ConvexClientProvider>
