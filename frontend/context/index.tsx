@@ -31,9 +31,9 @@ const modal = createAppKit({
   networks: [mantleSepoliaTestnet],
   defaultNetwork: mantleSepoliaTestnet,
   metadata: metadata,
-  siwx: new ReownAuthentication({
-    required: false,
-  }),
+  // siwx: new ReownAuthentication({
+  //   required: false,
+  // }),
   features: {
     analytics: true, // Optional - defaults to your Cloud configuration
     connectMethodsOrder: ["email", "social", "wallet"],
