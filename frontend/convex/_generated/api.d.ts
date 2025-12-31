@@ -20,6 +20,7 @@ import type * as paymentLinks from "../paymentLinks.js";
 import type * as paymentRequests from "../paymentRequests.js";
 import type * as payments from "../payments.js";
 import type * as seedPacts from "../seedPacts.js";
+import type * as splitBills from "../splitBills.js";
 import type * as storage from "../storage.js";
 import type * as users from "../users.js";
 
@@ -42,6 +43,7 @@ declare const fullApi: ApiFromModules<{
   paymentRequests: typeof paymentRequests;
   payments: typeof payments;
   seedPacts: typeof seedPacts;
+  splitBills: typeof splitBills;
   storage: typeof storage;
   users: typeof users;
 }>;

@@ -54,6 +54,13 @@ export default defineSchema({
       v.literal("payment_request_completed"),
       v.literal("payment_link_received"),
       v.literal("claim_link_claimed"),
+      v.literal("split_bill_request"),
+      v.literal("split_bill_paid"),
+      v.literal("split_bill_reminder"),
+      v.literal("split_bill_declined"),
+      v.literal("split_bill_completed"),
+      v.literal("split_bill_closed"),
+      v.literal("split_bill_cancelled"),
     ),
     isRead: v.boolean(),
     fromUserId: v.optional(v.id("users")),
@@ -64,6 +71,7 @@ export default defineSchema({
     paymentRequestId: v.optional(v.id("paymentRequests")),
     paymentLinkId: v.optional(v.id("paymentLinks")),
     claimLinkId: v.optional(v.id("claimLinks")),
+    splitBillId: v.optional(v.id("splitBills")),
     amount: v.optional(v.number()),
     message: v.optional(v.string()),
   })
@@ -107,6 +115,7 @@ export default defineSchema({
     ),
     blockNumber: v.optional(v.number()),
     timestamp: v.number(),
+    splitBillParticipantId: v.optional(v.id("splitBillParticipants")),
   })
     .index("by_sender", ["senderId"])
     .index("by_recipient", ["recipientId"])
@@ -165,30 +174,22 @@ export default defineSchema({
     description: v.optional(v.string()),
     imageOrEmoji: v.string(),
     imageType: v.union(v.literal("emoji"), v.literal("image")),
-
-    // Asset info
     assetType: v.union(v.literal("native"), v.literal("erc20")),
     assetAddress: v.optional(v.string()),
     assetSymbol: v.optional(v.string()),
     assetDecimals: v.optional(v.number()),
     totalAmount: v.string(),
-
-    // Access control
     accessMode: v.union(v.literal("anyone"), v.literal("allowlist")),
     splitMode: v.union(
       v.literal("none"),
       v.literal("equal"),
       v.literal("custom"),
     ),
-    maxClaimers: v.optional(v.number()), // Only for anyone + equal
+    maxClaimers: v.optional(v.number()),
     allowlist: v.optional(v.array(v.string())),
     customAmounts: v.optional(v.array(v.string())),
-
-    // Cryptographic proof (for anyone mode)
-    proofAddress: v.optional(v.string()), // Public key
-    privateKey: v.optional(v.string()), // Private key (only for "anyone" mode, only accessible by creator)
-
-    // Status
+    proofAddress: v.optional(v.string()),
+    privateKey: v.optional(v.string()),
     status: v.union(
       v.literal("active"),
       v.literal("paused"),
@@ -197,13 +198,11 @@ export default defineSchema({
       v.literal("cancelled"),
     ),
     shortId: v.string(),
-    expiresAt: v.optional(v.number()), // ⚠️ IN SECONDS (not milliseconds)
-
-    // Stats
+    expiresAt: v.optional(v.number()),
     viewCount: v.number(),
     claimCount: v.number(),
     totalClaimed: v.string(),
-    lastClaimAt: v.optional(v.number()), // ⚠️ IN SECONDS
+    lastClaimAt: v.optional(v.number()),
   })
     .index("by_creator", ["creatorId"])
     .index("by_shortId", ["shortId"])
@@ -214,15 +213,69 @@ export default defineSchema({
     claimLinkId: v.id("claimLinks"),
     claimerUserId: v.optional(v.id("users")),
     claimerAddress: v.string(),
-    amount: v.string(), // ⚠️ Actual claimed amount (from contract/event)
+    amount: v.string(),
     transactionHash: v.string(),
     status: v.union(v.literal("completed"), v.literal("failed")),
-    timestamp: v.number(), // ⚠️ IN SECONDS
+    timestamp: v.number(),
   })
     .index("by_claimLink", ["claimLinkId"])
     .index("by_claimer", ["claimerUserId"])
     .index("by_address", ["claimerAddress"])
     .index("by_transaction", ["transactionHash"]),
+
+  // Split Bills
+  splitBills: defineTable({
+    creatorId: v.id("users"),
+    title: v.string(),
+    description: v.optional(v.string()),
+    imageOrEmoji: v.optional(v.string()),
+    imageType: v.optional(v.union(v.literal("emoji"), v.literal("image"))),
+    totalAmount: v.string(),
+    splitMode: v.union(v.literal("equal"), v.literal("custom")),
+    status: v.union(
+      v.literal("active"),
+      v.literal("completed"),
+      v.literal("closed"),
+      v.literal("expired"),
+      v.literal("cancelled"),
+    ),
+    expiresAt: v.optional(v.number()),
+    totalParticipants: v.number(),
+    activeParticipantCount: v.number(),
+    paidCount: v.number(),
+    totalCollected: v.string(),
+    lastPaymentAt: v.optional(v.number()),
+    createdAt: v.number(),
+  })
+    .index("by_creator", ["creatorId"])
+    .index("by_status", ["status"])
+    .index("by_creator_status", ["creatorId", "status"])
+    .index("by_created_at", ["createdAt"]),
+
+  splitBillParticipants: defineTable({
+    splitBillId: v.id("splitBills"),
+    userId: v.id("users"),
+    amount: v.string(),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("paid"),
+      v.literal("declined"),
+      v.literal("marked_paid"),
+    ),
+    paidAt: v.optional(v.number()),
+    paymentId: v.optional(v.id("payments")),
+    markedPaidNote: v.optional(v.string()),
+    markedPaidBy: v.optional(v.id("users")),
+    lastReminderSentAt: v.optional(v.number()),
+    totalReminderCount: v.number(),
+    declinedAt: v.optional(v.number()),
+    createdAt: v.number(),
+  })
+    .index("by_split", ["splitBillId"])
+    .index("by_user", ["userId"])
+    .index("by_split_user", ["splitBillId", "userId"])
+    .index("by_split_status", ["splitBillId", "status"])
+    .index("by_user_status", ["userId", "status"]),
 
   groups: defineTable({
     name: v.string(),
