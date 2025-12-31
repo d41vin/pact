@@ -7,13 +7,14 @@ import { api } from "@/convex/_generated/api";
 import { useAppKitAccount } from "@reown/appkit/react";
 import { useBalance } from "wagmi";
 import { Spinner } from "@/components/ui/spinner";
+import { Split, MoreHorizontal, Settings } from "lucide-react";
 import SendPaymentSheet from "@/components/home/send-payment-sheet";
 import ReceivePaymentDialog from "@/components/home/receive-payment-dialog";
 import RequestPaymentSheet from "@/components/home/request-payment-sheet";
 import PaymentLinkSheet from "@/components/home/payment-link-sheet";
 import ClaimLinkSheet from "@/components/home/claim-link-sheet";
+import SplitBillSheet from "@/components/home/split-bill-sheet";
 import RecentActivityFeed from "@/components/home/recent-activity-feed";
-import { Split, MoreHorizontal, Settings } from "lucide-react";
 
 export default function HomePage() {
   const router = useRouter();
@@ -113,10 +114,7 @@ export default function HomePage() {
 
               {/* Split Bill Button */}
               <div className="w-full sm:w-[calc(50%-0.5rem)] lg:w-[calc(25%-0.75rem)]">
-                <button className="corner-squircle flex h-24 w-full flex-col items-center justify-center gap-2 rounded-[40px] bg-linear-to-br from-teal-500 to-teal-600 text-white shadow-lg transition-all hover:shadow-xl">
-                  <Split className="h-6 w-6" />
-                  <span className="text-sm font-medium">Split Bill</span>
-                </button>
+                <SplitBillSheet />
               </div>
 
               {/* More Button */}
