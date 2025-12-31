@@ -5,6 +5,7 @@ import { ReactNode } from "react";
 import { TopNav } from "@/components/top-nav";
 import { BottomNav } from "@/components/bottom-nav";
 import SendPaymentSheet from "@/components/home/send-payment-sheet";
+import SplitBillSheet from "@/components/home/split-bill-sheet";
 
 export function LayoutWrapper({ children }: { children: ReactNode }) {
     const pathname = usePathname();
@@ -21,6 +22,7 @@ export function LayoutWrapper({ children }: { children: ReactNode }) {
                 <>
                     <TopNav />
                     <SendPaymentSheet hideTrigger />
+                    <SplitBillSheet hideTrigger />
                     <BottomNav />
                 </>
             )}
