@@ -16,6 +16,7 @@ import {
   Gift,
   UserPlus,
   Clock,
+  Split,
 } from "lucide-react";
 
 // Import modals from notifications (reuse existing)
@@ -31,7 +32,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { User, ExternalLink } from "lucide-react";
 import { formatFullDate } from "@/lib/date-utils";
-import { formatAddress, formatEtherToMnt, formatSmartMnt } from "@/lib/format-utils";
+import { formatAddress, formatSmartMnt } from "@/lib/format-utils";
 
 interface RecentActivityFeedProps {
   userId: Id<"users">;
@@ -46,7 +47,10 @@ type ActivityType =
   | "request_declined"
   | "payment_link_received"
   | "claim_link_claimed"
-  | "friend_accepted";
+  | "friend_accepted"
+  | "split_bill_created"
+  | "split_bill_paid"
+  | "split_bill_participant";
 
 interface ModalState {
   type: ActivityType | null;
@@ -55,6 +59,7 @@ interface ModalState {
   friendshipId?: Id<"friendships">;
   paymentLinkId?: Id<"paymentLinks">;
   claimLinkId?: Id<"claimLinks">;
+  splitBillId?: Id<"splitBills">;
 }
 
 export default function RecentActivityFeed({
@@ -141,6 +146,30 @@ export default function RecentActivityFeed({
           amountPrefix: "",
           amountClass: "",
         };
+      case "split_bill_created":
+        return {
+          icon: <Split className="h-5 w-5 text-white" />,
+          iconBgClass: "bg-cyan-500",
+          titlePrefix: "Created split bill",
+          amountPrefix: "",
+          amountClass: "text-cyan-600",
+        };
+      case "split_bill_paid":
+        return {
+          icon: <CheckCircle className="h-5 w-5 text-white" />,
+          iconBgClass: "bg-teal-500",
+          titlePrefix: "Split paid by",
+          amountPrefix: "+",
+          amountClass: "text-green-600",
+        };
+      case "split_bill_participant":
+        return {
+          icon: <Split className="h-5 w-5 text-white" />,
+          iconBgClass: "bg-teal-500",
+          titlePrefix: "Added to split by",
+          amountPrefix: "",
+          amountClass: "text-teal-600",
+        };
       default:
         return {
           icon: <Clock className="h-5 w-5 text-white" />,
@@ -181,10 +210,16 @@ export default function RecentActivityFeed({
       friendshipId: activity.friendshipId,
       paymentLinkId: activity.paymentLinkId,
       claimLinkId: activity.claimLinkId,
+      splitBillId: activity.splitBillId,
     });
   };
 
   const getDescription = (activity: (typeof activities)[0]) => {
+    // Payment with split bill context takes priority
+    if (activity.type === "payment_sent" && activity.splitBillTitle) {
+      return `for split: "${activity.splitBillTitle}"`;
+    }
+
     if (
       activity.type === "payment_link_received" &&
       activity.paymentLinkTitle
@@ -193,6 +228,16 @@ export default function RecentActivityFeed({
     }
     if (activity.type === "claim_link_claimed" && activity.claimLinkTitle) {
       return `from "${activity.claimLinkTitle}"`;
+    }
+    // Split bill descriptions
+    if (activity.type === "split_bill_created" && activity.splitBillTitle) {
+      return `"${activity.splitBillTitle}"`;
+    }
+    if (activity.type === "split_bill_paid" && activity.splitBillTitle) {
+      return `for "${activity.splitBillTitle}"`;
+    }
+    if (activity.type === "split_bill_participant" && activity.splitBillTitle) {
+      return `"${activity.splitBillTitle}"`;
     }
     if (activity.note) {
       return activity.note.length > 40
@@ -207,7 +252,9 @@ export default function RecentActivityFeed({
       <div className="divide-y divide-zinc-100">
         {activities.map((activity) => {
           const config = getActivityConfig(activity.type);
-          const userName = activity.otherUser?.name || "Someone";
+          const userName =
+            activity.otherUser?.name ||
+            (activity.type === "split_bill_created" ? "" : "Someone");
           const description = getDescription(activity);
 
           return (
@@ -215,7 +262,7 @@ export default function RecentActivityFeed({
               key={activity.id}
               icon={config.icon}
               iconBgClass={config.iconBgClass}
-              title={`${config.titlePrefix} ${userName}`}
+              title={`${config.titlePrefix}${userName ? ` ${userName}` : ""}`}
               description={description}
               amount={
                 activity.amount ? formatSmartMnt(activity.amount) : undefined
@@ -299,6 +346,12 @@ function ActivityDetailModal({
         return "Claim Link Claimed";
       case "friend_accepted":
         return "New Friend";
+      case "split_bill_created":
+        return "Split Bill Created";
+      case "split_bill_paid":
+        return "Split Bill Payment";
+      case "split_bill_participant":
+        return "Split Bill Request";
       default:
         return "Activity Details";
     }
@@ -545,7 +598,7 @@ function ActivityDetailModal({
             </div>
           </div>
           <p className="text-zinc-600">
-            You're now connected! You can send payments and requests to each
+            You&apos;re now connected! You can send payments and requests to each
             other.
           </p>
           <Button variant="outline" className="w-full" onClick={onClose}>
@@ -667,6 +720,24 @@ function ActivityDetailModal({
           </Button>
         </div>
       );
+    }
+
+    // Split bill activities - dispatch event to open split bill sheet
+    if (
+      (modalState.type === "split_bill_created" ||
+        modalState.type === "split_bill_paid" ||
+        modalState.type === "split_bill_participant") &&
+      modalState.splitBillId
+    ) {
+      // Immediately dispatch event to open split bill details
+      // and close this modal
+      window.dispatchEvent(
+        new CustomEvent("open-split-bill-details", {
+          detail: { splitBillId: modalState.splitBillId },
+        })
+      );
+      onClose();
+      return null;
     }
 
     // Loading state

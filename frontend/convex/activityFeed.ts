@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { query } from "./_generated/server";
-import { Id, Doc } from "./_generated/dataModel";
+import { Id } from "./_generated/dataModel";
 
 // Activity types for the feed
 export type ActivityType =
@@ -12,7 +12,10 @@ export type ActivityType =
   | "request_declined"
   | "payment_link_received"
   | "claim_link_claimed"
-  | "friend_accepted";
+  | "friend_accepted"
+  | "split_bill_created"
+  | "split_bill_paid"
+  | "split_bill_participant";
 
 export interface ActivityItem {
   id: string;
@@ -33,6 +36,9 @@ export interface ActivityItem {
   // For claim link claimed
   claimLinkTitle?: string;
   claimLinkId?: Id<"claimLinks">;
+  // For split bills
+  splitBillTitle?: string;
+  splitBillId?: Id<"splitBills">;
   // Reference IDs for modals
   paymentId?: Id<"payments">;
   paymentRequestId?: Id<"paymentRequests">;
@@ -61,6 +67,21 @@ export const getRecentActivityFeed = query({
       if (payment.recipientId) {
         recipient = await ctx.db.get(payment.recipientId);
       }
+
+      // Check if this payment is for a split bill
+      let splitBillTitle = undefined;
+      let splitBillId = undefined;
+      if (payment.splitBillParticipantId) {
+        const participant = await ctx.db.get(payment.splitBillParticipantId);
+        if (participant) {
+          const splitBill = await ctx.db.get(participant.splitBillId);
+          if (splitBill) {
+            splitBillTitle = splitBill.title;
+            splitBillId = splitBill._id;
+          }
+        }
+      }
+
       activities.push({
         id: `payment_sent_${payment._id}`,
         type: "payment_sent",
@@ -68,14 +89,16 @@ export const getRecentActivityFeed = query({
         amount: payment.amount,
         note: payment.note,
         paymentId: payment._id,
+        splitBillTitle,
+        splitBillId,
         otherUser: recipient
           ? {
-              _id: recipient._id,
-              name: recipient.name,
-              username: recipient.username,
-              profileImageUrl: recipient.profileImageUrl,
-              userAddress: recipient.userAddress,
-            }
+            _id: recipient._id,
+            name: recipient.name,
+            username: recipient.username,
+            profileImageUrl: recipient.profileImageUrl,
+            userAddress: recipient.userAddress,
+          }
           : null,
       });
     }
@@ -88,7 +111,13 @@ export const getRecentActivityFeed = query({
       .take(limit);
 
     for (const payment of receivedPayments) {
+      // Skip split bill payments - they're tracked separately in split_bill_paid activities
+      if (payment.splitBillParticipantId) {
+        continue;
+      }
+
       const sender = await ctx.db.get(payment.senderId);
+
       activities.push({
         id: `payment_received_${payment._id}`,
         type: "payment_received",
@@ -98,12 +127,12 @@ export const getRecentActivityFeed = query({
         paymentId: payment._id,
         otherUser: sender
           ? {
-              _id: sender._id,
-              name: sender.name,
-              username: sender.username,
-              profileImageUrl: sender.profileImageUrl,
-              userAddress: sender.userAddress,
-            }
+            _id: sender._id,
+            name: sender.name,
+            username: sender.username,
+            profileImageUrl: sender.profileImageUrl,
+            userAddress: sender.userAddress,
+          }
           : null,
       });
     }
@@ -136,12 +165,12 @@ export const getRecentActivityFeed = query({
         paymentRequestId: request._id,
         otherUser: recipient
           ? {
-              _id: recipient._id,
-              name: recipient.name,
-              username: recipient.username,
-              profileImageUrl: recipient.profileImageUrl,
-              userAddress: recipient.userAddress,
-            }
+            _id: recipient._id,
+            name: recipient.name,
+            username: recipient.username,
+            profileImageUrl: recipient.profileImageUrl,
+            userAddress: recipient.userAddress,
+          }
           : null,
       });
     }
@@ -164,12 +193,12 @@ export const getRecentActivityFeed = query({
         paymentRequestId: request._id,
         otherUser: requester
           ? {
-              _id: requester._id,
-              name: requester.name,
-              username: requester.username,
-              profileImageUrl: requester.profileImageUrl,
-              userAddress: requester.userAddress,
-            }
+            _id: requester._id,
+            name: requester.name,
+            username: requester.username,
+            profileImageUrl: requester.profileImageUrl,
+            userAddress: requester.userAddress,
+          }
           : null,
       });
     }
@@ -202,12 +231,12 @@ export const getRecentActivityFeed = query({
           paymentId: payment.paymentId,
           otherUser: payer
             ? {
-                _id: payer._id,
-                name: payer.name,
-                username: payer.username,
-                profileImageUrl: payer.profileImageUrl,
-                userAddress: payer.userAddress,
-              }
+              _id: payer._id,
+              name: payer.name,
+              username: payer.username,
+              profileImageUrl: payer.profileImageUrl,
+              userAddress: payer.userAddress,
+            }
             : null,
         });
       }
@@ -240,12 +269,12 @@ export const getRecentActivityFeed = query({
           claimLinkId: link._id,
           otherUser: claimer
             ? {
-                _id: claimer._id,
-                name: claimer.name,
-                username: claimer.username,
-                profileImageUrl: claimer.profileImageUrl,
-                userAddress: claimer.userAddress,
-              }
+              _id: claimer._id,
+              name: claimer.name,
+              username: claimer.username,
+              profileImageUrl: claimer.profileImageUrl,
+              userAddress: claimer.userAddress,
+            }
             : null,
         });
       }
@@ -268,12 +297,12 @@ export const getRecentActivityFeed = query({
         friendshipId: friendship._id,
         otherUser: friend
           ? {
-              _id: friend._id,
-              name: friend.name,
-              username: friend.username,
-              profileImageUrl: friend.profileImageUrl,
-              userAddress: friend.userAddress,
-            }
+            _id: friend._id,
+            name: friend.name,
+            username: friend.username,
+            profileImageUrl: friend.profileImageUrl,
+            userAddress: friend.userAddress,
+          }
           : null,
       });
     }
@@ -294,14 +323,109 @@ export const getRecentActivityFeed = query({
         friendshipId: friendship._id,
         otherUser: friend
           ? {
-              _id: friend._id,
-              name: friend.name,
-              username: friend.username,
-              profileImageUrl: friend.profileImageUrl,
-              userAddress: friend.userAddress,
-            }
+            _id: friend._id,
+            name: friend.name,
+            username: friend.username,
+            profileImageUrl: friend.profileImageUrl,
+            userAddress: friend.userAddress,
+          }
           : null,
       });
+    }
+
+    // 8. Get split bills created by user
+    const createdSplitBills = await ctx.db
+      .query("splitBills")
+      .withIndex("by_creator", (q) => q.eq("creatorId", args.userId))
+      .order("desc")
+      .take(limit);
+
+    for (const split of createdSplitBills) {
+      activities.push({
+        id: `split_bill_created_${split._id}`,
+        type: "split_bill_created",
+        timestamp: split.createdAt,
+        amount: split.totalAmount,
+        splitBillTitle: split.title,
+        splitBillId: split._id,
+        otherUser: null,
+      });
+    }
+
+    // 9. Get split bills where user is a participant
+    const participations = await ctx.db
+      .query("splitBillParticipants")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .order("desc")
+      .take(limit);
+
+    for (const participation of participations) {
+      const split = await ctx.db.get(participation.splitBillId);
+      if (!split) continue;
+
+      const creator = await ctx.db.get(split.creatorId);
+
+      // Add participant activity (when user was added to split)
+      activities.push({
+        id: `split_bill_participant_${participation._id}`,
+        type: "split_bill_participant",
+        timestamp: participation.createdAt,
+        amount: participation.amount,
+        splitBillTitle: split.title,
+        splitBillId: split._id,
+        otherUser: creator
+          ? {
+            _id: creator._id,
+            name: creator.name,
+            username: creator.username,
+            profileImageUrl: creator.profileImageUrl,
+            userAddress: creator.userAddress,
+          }
+          : null,
+      });
+    }
+
+    // 10. Get split bill payments received (user is creator)
+    const userCreatedSplits = await ctx.db
+      .query("splitBills")
+      .withIndex("by_creator", (q) => q.eq("creatorId", args.userId))
+      .collect();
+
+    for (const split of userCreatedSplits) {
+      const participants = await ctx.db
+        .query("splitBillParticipants")
+        .withIndex("by_split", (q) => q.eq("splitBillId", split._id))
+        .filter((q) =>
+          q.or(
+            q.eq(q.field("status"), "paid"),
+            q.eq(q.field("status"), "marked_paid")
+          )
+        )
+        .take(5); // Limit per split
+
+      for (const participant of participants) {
+        if (!participant.paidAt) continue;
+
+        const payer = await ctx.db.get(participant.userId);
+        activities.push({
+          id: `split_bill_paid_${participant._id}`,
+          type: "split_bill_paid",
+          timestamp: participant.paidAt,
+          amount: participant.amount,
+          splitBillTitle: split.title,
+          splitBillId: split._id,
+          paymentId: participant.paymentId,
+          otherUser: payer
+            ? {
+              _id: payer._id,
+              name: payer.name,
+              username: payer.username,
+              profileImageUrl: payer.profileImageUrl,
+              userAddress: payer.userAddress,
+            }
+            : null,
+        });
+      }
     }
 
     // Sort by timestamp and take top N
