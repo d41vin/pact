@@ -1,32 +1,25 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { Search, X, CircleX, Loader2, User } from "lucide-react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { Search, X, CircleX, Loader2, Users } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-// import { useQuery } from 'convex/react'
-// import { api } from '@/convex/_generated/api'
-
-// TODO: Replace with your actual User type from Convex
-interface User {
-  id: number;
-  name: string;
-  username: string;
-  avatar?: string | null;
-}
-
-// TODO: Remove this mock data once Convex is integrated
-const MOCK_USERS: User[] = [
-  { id: 1, name: "Sarah Johnson", username: "sarahj", avatar: null },
-  { id: 2, name: "Michael Chen", username: "mchen", avatar: null },
-  { id: 3, name: "Emily Rodriguez", username: "emilyrod", avatar: null },
-  { id: 4, name: "James Wilson", username: "jwilson", avatar: null },
-  { id: 5, name: "Jessica Martinez", username: "jmartinez", avatar: null },
-  { id: 6, name: "David Thompson", username: "dthompson", avatar: null },
-  { id: 7, name: "Lisa Anderson", username: "lisaand", avatar: null },
-  { id: 8, name: "Robert Taylor", username: "rtaylor", avatar: null },
-];
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { useRouter } from "next/navigation";
+import { useAppKitAccount } from "@reown/appkit/react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 
 const MIN_SEARCH_LENGTH = 2;
+
+// Interface for user data structure used in search
+interface SearchUser {
+  _id: string;
+  name: string;
+  username: string;
+  profileImageUrl?: string;
+  isFriend?: boolean;
+}
 
 // Highlight matching text in search results
 const HighlightMatch = ({ text, query }: { text: string; query: string }) => {
@@ -49,51 +42,32 @@ const HighlightMatch = ({ text, query }: { text: string; query: string }) => {
 };
 
 export default function UserSearch() {
+  const router = useRouter();
+  const { address } = useAppKitAccount();
+
   const [isExpanded, setIsExpanded] = useState(false);
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<User[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
-  const [recentSearches, setRecentSearches] = useState<User[]>([]);
+  const [recentSearches, setRecentSearches] = useState<SearchUser[]>([]);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const resultsRef = useRef<(HTMLButtonElement | null)[]>([]);
 
-  // TODO: Replace this with your Convex query
-  // const users = useQuery(api.users.search,
-  //   query.length >= MIN_SEARCH_LENGTH ? { query } : 'skip'
-  // )
-
-  // Debounced search simulation - TODO: Remove when using Convex
-  useEffect(() => {
-    if (!query.trim() || query.length < MIN_SEARCH_LENGTH) {
-      setResults([]);
-      setIsLoading(false);
-      return;
-    }
-
-    setIsLoading(true);
-    const timer = setTimeout(() => {
-      // TODO: Replace this with Convex query results
-      const filtered = MOCK_USERS.filter(
-        (user) =>
-          user.name.toLowerCase().includes(query.toLowerCase()) ||
-          user.username.toLowerCase().includes(query.toLowerCase()),
-      );
-      setResults(filtered);
-      setIsLoading(false);
-      setSelectedIndex(-1);
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [query]);
+  // Query users from Convex
+  const searchResults = useQuery(
+    api.users.searchUsers,
+    query.length >= MIN_SEARCH_LENGTH
+      ? { query: query.trim(), currentUserAddress: address, limit: 7 }
+      : "skip"
+  );
 
   // Load recent searches from localStorage on mount
   useEffect(() => {
     const stored = localStorage.getItem("recentUserSearches");
     if (stored) {
       try {
+        // eslint-disable-next-line
         setRecentSearches(JSON.parse(stored));
       } catch (error) {
         console.error("Failed to parse recent searches:", error);
@@ -128,13 +102,52 @@ export default function UserSearch() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isExpanded]);
 
+  const handleClose = useCallback(() => {
+    setIsExpanded(false);
+    setQuery("");
+    setSelectedIndex(-1);
+  }, []);
+
+  const saveRecentSearch = useCallback((user: SearchUser) => {
+    setRecentSearches(prev => {
+      const updated = [
+        user,
+        ...prev.filter((u) => u._id !== user._id),
+      ].slice(0, 5);
+      localStorage.setItem("recentUserSearches", JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
+
+  // Improved type from 'any' to specific SearchUser or compatible shape
+  const handleUserSelect = useCallback((user: SearchUser | (typeof recentSearches)[number]) => {
+    // Save to recent searches
+    const recentUser: SearchUser = {
+      _id: user._id,
+      name: user.name,
+      username: user.username,
+      profileImageUrl: user.profileImageUrl,
+    };
+    saveRecentSearch(recentUser);
+
+    // Navigate to user profile
+    router.push(`/${user.username}`);
+    handleClose();
+  }, [router, handleClose, saveRecentSearch]);
+
+  const clearRecentSearches = useCallback(() => {
+    setRecentSearches([]);
+    localStorage.removeItem("recentUserSearches");
+  }, []);
+
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!isExpanded) return;
 
+      // searchResults can be undefined while loading or if skipped, so default to empty array
       const currentResults =
-        query.length >= MIN_SEARCH_LENGTH ? results : recentSearches;
+        query.length >= MIN_SEARCH_LENGTH ? (searchResults || []) : recentSearches;
 
       switch (e.key) {
         case "ArrowDown":
@@ -161,7 +174,7 @@ export default function UserSearch() {
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [isExpanded, selectedIndex, results, query, recentSearches]);
+  }, [isExpanded, selectedIndex, searchResults, query, recentSearches, handleUserSelect, handleClose]);
 
   // Scroll selected item into view
   useEffect(() => {
@@ -177,41 +190,14 @@ export default function UserSearch() {
     setIsExpanded(true);
   };
 
-  const handleClose = () => {
-    setIsExpanded(false);
-    setQuery("");
-    setSelectedIndex(-1);
-  };
-
-  const saveRecentSearch = (user: User) => {
-    const updated = [
-      user,
-      ...recentSearches.filter((u) => u.id !== user.id),
-    ].slice(0, 5);
-    setRecentSearches(updated);
-    localStorage.setItem("recentUserSearches", JSON.stringify(updated));
-  };
-
-  const handleUserSelect = (user: User) => {
-    console.log("Selected user:", user);
-    saveRecentSearch(user);
-    // TODO: Navigate to user profile or open user modal
-    // router.push(`/profile/${user.username}`)
-    handleClose();
-  };
-
-  const clearRecentSearches = () => {
-    setRecentSearches([]);
-    localStorage.removeItem("recentUserSearches");
-  };
-
   const showRecentSearches =
     isExpanded && query.length < MIN_SEARCH_LENGTH && recentSearches.length > 0;
-  const showResults = query.length >= MIN_SEARCH_LENGTH && results.length > 0;
+  const showResults = query.length >= MIN_SEARCH_LENGTH && searchResults && searchResults.length > 0;
   const showNoResults =
-    query.length >= MIN_SEARCH_LENGTH && !isLoading && results.length === 0;
+    query.length >= MIN_SEARCH_LENGTH && searchResults !== undefined && searchResults.length === 0;
   const showMinCharsMessage =
     isExpanded && query.length > 0 && query.length < MIN_SEARCH_LENGTH;
+  const isLoading = query.length >= MIN_SEARCH_LENGTH && searchResults === undefined;
 
   return (
     <div ref={containerRef} className="relative">
@@ -221,7 +207,7 @@ export default function UserSearch() {
           <motion.button
             key="icon"
             onClick={handleExpand}
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-md transition-shadow hover:shadow-lg"
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-zinc-50 text-zinc-700 shadow-sm transition-all hover:bg-zinc-100 hover:shadow-md"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             initial={{ opacity: 0, scale: 0.8 }}
@@ -230,7 +216,7 @@ export default function UserSearch() {
             transition={{ duration: 0.2 }}
             aria-label="Search users"
           >
-            <Search className="h-5 w-5 text-zinc-700" />
+            <Search className="h-5 w-5" />
           </motion.button>
         ) : (
           // Expanded state - search input
@@ -242,7 +228,7 @@ export default function UserSearch() {
             exit={{ width: 40, opacity: 0 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
           >
-            <div className="relative flex items-center rounded-full bg-white px-4 py-2.5 shadow-lg">
+            <div className="relative flex items-center rounded-full bg-white px-4 py-2.5 shadow-lg ring-1 ring-zinc-200">
               <Search className="mr-3 h-5 w-5 shrink-0 text-zinc-400" />
               <input
                 ref={inputRef}
@@ -317,10 +303,10 @@ export default function UserSearch() {
                             Clear
                           </button>
                         </div>
-                        <div className="max-h-80 overflow-y-auto">
+                        <div className="max-h-80 overflow-y-auto overflow-x-hidden">
                           {recentSearches.map((user, index) => (
                             <button
-                              key={user.id}
+                              key={user._id}
                               ref={(el) => {
                                 resultsRef.current[index] = el;
                               }}
@@ -331,17 +317,12 @@ export default function UserSearch() {
                                 : "hover:bg-zinc-50"
                                 }`}
                             >
-                              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-blue-400 to-purple-500 font-medium text-white">
-                                {user.avatar ? (
-                                  <img
-                                    src={user.avatar}
-                                    alt=""
-                                    className="h-full w-full rounded-full object-cover"
-                                  />
-                                ) : (
-                                  <User className="h-5 w-5" />
-                                )}
-                              </div>
+                              <Avatar className="h-10 w-10">
+                                <AvatarImage src={user.profileImageUrl} alt={user.name} />
+                                <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-500 text-white">
+                                  {user.name.charAt(0).toUpperCase()}
+                                </AvatarFallback>
+                              </Avatar>
                               <div className="min-w-0 flex-1">
                                 <div className="truncate font-medium text-zinc-900">
                                   {user.name}
@@ -358,10 +339,10 @@ export default function UserSearch() {
 
                     {/* Search results */}
                     {showResults && (
-                      <div className="max-h-80 overflow-y-auto">
-                        {results.map((user, index) => (
+                      <div className="max-h-80 overflow-y-auto overflow-x-hidden">
+                        {searchResults.map((user, index) => (
                           <motion.button
-                            key={user.id}
+                            key={user._id}
                             ref={(el) => {
                               resultsRef.current[index] = el;
                             }}
@@ -375,20 +356,23 @@ export default function UserSearch() {
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: index * 0.03 }}
                           >
-                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-blue-400 to-purple-500 font-medium text-white">
-                              {user.avatar ? (
-                                <img
-                                  src={user.avatar}
-                                  alt=""
-                                  className="h-full w-full rounded-full object-cover"
-                                />
-                              ) : (
-                                <User className="h-5 w-5" />
-                              )}
-                            </div>
+                            <Avatar className="h-10 w-10">
+                              <AvatarImage src={user.profileImageUrl} alt={user.name} />
+                              <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-500 text-white">
+                                {user.name.charAt(0).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
                             <div className="min-w-0 flex-1">
-                              <div className="truncate font-medium text-zinc-900">
-                                <HighlightMatch text={user.name} query={query} />
+                              <div className="flex items-center gap-2">
+                                <div className="truncate font-medium text-zinc-900">
+                                  <HighlightMatch text={user.name} query={query} />
+                                </div>
+                                {user.isFriend && (
+                                  <Badge variant="secondary" className="text-xs">
+                                    <Users className="mr-1 h-3 w-3" />
+                                    Friend
+                                  </Badge>
+                                )}
                               </div>
                               <div className="truncate text-sm text-zinc-500">
                                 @
