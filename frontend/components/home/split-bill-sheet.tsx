@@ -70,6 +70,7 @@ import UserRecipientInput, {
 } from "@/components/home/user-recipient-input";
 import { formatFullDate, formatExpiry } from "@/lib/date-utils";
 import { formatEtherToMnt, formatMntValue, formatWeiToMnt } from "@/lib/format-utils";
+import { getActionGradient } from "@/lib/action-colors";
 
 type ViewMode = "create" | "list" | "details";
 type SplitMode = "equal" | "custom";
@@ -718,7 +719,7 @@ export default function SplitBillSheet({
       >
         {!hideTrigger && (
           <SheetTrigger asChild>
-            <button className="corner-squircle flex h-24 w-full flex-col items-center justify-center gap-2 rounded-[40px] bg-linear-to-br from-teal-500 to-teal-600 text-white shadow-lg transition-all hover:shadow-xl">
+            <button className={`corner-squircle flex h-24 w-full flex-col items-center justify-center gap-2 rounded-[40px] bg-linear-to-br ${getActionGradient('splitBill')} text-white shadow-lg transition-all hover:shadow-xl`}>
               <Split className="h-6 w-6" />
               <span className="text-sm font-medium">Split Bill</span>
             </button>
@@ -1043,7 +1044,7 @@ export default function SplitBillSheet({
                   <div className="space-y-4">
                     <div className="flex justify-center">
                       <Button
-                        className="corner-squircle w-fit rounded-[15px] bg-linear-to-r from-teal-500 to-teal-600 text-white shadow-md hover:shadow-lg"
+                        className={`corner-squircle w-fit rounded-[15px] bg-linear-to-r ${getActionGradient('splitBill')} text-white shadow-md hover:shadow-lg`}
                         size="lg"
                         onClick={() => setViewMode("create")}
                       >

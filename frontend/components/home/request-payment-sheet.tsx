@@ -37,6 +37,7 @@ import {
 } from "@/components/ui/popover";
 import { formatFullDate, formatExpiry } from "@/lib/date-utils";
 import { formatEtherToMnt } from "@/lib/format-utils";
+import { ACTION_COLORS, getActionGradient, getActionLightGradient } from "@/lib/action-colors";
 import { format } from "date-fns";
 import {
     HandCoins,
@@ -242,7 +243,7 @@ export default function RequestPaymentSheet() {
                 }}
             >
                 <SheetTrigger asChild>
-                    <Button className="flex h-24 w-full flex-col items-center justify-center gap-2 rounded-[40px] corner-squircle bg-linear-to-br from-amber-500 to-amber-600 text-white shadow-lg transition-all hover:shadow-xl">
+                    <Button className={`flex h-24 w-full flex-col items-center justify-center gap-2 rounded-[40px] corner-squircle bg-linear-to-br ${getActionGradient('request')} text-white shadow-lg transition-all hover:shadow-xl`}>
                         <HandCoins className="h-6 w-6" />
                         <span className="text-sm font-medium">Request</span>
                     </Button>
@@ -594,11 +595,11 @@ function RequestDetailModal({
                     </div>
 
                     {/* Amount */}
-                    <div className="rounded-[40px] corner-squircle bg-linear-to-br from-amber-50 to-yellow-50 p-6 text-center">
+                    <div className={`rounded-[40px] corner-squircle bg-linear-to-br ${getActionLightGradient('request')} p-6 text-center`}>
                         <div className="mb-1 text-sm font-medium text-zinc-600">
                             {isSender ? "Requested Amount" : "You Requested"}
                         </div>
-                        <div className="text-4xl font-bold text-amber-600">
+                        <div className={`text-4xl font-bold ${ACTION_COLORS.request.text.primary}`}>
                             {formatEtherToMnt(request.amount)}
                         </div>
                     </div>

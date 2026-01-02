@@ -32,6 +32,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { formatAddress, formatEtherToMnt } from "@/lib/format-utils";
 import { formatFullDate } from "@/lib/date-utils";
+import { ACTION_COLORS, getActionGradient, getActionLightGradient } from "@/lib/action-colors";
 import {
   Send,
   History,
@@ -340,7 +341,7 @@ export default function SendPaymentSheet({
     >
       {!hideTrigger && (
         <SheetTrigger asChild>
-          <Button className="flex h-24 w-full flex-col items-center justify-center gap-2 rounded-[40px] corner-squircle bg-linear-to-br from-blue-500 to-blue-600 text-white shadow-lg transition-all hover:shadow-xl">
+          <Button className={`flex h-24 w-full flex-col items-center justify-center gap-2 rounded-[40px] corner-squircle bg-linear-to-br ${getActionGradient('send')} text-white shadow-lg transition-all hover:shadow-xl`}>
             <Send className="h-6 w-6" />
             <span className="text-sm font-medium">Send</span>
           </Button>
@@ -404,14 +405,14 @@ export default function SendPaymentSheet({
               <div className="space-y-6 p-6 pb-10">
                 {/* Show info banner if fulfilling a request */}
                 {activeRequestId && (
-                  <div className="flex items-start gap-3 rounded-lg bg-blue-50 p-4">
-                    <Info className="mt-0.5 h-5 w-5 shrink-0 text-blue-600" />
+                  <div className={`flex items-start gap-3 rounded-lg ${ACTION_COLORS.send.bg.light} p-4`}>
+                    <Info className={`mt-0.5 h-5 w-5 shrink-0 ${ACTION_COLORS.send.text.primary}`} />
                     <div className="flex-1">
-                      <div className="font-medium text-blue-900">
+                      <div className={`font-medium ${ACTION_COLORS.send.text.secondary}`}>
                         Fulfilling Payment Request
                       </div>
-                      <div className="mt-1 text-sm text-blue-700">
-                        You're sending payment for a request. The recipient and
+                      <div className={`mt-1 text-sm ${ACTION_COLORS.send.text.primary}`}>
+                        You&apos;re sending payment for a request. The recipient and
                         amount are pre-filled.
                       </div>
                     </div>
@@ -535,7 +536,7 @@ export default function SendPaymentSheet({
                               </div>
                               <Badge
                                 variant="outline"
-                                className="mt-1 border-0 bg-green-100 text-xs text-green-800 hover:bg-green-100"
+                                className={`mt-1 border-0 ${ACTION_COLORS.receive.badge.bg} text-xs ${ACTION_COLORS.receive.badge.text} hover:${ACTION_COLORS.receive.badge.bg}`}
                               >
                                 {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
                               </Badge>
@@ -613,11 +614,11 @@ export default function SendPaymentSheet({
               </div>
 
               {/* Amount */}
-              <div className="rounded-[40px] corner-squircle bg-linear-to-br from-blue-50 to-indigo-50 p-6 text-center">
+              <div className={`rounded-[40px] corner-squircle bg-linear-to-br ${getActionLightGradient('send')} p-6 text-center`}>
                 <div className="mb-1 text-sm font-medium text-zinc-600">
                   Amount Sent
                 </div>
-                <div className="text-4xl font-bold text-blue-600">
+                <div className={`text-4xl font-bold ${ACTION_COLORS.send.text.primary}`}>
                   {formatEtherToMnt(selectedPayment.amount)}
                 </div>
               </div>
@@ -646,7 +647,7 @@ export default function SendPaymentSheet({
                     href={`https://explorer.testnet.mantle.xyz/tx/${selectedPayment.transactionHash}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-1 font-medium text-blue-600 hover:text-blue-700"
+                    className={`flex items-center gap-1 font-medium ${ACTION_COLORS.send.text.primary} hover:${ACTION_COLORS.send.text.secondary}`}
                   >
                     {formatAddress(selectedPayment.transactionHash)}
                     <ExternalLink className="h-3 w-3" />
@@ -656,7 +657,7 @@ export default function SendPaymentSheet({
                   <span className="text-zinc-500">Status</span>
                   <Badge
                     variant="outline"
-                    className="border-0 bg-green-100 text-green-800 hover:bg-green-100"
+                    className={`border-0 ${ACTION_COLORS.receive.badge.bg} ${ACTION_COLORS.receive.badge.text} hover:${ACTION_COLORS.receive.badge.bg}`}
                   >
                     {selectedPayment.status.charAt(0).toUpperCase() + selectedPayment.status.slice(1)}
                   </Badge>

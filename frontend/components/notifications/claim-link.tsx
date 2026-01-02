@@ -19,7 +19,8 @@ import { User, X } from "lucide-react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { formatFullDate } from "@/lib/date-utils";
-import { formatAddress } from "@/lib/format-utils";
+import { formatMntValue, formatAddress } from "@/lib/format-utils";
+import { ACTION_COLORS, getActionLightGradient } from "@/lib/action-colors";
 import { formatEther } from "viem";
 
 interface ClaimLinkClaimedNotificationProps {
@@ -34,6 +35,8 @@ interface ClaimLinkClaimedNotificationProps {
   claimLink?: {
     title: string;
     imageOrEmoji: string;
+    shortId?: string; // Added this to support claimLink.shortId
+    totalAmount?: string; // Added this to support claimLink.totalAmount
   };
   amount?: number;
   message?: string; // JSON string with address and amount
@@ -145,12 +148,12 @@ export function ClaimLinkClaimedNotification({
             </div>
 
             {/* Amount */}
-            <div className="corner-squircle rounded-[40px] bg-linear-to-br from-purple-50 to-pink-50 p-6 text-center">
+            <div className={`corner-squircle rounded-[40px] bg-linear-to-br ${getActionLightGradient('claimLink')} p-6 text-center`}>
               <div className="mb-1 text-sm font-medium text-zinc-600">
-                Claimed Amount
+                Amount Claimed
               </div>
-              <div className="text-4xl font-bold text-pink-600">
-                {claimedAmount} MNT
+              <div className={`text-4xl font-bold ${ACTION_COLORS.claimLink.text.primary}`}>
+                {formatMntValue(claimLink?.totalAmount || "0")} MNT
               </div>
             </div>
 

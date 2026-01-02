@@ -33,6 +33,7 @@ import { Button } from "@/components/ui/button";
 import { User, ExternalLink } from "lucide-react";
 import { formatFullDate } from "@/lib/date-utils";
 import { formatAddress, formatSmartMnt } from "@/lib/format-utils";
+import { ACTION_COLORS } from "@/lib/action-colors";
 
 interface RecentActivityFeedProps {
   userId: Id<"users">;
@@ -77,26 +78,26 @@ export default function RecentActivityFeed({
       case "payment_sent":
         return {
           icon: <ArrowUpRight className="h-5 w-5 text-white" />,
-          iconBgClass: "bg-blue-500",
+          iconBgClass: ACTION_COLORS.send.iconBg,
           titlePrefix: "Sent to",
           amountPrefix: "-",
-          amountClass: "text-blue-600",
+          amountClass: ACTION_COLORS.send.text.primary,
         };
       case "payment_received":
         return {
           icon: <ArrowDownLeft className="h-5 w-5 text-white" />,
-          iconBgClass: "bg-green-500",
+          iconBgClass: ACTION_COLORS.receive.iconBg,
           titlePrefix: "Received from",
           amountPrefix: "+",
-          amountClass: "text-green-600",
+          amountClass: ACTION_COLORS.receive.text.primary,
         };
       case "request_sent":
         return {
           icon: <HandCoins className="h-5 w-5 text-white" />,
-          iconBgClass: "bg-amber-500",
+          iconBgClass: ACTION_COLORS.request.iconBg,
           titlePrefix: "Requested from",
           amountPrefix: "",
-          amountClass: "text-amber-600",
+          amountClass: ACTION_COLORS.request.text.primary,
         };
       case "request_received":
         return {
@@ -109,10 +110,10 @@ export default function RecentActivityFeed({
       case "request_completed":
         return {
           icon: <CheckCircle className="h-5 w-5 text-white" />,
-          iconBgClass: "bg-green-500",
+          iconBgClass: ACTION_COLORS.receive.iconBg,
           titlePrefix: "Request paid by",
           amountPrefix: "+",
-          amountClass: "text-green-600",
+          amountClass: ACTION_COLORS.receive.text.primary,
         };
       case "request_declined":
         return {
@@ -125,18 +126,18 @@ export default function RecentActivityFeed({
       case "payment_link_received":
         return {
           icon: <Link2 className="h-5 w-5 text-white" />,
-          iconBgClass: "bg-indigo-500",
+          iconBgClass: ACTION_COLORS.paymentLink.iconBg,
           titlePrefix: "Link payment from",
           amountPrefix: "+",
-          amountClass: "text-green-600",
+          amountClass: ACTION_COLORS.receive.text.primary,
         };
       case "claim_link_claimed":
         return {
           icon: <Gift className="h-5 w-5 text-white" />,
-          iconBgClass: "bg-pink-500",
+          iconBgClass: ACTION_COLORS.claimLink.iconBg,
           titlePrefix: "Claimed by",
           amountPrefix: "-",
-          amountClass: "text-pink-600",
+          amountClass: ACTION_COLORS.claimLink.text.primary,
         };
       case "friend_accepted":
         return {
@@ -165,10 +166,10 @@ export default function RecentActivityFeed({
       case "split_bill_participant":
         return {
           icon: <Split className="h-5 w-5 text-white" />,
-          iconBgClass: "bg-teal-500",
+          iconBgClass: ACTION_COLORS.splitBill.iconBg,
           titlePrefix: "Added to split by",
           amountPrefix: "",
-          amountClass: "text-teal-600",
+          amountClass: ACTION_COLORS.splitBill.text.primary,
         };
       default:
         return {

@@ -20,6 +20,7 @@ import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { formatFullDate } from "@/lib/date-utils";
 import { formatAddress } from "@/lib/format-utils";
+import { ACTION_COLORS, getActionLightGradient } from "@/lib/action-colors";
 
 interface PaymentLinkReceivedNotificationProps {
   notificationId: Id<"notifications">;
@@ -126,11 +127,11 @@ export function PaymentLinkReceivedNotification({
             )}
 
             {/* Amount */}
-            <div className="corner-squircle rounded-[40px] bg-linear-to-br from-purple-50 to-pink-50 p-6 text-center">
+            <div className={`corner-squircle rounded-[40px] bg-linear-to-br ${getActionLightGradient('paymentLink')} p-6 text-center`}>
               <div className="mb-1 text-sm font-medium text-zinc-600">
-                Amount Received
+                Amount Paid
               </div>
-              <div className="text-4xl font-bold text-purple-600">
+              <div className={`text-4xl font-bold ${ACTION_COLORS.paymentLink.text.primary}`}>
                 {payment?.amount || amount} MNT
               </div>
             </div>
@@ -173,7 +174,7 @@ export function PaymentLinkReceivedNotification({
                     href={`https://explorer.testnet.mantle.xyz/tx/${payment.transactionHash}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-1 font-medium text-blue-600 hover:text-blue-700"
+                    className={`flex items-center gap-1 font-medium ${ACTION_COLORS.send.text.primary} hover:${ACTION_COLORS.send.text.secondary}`}
                   >
                     {formatAddress(payment.transactionHash)}
                     <ExternalLink className="h-3 w-3" />

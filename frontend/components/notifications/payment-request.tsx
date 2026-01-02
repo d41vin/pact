@@ -24,6 +24,7 @@ import { formatFullDate, formatExpiry } from "@/lib/date-utils";
 import { formatAddress } from "@/lib/format-utils";
 import { User, X, Clock, ExternalLink } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ACTION_COLORS, getActionLightGradient, getActionBadge } from "@/lib/action-colors";
 
 interface PaymentRequestNotificationProps {
     notificationId: Id<"notifications">;
@@ -118,8 +119,9 @@ export function PaymentRequestNotification({
         if (!request || isPending) return null;
 
         if (request.status === "completed") {
+            const requestBadge = getActionBadge('request');
             return (
-                <Badge variant="outline" className="bg-green-100 text-green-800 border-0">
+                <Badge variant="outline" className={`${requestBadge.bg} ${requestBadge.text} border-0`}>
                     Completed
                 </Badge>
             );
@@ -426,11 +428,11 @@ function PaymentRequestDetailModal({
                     </div>
 
                     {/* Amount */}
-                    <div className="rounded-[100px] corner-squircle bg-linear-to-br from-amber-50 to-yellow-50 p-6 text-center">
+                    <div className={`rounded-[100px] corner-squircle bg-linear-to-br ${getActionLightGradient('request')} p-6 text-center`}>
                         <div className="mb-1 text-sm font-medium text-zinc-600">
                             {isSender ? "Requested Amount" : "You Requested"}
                         </div>
-                        <div className="text-4xl font-bold text-amber-600">
+                        <div className={`text-4xl font-bold ${ACTION_COLORS.request.text.primary}`}>
                             {request.amount} MNT
                         </div>
                     </div>
@@ -469,7 +471,7 @@ function PaymentRequestDetailModal({
                                     href={`https://explorer.testnet.mantle.xyz/tx/${payment.transactionHash}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="flex items-center gap-1 font-medium text-blue-600 hover:text-blue-700"
+                                    className={`flex items-center gap-1 font-medium ${ACTION_COLORS.send.text.primary} hover:${ACTION_COLORS.send.text.secondary}`}
                                 >
                                     {formatAddress(payment.transactionHash)}
                                     <ExternalLink className="h-3 w-3" />

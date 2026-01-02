@@ -75,6 +75,7 @@ import {
 } from "@/lib/contracts/claim-link-abis";
 import { formatFullDate } from "@/lib/date-utils";
 import { formatAddress, formatEtherToMnt, formatMntValue } from "@/lib/format-utils";
+import { getActionGradient } from "@/lib/action-colors";
 
 type ViewMode = "create" | "list" | "details" | "success";
 type AccessMode = "anyone" | "allowlist";
@@ -584,7 +585,7 @@ export default function ClaimLinkSheet() {
       }}
     >
       <SheetTrigger asChild>
-        <button className="corner-squircle flex h-24 w-full flex-col items-center justify-center gap-2 rounded-[40px] bg-linear-to-br from-pink-500 to-pink-600 text-white shadow-lg transition-all hover:shadow-xl">
+        <button className={`corner-squircle flex h-24 w-full flex-col items-center justify-center gap-2 rounded-[40px] bg-linear-to-br ${getActionGradient('claimLink')} text-white shadow-lg transition-all hover:shadow-xl`}>
           <Link2 className="h-6 w-6" />
           <span className="text-sm font-medium">Claim Link</span>
         </button>
@@ -1069,7 +1070,7 @@ export default function ClaimLinkSheet() {
                 <div className="space-y-4">
                   <div className="flex justify-center">
                     <Button
-                      className="corner-squircle w-fit rounded-[15px] bg-linear-to-r from-pink-500 to-pink-600 text-white shadow-md hover:shadow-lg"
+                      className={`corner-squircle w-fit rounded-[15px] bg-linear-to-r ${getActionGradient('claimLink')} text-white shadow-md hover:shadow-lg`}
                       size="lg"
                       onClick={() => setViewMode("create")}
                     >

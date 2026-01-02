@@ -19,6 +19,7 @@ import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { formatFullDate } from "@/lib/date-utils";
 import { formatAddress } from "@/lib/format-utils";
+import { ACTION_COLORS, getActionLightGradient } from "@/lib/action-colors";
 
 interface PaymentReceivedNotificationProps {
   notificationId: Id<"notifications">;
@@ -100,11 +101,11 @@ export function PaymentReceivedNotification({
             </div>
 
             {/* Amount */}
-            <div className="rounded-lg bg-linear-to-br from-green-50 to-emerald-50 p-6 text-center">
+            <div className={`rounded-lg bg-linear-to-br ${getActionLightGradient('receive')} p-6 text-center`}>
               <div className="mb-1 text-sm font-medium text-zinc-600">
                 Amount Received
               </div>
-              <div className="text-4xl font-bold text-green-600">
+              <div className={`text-4xl font-bold ${ACTION_COLORS.receive.text.primary}`}>
                 {payment?.amount || amount} MNT
               </div>
             </div>
@@ -134,7 +135,7 @@ export function PaymentReceivedNotification({
                     href={`https://explorer.testnet.mantle.xyz/tx/${payment.transactionHash}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-1 font-medium text-blue-600 hover:text-blue-700"
+                    className={`flex items-center gap-1 font-medium ${ACTION_COLORS.send.text.primary} hover:${ACTION_COLORS.send.text.secondary}`}
                   >
                     {formatAddress(payment.transactionHash)}
                     <ExternalLink className="h-3 w-3" />
@@ -145,7 +146,7 @@ export function PaymentReceivedNotification({
                 <span className="text-zinc-500">Status</span>
                 <Badge
                   variant="secondary"
-                  className="bg-green-100 text-green-700"
+                  className={`${ACTION_COLORS.receive.badge.bg} ${ACTION_COLORS.receive.badge.text}`}
                 >
                   Completed
                 </Badge>

@@ -28,7 +28,8 @@ import { User, X } from "lucide-react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { formatFullDate } from "@/lib/date-utils";
-import { formatAddress, formatEtherToMnt } from "@/lib/format-utils";
+import { formatWeiToMnt } from "@/lib/format-utils";
+import { ACTION_COLORS, getActionLightGradient, getActionBadge } from "@/lib/action-colors";
 import { useAppKitAccount } from "@reown/appkit/react";
 import { Send, ExternalLink } from "lucide-react";
 
@@ -53,11 +54,16 @@ export function SplitBillRequestNotification({
   timestamp: number;
   isRead: boolean;
 }) {
+  const { address } = useAppKitAccount();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const splitDetails = useQuery(
     api.splitBills.getSplitDetails,
     splitBillId ? { splitBillId } : "skip",
+  );
+
+  const myPart = splitDetails?.participants.find(
+    (p) => p.user?.userAddress?.toLowerCase() === address?.toLowerCase(),
   );
 
   const handleViewDetails = () => {
@@ -84,7 +90,7 @@ export function SplitBillRequestNotification({
         avatar={fromUser.profileImageUrl}
         fallbackIcon={<Split className="h-5 w-5" />}
         title="Split Bill Request"
-        description={`${fromUser.name} added you to a split bill${amount ? ` • Your share: ${formatEtherToMnt(amount.toString())}` : ""}`}
+        description={`${fromUser.name} added you to a split bill${amount ? ` • Your share: ${formatWeiToMnt(amount.toString())}` : ""}`}
         timestamp={timestamp}
         isRead={isRead}
         onClick={handleClick}
@@ -150,12 +156,12 @@ export function SplitBillRequestNotification({
                 )}
               </div>
 
-              <div className="corner-squircle rounded-[25px] bg-teal-50 p-6 text-center border border-teal-100">
-                <div className="mb-1 text-sm font-medium text-teal-700">
+              <div className={`corner-squircle rounded-[25px] ${getActionLightGradient('splitBill')} p-6 text-center border ${ACTION_COLORS.splitBill.bg.lighter}`}>
+                <div className={`mb-1 text-sm font-medium ${ACTION_COLORS.splitBill.text.secondary}`}>
                   Your Share
                 </div>
-                <div className="text-3xl font-bold text-teal-600">
-                  {formatEtherToMnt((amount || 0).toString())}
+                <div className={`text-3xl font-bold ${ACTION_COLORS.splitBill.text.primary}`}>
+                  {formatWeiToMnt(myPart?.amount || "0")} MNT
                 </div>
               </div>
 
@@ -178,8 +184,12 @@ export function SplitBillRequestNotification({
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-zinc-500">Status</span>
-                  <Badge className="bg-teal-100 text-teal-700 hover:bg-teal-100 border-none">
-                    Pending
+                  <Badge className={`${ACTION_COLORS.splitBill.badge.bg} ${ACTION_COLORS.splitBill.badge.text} hover:${ACTION_COLORS.splitBill.badge.bg} border-none`}>
+                    {myPart?.status === "paid"
+                      ? "Paid"
+                      : myPart?.status === "declined"
+                        ? "Declined"
+                        : "Pending"}
                   </Badge>
                 </div>
               </div>
@@ -193,7 +203,7 @@ export function SplitBillRequestNotification({
                   Close
                 </Button>
                 <Button
-                  className="corner-squircle flex-1 rounded-[15px] bg-teal-600 hover:bg-teal-700"
+                  className={`corner-squircle flex-1 rounded-[15px] bg-linear-to-r ${getActionBadge('splitBill').bg} hover:opacity-90 text-white`}
                   onClick={handleViewDetails}
                 >
                   View Details
@@ -251,7 +261,7 @@ export function SplitBillPaidNotification({
         avatar={fromUser.profileImageUrl}
         fallbackIcon={<Check className="h-5 w-5" />}
         title="Payment Received"
-        description={`${fromUser.name} paid their share${amount ? ` • ${formatEtherToMnt(amount.toString())}` : ""}`}
+        description={`${fromUser.name} paid their share${amount ? ` • ${formatWeiToMnt(amount.toString())}` : ""}`}
         timestamp={timestamp}
         isRead={isRead}
         onClick={() => setIsModalOpen(true)}
@@ -293,12 +303,12 @@ export function SplitBillPaidNotification({
               <div className="mb-4 text-xl font-bold text-zinc-900">
                 {splitDetails?.title || "Split Bill"}
               </div>
-              <div className="corner-squircle rounded-[25px] bg-green-50 p-6 text-center">
-                <div className="mb-1 text-sm font-medium text-green-700">
+              <div className={`corner-squircle rounded-[25px] ${getActionLightGradient('receive')} p-6 text-center`}>
+                <div className={`mb-1 text-sm font-medium ${ACTION_COLORS.receive.text.secondary}`}>
                   Amount Received
                 </div>
-                <div className="text-3xl font-bold text-green-600">
-                  {formatEtherToMnt((amount || 0).toString())}
+                <div className={`text-3xl font-bold ${ACTION_COLORS.receive.text.primary}`}>
+                  {formatWeiToMnt((amount || 0).toString())}
                 </div>
               </div>
             </div>
@@ -322,7 +332,7 @@ export function SplitBillPaidNotification({
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-zinc-500">Status</span>
-                <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-none">
+                <Badge className={`${ACTION_COLORS.receive.badge.bg} ${ACTION_COLORS.receive.badge.text} hover:${ACTION_COLORS.receive.badge.bg} border-none`}>
                   Completed
                 </Badge>
               </div>
@@ -337,7 +347,7 @@ export function SplitBillPaidNotification({
                 Close
               </Button>
               <Button
-                className="corner-squircle flex-1 rounded-[15px] bg-green-600 hover:bg-green-700"
+                className={`corner-squircle flex-1 rounded-[15px] ${ACTION_COLORS.receive.bg.solid} hover:opacity-90 text-white`}
                 onClick={handleViewDetails}
               >
                 View Details
@@ -394,13 +404,18 @@ export function SplitBillReminderNotification({
     setIsModalOpen(false);
   };
 
+  let description = `${fromUser.name} sent a reminder`;
+  if (amount) {
+    description += ` • Your share: ${formatWeiToMnt(amount.toString())}`;
+  }
+
   return (
     <>
       <NotificationBase
         avatar={fromUser.profileImageUrl}
         fallbackIcon={<Bell className="h-5 w-5" />}
         title="Payment Reminder"
-        description={`${fromUser.name} sent a reminder${amount ? ` • Your share: ${formatEtherToMnt(amount.toString())}` : ""}`}
+        description={description}
         timestamp={timestamp}
         isRead={isRead}
         onClick={() => setIsModalOpen(true)}
@@ -455,7 +470,7 @@ export function SplitBillReminderNotification({
                   "text-3xl font-bold",
                   isPaid ? "text-green-600" : "text-amber-600"
                 )}>
-                  {formatEtherToMnt((amount || 0).toString())}
+                  {formatWeiToMnt((amount || 0).toString())}
                 </div>
                 {isPaid && (
                   <Badge className="mt-2 bg-green-100 text-green-700 border-green-200">

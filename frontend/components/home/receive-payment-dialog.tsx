@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Check, Copy, Download, QrCode, X } from "lucide-react";
 import { QRCode } from "react-qrcode-logo";
+import { getActionGradient } from "@/lib/action-colors";
 
 export default function ReceivePaymentDialog() {
     const [open, setOpen] = useState(false);
@@ -52,7 +53,7 @@ export default function ReceivePaymentDialog() {
         <Dialog open={open} onOpenChange={setOpen}>
             {/* Button */}
             <DialogTrigger asChild>
-                <Button className="flex h-24 w-full flex-col items-center justify-center gap-2 rounded-[40px] corner-squircle bg-linear-to-br from-green-500 to-green-600 text-white shadow-lg hover:shadow-xl">
+                <Button className={`flex h-24 w-full flex-col items-center justify-center gap-2 rounded-[40px] corner-squircle bg-linear-to-br ${getActionGradient('receive')} text-white shadow-lg hover:shadow-xl`}>
                     <QrCode className="h-6 w-6" />
                     <span className="text-sm font-medium">Receive</span>
                 </Button>

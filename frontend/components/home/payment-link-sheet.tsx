@@ -68,6 +68,7 @@ import { PaymentLinkCard } from "@/components/home/payment-link-card";
 import { PaymentLinkQRModal } from "@/components/home/payment-link-qr-modal";
 import { formatFullDate, formatExpiry } from "@/lib/date-utils";
 import { formatAddress } from "@/lib/format-utils";
+import { getActionGradient } from "@/lib/action-colors";
 
 type ViewMode = "create" | "list" | "details" | "edit" | "success";
 type StatusFilter = "all" | "active" | "completed" | "expired";
@@ -363,7 +364,7 @@ export default function PaymentLinkSheet() {
             }}
         >
             <SheetTrigger asChild>
-                <button className="flex h-24 w-full flex-col items-center justify-center gap-2 rounded-[40px] corner-squircle bg-linear-to-br from-purple-500 to-purple-600 text-white shadow-lg transition-all hover:shadow-xl">
+                <button className={`flex h-24 w-full flex-col items-center justify-center gap-2 rounded-[40px] corner-squircle bg-linear-to-br ${getActionGradient('paymentLink')} text-white shadow-lg transition-all hover:shadow-xl`}>
                     <Link2 className="h-6 w-6" />
                     <span className="text-sm font-medium">Payment Link</span>
                 </button>
@@ -716,7 +717,7 @@ export default function PaymentLinkSheet() {
                                 <div className="space-y-4">
                                     <div className="flex justify-center">
                                         <Button
-                                            className="w-fit justify-start rounded-[15px] corner-squircle bg-linear-to-r from-purple-500 to-purple-600 text-white shadow-md hover:shadow-lg"
+                                            className={`w-fit justify-start rounded-[15px] corner-squircle bg-linear-to-r ${getActionGradient('paymentLink')} text-white shadow-md hover:shadow-lg`}
                                             size="lg"
                                             onClick={() => setViewMode("create")}
                                         >
