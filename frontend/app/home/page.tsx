@@ -8,7 +8,7 @@ import { formatMntValue } from "@/lib/format-utils";
 import { useAppKitAccount } from "@reown/appkit/react";
 import { useBalance } from "wagmi";
 import { Spinner } from "@/components/ui/spinner";
-import { Split, MoreHorizontal, Settings } from "lucide-react";
+import { MoreHorizontal, Settings } from "lucide-react";
 import SendPaymentSheet from "@/components/home/send-payment-sheet";
 import ReceivePaymentDialog from "@/components/home/receive-payment-dialog";
 import RequestPaymentSheet from "@/components/home/request-payment-sheet";
@@ -16,6 +16,14 @@ import PaymentLinkSheet from "@/components/home/payment-link-sheet";
 import ClaimLinkSheet from "@/components/home/claim-link-sheet";
 import SplitBillSheet from "@/components/home/split-bill-sheet";
 import RecentActivityFeed from "@/components/home/recent-activity-feed";
+import FriendsList from "@/components/home/friends-list";
+import FriendsModal from "@/components/home/friends-modal";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 
 export default function HomePage() {
   const router = useRouter();
@@ -79,6 +87,11 @@ export default function HomePage() {
                   {formattedBalance} MNT
                 </span>
               </div>
+
+              {/* Friends Button */}
+              <div className="mt-4">
+                <FriendsModal userId={user._id} />
+              </div>
             </div>
           </div>
 
@@ -128,12 +141,20 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Recent Activity Section */}
+          {/* Recent Activity & Friends Tabs Section */}
           <div className="corner-squircle mt-8 rounded-[40px] border border-zinc-200 bg-white p-6 shadow-sm">
-            <h2 className="mb-4 text-xl font-semibold text-zinc-900">
-              Recent Activity
-            </h2>
-            <RecentActivityFeed userId={user._id} />
+            <Tabs defaultValue="activity" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="activity">Recent Activity</TabsTrigger>
+                <TabsTrigger value="friends">Friends</TabsTrigger>
+              </TabsList>
+              <TabsContent value="activity" className="mt-4">
+                <RecentActivityFeed userId={user._id} />
+              </TabsContent>
+              <TabsContent value="friends" className="mt-4">
+                <FriendsList userId={user._id} />
+              </TabsContent>
+            </Tabs>
           </div>
         </div>
       </main>

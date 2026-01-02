@@ -1,15 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { Id } from "@/convex/_generated/dataModel";
+import { Id, Doc } from "@/convex/_generated/dataModel";
 import { useAppKitAccount } from "@reown/appkit/react";
 import {
     Sheet,
     SheetContent,
     SheetDescription,
-    SheetHeader,
     SheetTitle,
     SheetTrigger,
     SheetClose,
@@ -55,6 +54,7 @@ import UserRecipientInput, {
 } from "@/components/home/user-recipient-input";
 import { cn } from "@/lib/utils";
 
+
 import {
     Tabs,
     TabsContent,
@@ -65,7 +65,12 @@ import {
 type ViewMode = "request" | "history";
 type HistoryTab = "sent" | "received";
 
-const getStatusConfig = (status: string) => {
+type PaymentRequestWithDetails = Doc<"paymentRequests"> & {
+    recipient?: Doc<"users"> | null;
+    requester?: Doc<"users"> | null;
+};
+
+const getStatusConfig = (status: string | undefined) => {
     const normalizedStatus = status?.toLowerCase().trim();
     switch (normalizedStatus) {
         case "pending": return { label: "Pending", className: "bg-amber-100 text-amber-800 hover:bg-amber-100 border-0" };
@@ -92,7 +97,7 @@ export default function RequestPaymentSheet() {
     );
 
     // Request detail modal
-    const [selectedRequest, setSelectedRequest] = useState<any>(null);
+    const [selectedRequest, setSelectedRequest] = useState<PaymentRequestWithDetails | null>(null);
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
     // Get current user
@@ -116,6 +121,23 @@ export default function RequestPaymentSheet() {
             ? { userId: currentUser._id }
             : "skip"
     );
+
+    // Listen for open events
+    useEffect(() => {
+        const handleOpenRequest = (e: CustomEvent) => {
+            const { recipient } = e.detail || {};
+            if (recipient) {
+                setRecipient(recipient);
+            }
+            setOpen(true);
+            setViewMode("request");
+        };
+
+        window.addEventListener("open-request-payment", handleOpenRequest as EventListener);
+        return () => {
+            window.removeEventListener("open-request-payment", handleOpenRequest as EventListener);
+        };
+    }, []);
 
     // Mutations
     const createRequest = useMutation(api.paymentRequests.createRequest);
@@ -156,8 +178,11 @@ export default function RequestPaymentSheet() {
             resetForm();
             setViewMode("history");
             setActiveTab("sent");
-        } catch (error: any) {
-            toast.error(error.message || "Failed to send request");
+            setViewMode("history");
+            setActiveTab("sent");
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : "Failed to send request";
+            toast.error(errorMessage);
         }
     };
 
@@ -171,7 +196,7 @@ export default function RequestPaymentSheet() {
     };
 
     // Render a request item from the list
-    const renderRequestItem = (request: any, isSent: boolean) => {
+    const renderRequestItem = (request: PaymentRequestWithDetails, isSent: boolean) => {
         const otherUser = isSent ? request.recipient : request.requester;
 
         return (
@@ -488,7 +513,7 @@ function RequestDetailModal({
     currentUserId,
     onRequestUpdated,
 }: {
-    request: any;
+    request: PaymentRequestWithDetails | null;
     open: boolean;
     onOpenChange: (open: boolean) => void;
     currentUserId?: string;
@@ -515,8 +540,12 @@ function RequestDetailModal({
             toast.success("Request declined");
             onOpenChange(false);
             onRequestUpdated();
-        } catch (error: any) {
-            toast.error(error.message || "Failed to decline request");
+            toast.success("Request declined");
+            onOpenChange(false);
+            onRequestUpdated();
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : "Failed to decline request";
+            toast.error(errorMessage);
         } finally {
             setIsProcessing(false);
         }
