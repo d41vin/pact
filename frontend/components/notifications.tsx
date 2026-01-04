@@ -292,8 +292,10 @@ export default function Notifications() {
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
-        <button
-          className="relative flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-md transition-shadow hover:shadow-lg"
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="relative flex h-10 w-10 items-center justify-center rounded-full bg-white text-zinc-700 shadow-md transition-all hover:bg-zinc-50 hover:shadow-lg"
           aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ""}`}
         >
           <Bell className="h-5 w-5 text-zinc-700" />
@@ -306,7 +308,7 @@ export default function Notifications() {
               {unreadCount > 9 ? "9+" : unreadCount}
             </motion.span>
           )}
-        </button>
+        </motion.button>
       </SheetTrigger>
       <SheetContent side="right" className="w-full p-0 sm:max-w-md">
         <div className="flex h-full flex-col">

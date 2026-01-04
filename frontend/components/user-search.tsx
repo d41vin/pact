@@ -207,7 +207,7 @@ export default function UserSearch() {
           <motion.button
             key="icon"
             onClick={handleExpand}
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-zinc-50 text-zinc-700 shadow-sm transition-all hover:bg-zinc-100 hover:shadow-md"
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-zinc-700 shadow-md transition-all hover:bg-zinc-50 hover:shadow-lg"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             initial={{ opacity: 0, scale: 0.8 }}
@@ -319,7 +319,7 @@ export default function UserSearch() {
                             >
                               <Avatar className="h-10 w-10">
                                 <AvatarImage src={user.profileImageUrl} alt={user.name} />
-                                <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-500 text-white">
+                                <AvatarFallback className="bg-linear-to-br from-blue-400 to-purple-500 text-white">
                                   {user.name.charAt(0).toUpperCase()}
                                 </AvatarFallback>
                               </Avatar>
@@ -358,7 +358,7 @@ export default function UserSearch() {
                           >
                             <Avatar className="h-10 w-10">
                               <AvatarImage src={user.profileImageUrl} alt={user.name} />
-                              <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-500 text-white">
+                              <AvatarFallback className="bg-linear-to-br from-blue-400 to-purple-500 text-white">
                                 {user.name.charAt(0).toUpperCase()}
                               </AvatarFallback>
                             </Avatar>
