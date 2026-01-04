@@ -41,7 +41,7 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} antialiased bg-linear-to-b from-zinc-100 to-zinc-50 min-h-screen`}
         suppressHydrationWarning
       >
         <ContextProvider cookies={cookies}>

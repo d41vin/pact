@@ -9,7 +9,7 @@ export function TopNav() {
   const router = useRouter();
 
   return (
-    <div className="relative z-50 w-full border-b border-zinc-100 bg-white/95 backdrop-blur-xl">
+    <div className="relative z-50 w-full px-4">
       <div className="mx-auto flex h-16 max-w-4xl items-center justify-between">
         {/* Left side - Logo/Brand */}
         <div className="flex items-center">
