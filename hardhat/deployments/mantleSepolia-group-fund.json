@@ -1,0 +1,9 @@
+{
+  "network": "mantleSepolia",
+  "timestamp": "2026-01-07T11:36:12.538Z",
+  "deployer": "0x83946eac3117ad58a1ac5d0e4fb967dc0e24c166",
+  "contracts": {
+    "GroupFundFactory": "0x0f3d7f890f7582af4d19665e48c9e6fcf902a221",
+    "GroupFundImplementation": "0x8d0de80D0bb2928412E0F5bB2EeaAFBa0c9FA2B1"
+  }
+}
