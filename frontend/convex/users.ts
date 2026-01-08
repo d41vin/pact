@@ -35,7 +35,7 @@ export const checkUsername = query({
 });
 
 // Helper function to verify and get user by wallet address
-async function verifyUser(ctx: QueryCtx | MutationCtx, userAddress: string) {
+export async function verifyUser(ctx: QueryCtx | MutationCtx, userAddress: string) {
   const user = await ctx.db
     .query("users")
     .withIndex("by_userAddress", (q) => q.eq("userAddress", userAddress.toLowerCase()))

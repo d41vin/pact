@@ -373,124 +373,18 @@ export default defineSchema({
     .index("by_actor", ["actorId"])
     .index("by_type", ["type"]),
 
-  pacts: defineTable({
-    name: v.string(),
-    description: v.string(),
-    type: v.union(v.literal("personal"), v.literal("group")),
-    category: v.union(
-      v.literal("system"),
-      v.literal("private"),
-      v.literal("community"),
-    ),
-    icon: v.string(),
-    color: v.string(),
-    contractAddress: v.optional(v.string()),
-    creatorId: v.optional(v.id("users")),
-    isActive: v.boolean(),
-    version: v.string(),
-    config: v.object({
-      requiredFields: v.array(v.string()),
-      optionalFields: v.array(v.string()),
-      minMembers: v.optional(v.number()),
-      maxMembers: v.optional(v.number()),
-    }),
-  })
-    .index("by_type", ["type"])
-    .index("by_category", ["category"])
-    .index("by_creator", ["creatorId"])
-    .index("by_active", ["isActive"]),
 
   groupPacts: defineTable({
     groupId: v.id("groups"),
-    pactId: v.id("pacts"),
-    instanceName: v.string(),
-    createdBy: v.id("users"),
+    creatorId: v.id("users"),
+    contractAddress: v.string(),
+    pactType: v.literal("group_fund"),
+    name: v.string(),
+    description: v.optional(v.string()),
+    chainId: v.number(),
     createdAt: v.number(),
-    status: v.union(
-      v.literal("active"),
-      v.literal("paused"),
-      v.literal("completed"),
-      v.literal("cancelled"),
-    ),
-    config: v.object({
-      goal: v.optional(v.number()),
-      deadline: v.optional(v.number()),
-      participants: v.array(v.id("users")),
-      settings: v.any(),
-    }),
-    balance: v.number(),
-    totalContributions: v.number(),
-    totalWithdrawals: v.number(),
-    hederaAccountId: v.optional(v.string()),
-    contractState: v.optional(v.any()),
-    lastActivityAt: v.number(),
   })
     .index("by_group", ["groupId"])
-    .index("by_pact", ["pactId"])
-    .index("by_creator", ["createdBy"])
-    .index("by_status", ["status"])
-    .index("by_group_status", ["groupId", "status"]),
-
-  pactTransactions: defineTable({
-    pactInstanceId: v.id("groupPacts"),
-    userId: v.id("users"),
-    type: v.union(
-      v.literal("deposit"),
-      v.literal("withdrawal"),
-      v.literal("transfer"),
-      v.literal("fee"),
-    ),
-    amount: v.number(),
-    hederaTransactionId: v.optional(v.string()),
-    hederaTimestamp: v.optional(v.number()),
-    status: v.union(
-      v.literal("pending"),
-      v.literal("confirmed"),
-      v.literal("failed"),
-    ),
-    description: v.optional(v.string()),
-    metadata: v.optional(v.any()),
-    confirmedAt: v.optional(v.number()),
-  })
-    .index("by_pact", ["pactInstanceId"])
-    .index("by_user", ["userId"])
-    .index("by_status", ["status"])
-    .index("by_pact_status", ["pactInstanceId", "status"]),
-
-  pactParticipants: defineTable({
-    pactInstanceId: v.id("groupPacts"),
-    userId: v.id("users"),
-    role: v.union(v.literal("creator"), v.literal("participant")),
-    totalContributed: v.number(),
-    totalWithdrawn: v.number(),
-    netPosition: v.number(),
-    isActive: v.boolean(),
-    joinedAt: v.number(),
-    leftAt: v.optional(v.number()),
-  })
-    .index("by_pact", ["pactInstanceId"])
-    .index("by_user", ["userId"])
-    .index("by_pact_user", ["pactInstanceId", "userId"])
-    .index("by_active", ["isActive"]),
-
-  pactActions: defineTable({
-    pactInstanceId: v.id("groupPacts"),
-    userId: v.id("users"),
-    actionType: v.string(),
-    actionData: v.any(),
-    status: v.union(
-      v.literal("pending"),
-      v.literal("approved"),
-      v.literal("rejected"),
-      v.literal("completed"),
-    ),
-    requiredApprovals: v.optional(v.number()),
-    approvals: v.array(v.id("users")),
-    rejections: v.array(v.id("users")),
-    resolvedAt: v.optional(v.number()),
-  })
-    .index("by_pact", ["pactInstanceId"])
-    .index("by_user", ["userId"])
-    .index("by_status", ["status"])
-    .index("by_pact_status", ["pactInstanceId", "status"]),
+    .index("by_creator", ["creatorId"])
+    .index("by_contract", ["contractAddress"]),
 });

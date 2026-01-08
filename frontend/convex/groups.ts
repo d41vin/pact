@@ -49,7 +49,7 @@ async function isGroupAdmin(
 }
 
 // Helper function to log group activity
-async function logActivity(
+export async function logActivity(
   ctx: any,
   groupId: Id<"groups">,
   actorId: Id<"users">,
