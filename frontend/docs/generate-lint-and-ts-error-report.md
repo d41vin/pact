@@ -23,8 +23,13 @@ pnpm exec eslint "$FILE_PATH"
 echo "Report saved to: $SAFE_NAME-full-report.txt"
 
 //////////
+FILE_PATH="components/home/recent-activity-feed.tsx"
+FILE_PATH="components/notifications/split-bill.tsx"
+FILE_PATH="convex/activityFeed.ts"
+FILE_PATH="components/home/friends-list.tsx"
+FILE_PATH="components/home/friends-modal.tsx"
 
-FILE_PATH="test/ClaimLink.ts"
+FILE_PATH="components/home/request-payment-sheet.tsx"
 SAFE_NAME=$(echo "$FILE_PATH" | sed 's/[\/]/-/g')
 
 {
