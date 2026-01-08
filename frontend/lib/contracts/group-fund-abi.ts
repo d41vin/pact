@@ -1,0 +1,116 @@
+export const GROUP_FUND_IMPLEMENTATION_ABI = [
+    {
+        inputs: [],
+        name: "deposit",
+        outputs: [],
+        stateMutability: "payable",
+        type: "function",
+    },
+    {
+        inputs: [{ internalType: "uint256", name: "amount", type: "uint256" }],
+        name: "withdraw",
+        outputs: [],
+        stateMutability: "nonpayable",
+        type: "function",
+    },
+    {
+        inputs: [{ internalType: "address", name: "newAdmin", type: "address" }],
+        name: "addAdmin",
+        outputs: [],
+        stateMutability: "nonpayable",
+        type: "function",
+    },
+    {
+        inputs: [{ internalType: "address", name: "admin", type: "address" }],
+        name: "removeAdmin",
+        outputs: [],
+        stateMutability: "nonpayable",
+        type: "function",
+    },
+    {
+        inputs: [],
+        name: "getBalance",
+        outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+        stateMutability: "view",
+        type: "function",
+    },
+    {
+        inputs: [{ internalType: "address", name: "member", type: "address" }],
+        name: "getMemberContribution",
+        outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+        stateMutability: "view",
+        type: "function",
+    },
+    {
+        inputs: [],
+        name: "getStats",
+        outputs: [
+            { internalType: "uint256", name: "balance", type: "uint256" },
+            { internalType: "uint256", name: "totalDeposited", type: "uint256" },
+            { internalType: "uint256", name: "totalWithdrawn", type: "uint256" },
+            { internalType: "uint256", name: "memberCount", type: "uint256" },
+            { internalType: "uint256", name: "adminCount", type: "uint256" },
+        ],
+        stateMutability: "view",
+        type: "function",
+    },
+    {
+        inputs: [{ internalType: "address", name: "account", type: "address" }],
+        name: "isAdmin",
+        outputs: [{ internalType: "bool", name: "", type: "bool" }],
+        stateMutability: "view",
+        type: "function",
+    },
+    {
+        inputs: [],
+        name: "creator",
+        outputs: [{ internalType: "address", name: "", type: "address" }],
+        stateMutability: "view",
+        type: "function",
+    },
+    {
+        inputs: [],
+        name: "version",
+        outputs: [{ internalType: "string", name: "", type: "string" }],
+        stateMutability: "pure",
+        type: "function",
+    },
+] as const;
+
+export const GROUP_FUND_FACTORY_ABI = [
+    {
+        anonymous: false,
+        inputs: [
+            { indexed: true, internalType: "address", name: "creator", type: "address" },
+            { indexed: true, internalType: "address", name: "groupFund", type: "address" },
+            { indexed: true, internalType: "address", name: "groupAddress", type: "address" },
+        ],
+        name: "GroupFundDeployed",
+        type: "event",
+    },
+    {
+        inputs: [
+            { internalType: "address", name: "owner", type: "address" },
+            { internalType: "address", name: "group", type: "address" },
+            { internalType: "address[]", name: "initialAdmins", type: "address[]" },
+        ],
+        name: "createGroupFund",
+        outputs: [{ internalType: "address", name: "", type: "address" }],
+        stateMutability: "nonpayable",
+        type: "function",
+    },
+    {
+        inputs: [{ internalType: "address", name: "creator", type: "address" }],
+        name: "getGroupFunds",
+        outputs: [{ internalType: "address[]", name: "", type: "address[]" }],
+        stateMutability: "view",
+        type: "function",
+    },
+    {
+        inputs: [],
+        name: "implementation",
+        outputs: [{ internalType: "address", name: "", type: "address" }],
+        stateMutability: "view",
+        type: "function",
+    },
+] as const;

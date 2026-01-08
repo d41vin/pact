@@ -20,12 +20,17 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
 import MembersModal from "@/components/groups/members-modal";
 import GroupSettingsModal from "@/components/groups/group-settings-modal";
 import InviteMembersModal from "@/components/groups/invite-members-modal";
 import ActivityFeedFilters from "@/components/groups/activity-feed-filters";
-import MockPacts from "@/components/groups/mock-pacts";
+import { CreatePactSheet } from "@/components/groups/pacts/create-pact-sheet";
+import { PactCard } from "@/components/groups/pacts/pact-card";
+import { PactDetailsSheet } from "@/components/groups/pacts/pact-details-sheet";
+
 import { formatTimeAgo } from "@/lib/date-utils";
+import { ShieldCheck } from "lucide-react";
 
 // Type for activity as returned from the backend
 interface Activity {
@@ -60,15 +65,7 @@ interface Activity {
   metadata?: Record<string, unknown>;
 }
 
-// Planned type for members (for future use when backend returns clean member objects)
-interface Member {
-  _id: Id<"users">;
-  name: string;
-  username: string;
-  profileImageUrl?: string;
-  role: "admin" | "member";
-  joinedAt: number;
-}
+
 
 // Type for members as returned from the backend (with optional fields)
 interface BackendMember {
@@ -89,6 +86,7 @@ export default function GroupDetailPage() {
   const groupId = params.id as Id<"groups">;
   const { address } = useAppKitAccount();
   const [activeTab, setActiveTab] = useState("activity");
+  const [selectedPactId, setSelectedPactId] = useState<Id<"groupPacts"> | null>(null);
 
   // Modal states
   const [membersModalOpen, setMembersModalOpen] = useState(false);
@@ -109,6 +107,10 @@ export default function GroupDetailPage() {
   const group = useQuery(
     api.groups.getGroup,
     groupId && currentUser ? { groupId, userId: currentUser._id } : "skip",
+  );
+
+  const pacts = useQuery(api.groupPacts.getGroupPacts,
+    groupId && address ? { groupId, userAddress: address } : "skip"
   );
 
   // Get group activities
@@ -416,7 +418,9 @@ export default function GroupDetailPage() {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="activity">Activity</TabsTrigger>
-            <TabsTrigger value="pacts">Pacts</TabsTrigger>
+            <TabsTrigger value="pacts">
+              Pacts
+            </TabsTrigger>
             <TabsTrigger value="chat" disabled>
               Chat
             </TabsTrigger>
@@ -495,18 +499,51 @@ export default function GroupDetailPage() {
             </div>
           </TabsContent>
 
-          <TabsContent value="pacts">
-            <MockPacts
-              groupId={groupId}
-              groupName={group.name}
-              members={group.members
-                .filter((m: BackendMember) => m._id && m.name)
-                .map((m: BackendMember) => ({
-                  _id: m._id!,
-                  name: m.name!,
-                  profileImageUrl: m.profileImageUrl,
-                }))}
-              accentColor={group.accentColor}
+          <TabsContent value="pacts" className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-medium">Group Pacts</h3>
+                <p className="text-sm text-muted-foreground">
+                  Co-own, co-save, and co-operate with smart contracts.
+                </p>
+              </div>
+              <CreatePactSheet groupId={groupId} />
+            </div>
+
+            {pacts === undefined ? (
+              <div className="grid gap-4 md:grid-cols-2">
+                <Skeleton className="h-[200px] w-full rounded-xl" />
+                <Skeleton className="h-[200px] w-full rounded-xl" />
+              </div>
+            ) : pacts.length === 0 ? (
+              <div className="flex h-[400px] flex-col items-center justify-center rounded-lg border border-dashed bg-card p-8 text-center animate-in fade-in-50">
+                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 mb-6">
+                  <ShieldCheck className="h-10 w-10 text-primary" />
+                </div>
+                <h3 className="text-xl font-semibold">No pacts yet</h3>
+                <p className="mt-2 text-muted-foreground max-w-sm">
+                  Create your first pact to start pooling resources or making decisions together on-chain.
+                </p>
+                <div className="mt-8">
+                  <CreatePactSheet groupId={groupId} />
+                </div>
+              </div>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2">
+                {pacts.map((pact) => (
+                  <PactCard
+                    key={pact._id}
+                    pact={pact}
+                    onClick={() => setSelectedPactId(pact._id)}
+                  />
+                ))}
+              </div>
+            )}
+
+            <PactDetailsSheet
+              pactId={selectedPactId}
+              open={!!selectedPactId}
+              onOpenChange={(open) => !open && setSelectedPactId(null)}
             />
           </TabsContent>
 
