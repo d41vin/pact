@@ -16,6 +16,21 @@ export default defineSchema({
     .index("by_username", ["username"])
     .index("by_email", ["email"]),
 
+  // Direct message conversations metadata
+  conversations: defineTable({
+    userId: v.id("users"),
+    peerInboxId: v.string(), // XMTP inbox ID
+    peerUserId: v.optional(v.id("users")), // App user ID if they're a user
+    lastMessageAt: v.number(),
+    lastMessagePreview: v.optional(v.string()),
+    lastReadMessageId: v.optional(v.string()), // XMTP message ID
+    unreadCount: v.number(),
+    isMuted: v.boolean(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_lastMessage", ["userId", "lastMessageAt"])
+    .index("by_user_peer", ["userId", "peerInboxId"]),
+
   friendships: defineTable({
     requesterId: v.id("users"),
     addresseeId: v.id("users"),

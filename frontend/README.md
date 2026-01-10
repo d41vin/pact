@@ -27,7 +27,41 @@ To learn more about Next.js, take a look at the following resources:
 - [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
 - [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Messaging Support & Limitations
+
+This project integrates **XMTP (v5)** for secure, end-to-end encrypted messaging. Due to technical limitations in the XMTP SDK's current signature verification core (LibXMTP), messaging availability depends on your wallet type:
+
+### ✅ Supported Users (EOA)
+- Standard **Externally Owned Accounts (EOA)**: MetaMask, Rabby, Rainbow, etc.
+- Works by signing a message using standard ECDSA.
+
+### ❌ Unsupported Users (SCW / Social Login)
+- **AppKit Social Login**: Email, Google, X, etc.
+- **Smart Contract Wallets (SCW)**: Safe, Coinbase Smart Wallet, etc.
+- **Why?** XMTP v5 requires an on-chain verifier for SCW (ERC-1271) signatures. Currently, **Mantle Sepolia (Chain ID 5003)** is not on the list of supported networks for SCW verification in the XMTP WASM core. 
+- *Note: Using these wallets will result in a "Signature validation failed (NoVerifier)" error.*
+
+### ⛓️ SCW Network Support Matrix
+| Support Level | Networks |
+| :--- | :--- |
+| **Fully Supported** | Ethereum Mainnet, Base, Optimism, Arbitrum, Polygon, Avalanche |
+| **Testnets** | Sepolia (ETH), Base Sepolia, Optimism Sepolia |
+| **Currently Unsupported** | **Mantle**, Mantle Sepolia, Linea, Scroll |
+
+> [!NOTE]
+> This list reflects the current known networks supported by XMTP v5’s SCW (ERC-1271) verifier based on SDK behavior and libxmtp source, and may change as XMTP adds new verifiers.
+
+### XMTP WASM Requirement (Browser)
+
+XMTP v5 uses a WebAssembly (WASM) core in the browser. For this reason, the compiled WASM file must be present in the `public/` directory at runtime.
+
+This project includes:
+- A `postinstall` script in `package.json`
+- A utility script `copy-xmtp-wasm.js`
+
+These ensure the XMTP WASM binary is always available after installations and during CI/CD. **This is required for all XMTP browser usage, including EOA wallets.**
+
+---
 
 ## Deploy on Vercel
 

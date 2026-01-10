@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Poppins } from "next/font/google";
+import { Geist, Geist_Mono, Poppins, Instrument_Serif, Caprasimo, Inter } from "next/font/google";
 import "@/styles/globals.css";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -7,6 +7,7 @@ import { headers } from "next/headers";
 import ContextProvider from "@/context";
 import { ConvexClientProvider } from "./ConvexClientProvider";
 import { LayoutWrapper } from "@/components/layout-wrapper";
+import { XmtpProvider } from "@/providers/xmtp-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,6 +24,25 @@ const poppins = Poppins({
   subsets: ["latin"],
   weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
 });
+
+const instrumentSerif = Instrument_Serif({
+  variable: "--font-instrument-serif",
+  subsets: ["latin"],
+  weight: ["400"],
+});
+
+const caprasimo = Caprasimo({
+  variable: "--font-caprasimo",
+  subsets: ["latin"],
+  weight: ["400"],
+});
+
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
+});
+
 
 export const metadata: Metadata = {
   title: "Pact",
@@ -41,12 +61,14 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} antialiased bg-linear-to-b from-zinc-100 to-zinc-50 min-h-screen`}
+        className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} ${instrumentSerif.variable} ${caprasimo.variable} ${inter.variable} font-sans antialiased bg-linear-to-b from-zinc-100 to-zinc-50 min-h-screen`}
         suppressHydrationWarning
       >
         <ContextProvider cookies={cookies}>
           <ConvexClientProvider>
-            <LayoutWrapper>{children}</LayoutWrapper>
+            <XmtpProvider>
+              <LayoutWrapper>{children}</LayoutWrapper>
+            </XmtpProvider>
             <Toaster richColors />
           </ConvexClientProvider>
         </ContextProvider>

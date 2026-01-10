@@ -11,6 +11,7 @@
 import type * as activityFeed from "../activityFeed.js";
 import type * as blocks from "../blocks.js";
 import type * as claimLinks from "../claimLinks.js";
+import type * as conversations from "../conversations.js";
 import type * as friendships from "../friendships.js";
 import type * as groupPacts from "../groupPacts.js";
 import type * as groups from "../groups.js";
@@ -33,6 +34,7 @@ declare const fullApi: ApiFromModules<{
   activityFeed: typeof activityFeed;
   blocks: typeof blocks;
   claimLinks: typeof claimLinks;
+  conversations: typeof conversations;
   friendships: typeof friendships;
   groupPacts: typeof groupPacts;
   groups: typeof groups;

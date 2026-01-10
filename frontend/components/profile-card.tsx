@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   User,
   Copy,
@@ -53,6 +54,7 @@ export default function ProfileCard({ user, isOwnProfile }: ProfileCardProps) {
   const [friendsModalOpen, setFriendsModalOpen] = useState(false);
   const [groupInviteModalOpen, setGroupInviteModalOpen] = useState(false);
   const { address } = useAppKitAccount();
+  const router = useRouter();
 
   // Cache current time to avoid impure function calls during render
   const [currentTime] = useState(() => Date.now());
@@ -179,10 +181,10 @@ export default function ProfileCard({ user, isOwnProfile }: ProfileCardProps) {
   };
 
   const handleMessage = () => {
-    console.log("Message user:", user.username);
-    // TODO: Navigate to messages or open chat modal
-    toast.info("Messaging feature coming soon");
+    // Navigate to messages page with the address to start a conversation
+    router.push(`/messages?start=${user.userAddress}`);
   };
+
 
   const renderActionButtons = () => {
     if (isOwnProfile) {

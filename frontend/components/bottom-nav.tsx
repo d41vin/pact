@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { Home, Users, User } from "lucide-react";
+import { Home, Users, User, MessageCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAppKitAccount } from "@reown/appkit/react";
 import { useQuery } from "convex/react";
@@ -9,6 +9,7 @@ import { api } from "@/convex/_generated/api";
 
 const tabs = [
   { value: "home", icon: Home, label: "Home" },
+  { value: "messages", icon: MessageCircle, label: "Messages" },
   { value: "groups", icon: Users, label: "Groups" },
   { value: "profile", icon: User, label: "Profile" },
 ];
@@ -51,7 +52,7 @@ export function BottomNav() {
     <div className="pointer-events-none fixed right-0 bottom-6 left-0 z-50 px-4">
       <div className="pointer-events-auto mx-auto max-w-md">
         <div className="bg-background/95 border-border/50 w-full rounded-full corner-squircle  border p-1.5 shadow-xl backdrop-blur-lg">
-          <div className="relative grid grid-cols-3 gap-1">
+          <div className="relative grid grid-cols-4 gap-1">
             {/* Animated background pill */}
             <motion.div
               className="bg-primary absolute inset-y-0 rounded-full corner-squircle "
