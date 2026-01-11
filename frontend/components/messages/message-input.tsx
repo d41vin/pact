@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Send, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useRef, useEffect } from "react";
 
 interface MessageInputProps {
     onSend: (message: string) => Promise<boolean>;
@@ -19,6 +20,17 @@ export default function MessageInput({
 }: MessageInputProps) {
     const { message, error, canSend, handleChange, clear, characterCount, maxLength } =
         useMessageInput();
+    const inputRef = useRef<HTMLTextAreaElement>(null);
+
+    // Auto-focus on mount and when re-enabled (e.g. after sending)
+    useEffect(() => {
+        if (!isSending && !disabled) {
+            // Small timeout to ensure the UI has updated and element is interactive
+            setTimeout(() => {
+                inputRef.current?.focus();
+            }, 10);
+        }
+    }, [isSending, disabled]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -47,6 +59,7 @@ export default function MessageInput({
             <form onSubmit={handleSubmit} className="flex items-end gap-2">
                 <div className="flex-1">
                     <Textarea
+                        ref={inputRef}
                         value={message}
                         onChange={(e) => handleChange(e.target.value)}
                         onKeyDown={handleKeyDown}

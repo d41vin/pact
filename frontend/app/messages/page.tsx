@@ -37,7 +37,7 @@ export default function MessagesPage() {
     if (user) {
         return (
             <main className="min-h-screen px-4 pb-32 pt-8">
-                <div className="mx-auto max-w-6xl">
+                <div className="mx-auto max-w-4xl">
                     <MessagesLayout />
                 </div>
             </main>

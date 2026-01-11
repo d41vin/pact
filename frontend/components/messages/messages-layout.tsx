@@ -122,20 +122,24 @@ export default function MessagesLayout() {
     if (isMobile) {
         if (selectedConversation) {
             return (
-                <ConversationView
-                    inboxId={selectedConversation}
-                    xmtpClient={client}
-                    onBack={handleBack}
-                />
+                <div className="h-[calc(100vh-10rem)]">
+                    <ConversationView
+                        inboxId={selectedConversation}
+                        xmtpClient={client}
+                        onBack={handleBack}
+                    />
+                </div>
             );
         }
 
         return (
-            <ConversationList
-                xmtpClient={client}
-                autoStartUser={autoStartUser}
-                onAutoStartComplete={() => setAutoStartUser(null)}
-            />
+            <div className="h-[calc(100vh-10rem)]">
+                <ConversationList
+                    xmtpClient={client}
+                    autoStartUser={autoStartUser}
+                    onAutoStartComplete={() => setAutoStartUser(null)}
+                />
+            </div>
         );
     }
 

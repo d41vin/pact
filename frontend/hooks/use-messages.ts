@@ -297,6 +297,7 @@ export function useMessages(client: Client | null, peerInboxId: string | null) {
         };
 
         // Only setup if we have the metadata (so we have the fallback address if needed)
+        // We check this inside the effect now, but we use a ref or derived boolean to control execution
         if (conversationMetadata !== undefined) {
             setupMessaging();
         }
@@ -307,7 +308,11 @@ export function useMessages(client: Client | null, peerInboxId: string | null) {
                 streamCleanup();
             }
         };
-    }, [client, peerInboxId, address, updateConversation, markAsRead, conversationMetadata, getOrSyncDm]);
+        // Removed `conversationMetadata` from dependencies to prevent re-fetching on timestamp updates
+        // We only care if `peerInboxId` changes or if we initially get metadata.
+        // `updateConversation` and `markAsRead` are stable.
+        // `getOrSyncDm` uses `peerAddress` which is stable (string).
+    }, [client, peerInboxId, address, updateConversation, markAsRead, conversationMetadata !== undefined, getOrSyncDm]);
 
     // Send message
     const sendMessage = useCallback(
