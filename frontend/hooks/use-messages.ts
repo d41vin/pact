@@ -162,12 +162,21 @@ export function useMessages(client: Client | null, peerInboxId: string | null) {
                 if (textMessages.length > 0) {
                     const lastMessage = textMessages[textMessages.length - 1];
                     const actualPeerInboxId = await dm.peerInboxId();
-                    await markAsRead({
-                        userAddress: address,
-                        peerInboxId: cleanInboxId(actualPeerInboxId),
-                        lastReadMessageId: lastMessage.id,
-                    });
+
+                    // Zombie Check
+                    const currentParams = new URLSearchParams(window.location.search);
+                    const activeConversationId = currentParams.get("conversation");
+                    const isActive = cleanInboxId(activeConversationId) === cleanInboxId(peerInboxId);
+
+                    if (isActive) {
+                        await markAsRead({
+                            userAddress: address,
+                            peerInboxId: cleanInboxId(actualPeerInboxId),
+                            lastReadMessageId: lastMessage.id,
+                        });
+                    }
                 }
+
 
 
 
@@ -178,6 +187,16 @@ export function useMessages(client: Client | null, peerInboxId: string | null) {
                     onValue: async (msg: DecodedMessage<any>) => {
                         // Only add messages from this conversation
                         if (msg.conversationId && msg.senderInboxId) {
+                            // Filter: Ensure message belongs to this DM (either from peer or from self)
+                            // We use robust ID comparison
+                            const msgSender = cleanInboxId(msg.senderInboxId);
+                            const currentPeer = cleanInboxId(peerInboxId);
+                            const myInbox = cleanInboxId(client.inboxId);
+
+                            if (msgSender !== currentPeer && msgSender !== myInbox) {
+                                return;
+                            }
+
                             // Check if this is a reaction
                             if (msg.contentType?.sameAs(ContentTypeReaction)) {
                                 const reaction = msg.content as Reaction;
@@ -233,17 +252,29 @@ export function useMessages(client: Client | null, peerInboxId: string | null) {
                                     peerInboxId: cleanInboxId(actualPeerInboxId),
                                     messagePreview: msg.content.substring(0, 50),
                                     isFromSelf: newMessage.isFromSelf,
+                                    messageTimestamp: newMessage.sentAt,
                                 });
 
 
                                 // Mark as read if viewing
                                 if (!newMessage.isFromSelf) {
-                                    markAsRead({
-                                        userAddress: address,
-                                        peerInboxId: cleanInboxId(actualPeerInboxId),
-                                        lastReadMessageId: newMessage.id,
-                                    });
+                                    // Zombie Check: Ensure we are actually looking at this conversation
+                                    // This prevents background/stale hooks from clearing unread counts
+                                    const currentParams = new URLSearchParams(window.location.search);
+                                    const activeConversationId = currentParams.get("conversation");
+                                    const isActive = cleanInboxId(activeConversationId) === cleanInboxId(peerInboxId);
+
+                                    if (isActive) {
+                                        markAsRead({
+                                            userAddress: address,
+                                            peerInboxId: cleanInboxId(actualPeerInboxId),
+                                            lastReadMessageId: newMessage.id,
+                                        });
+                                    } else {
+                                        console.log("useMessages: Skipped markAsRead (inactive view)");
+                                    }
                                 }
+
 
                             }
                         }
@@ -310,6 +341,7 @@ export function useMessages(client: Client | null, peerInboxId: string | null) {
                     peerInboxId: cleanInboxId(actualPeerInboxId),
                     messagePreview: content.trim().substring(0, 50),
                     isFromSelf: true,
+                    messageTimestamp: Date.now(),
                 });
 
 

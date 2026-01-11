@@ -180,9 +180,7 @@ export default function ConversationList({
                                             {conv.lastMessagePreview || "No messages yet"}
                                         </p>
                                         {conv.unreadCount > 0 && (
-                                            <span className="flex h-5 min-w-[20px] shrink-0 items-center justify-center rounded-full bg-blue-500 px-1.5 text-xs font-bold text-white">
-                                                {conv.unreadCount > 9 ? "9+" : conv.unreadCount}
-                                            </span>
+                                            <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-blue-500" />
                                         )}
                                     </div>
                                 </div>

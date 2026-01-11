@@ -8,6 +8,8 @@ import ContextProvider from "@/context";
 import { ConvexClientProvider } from "./ConvexClientProvider";
 import { LayoutWrapper } from "@/components/layout-wrapper";
 import { XmtpProvider } from "@/providers/xmtp-provider";
+import { GlobalMessageListener } from "@/components/messages/global-message-listener";
+
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -67,8 +69,10 @@ export default async function RootLayout({
         <ContextProvider cookies={cookies}>
           <ConvexClientProvider>
             <XmtpProvider>
+              <GlobalMessageListener />
               <LayoutWrapper>{children}</LayoutWrapper>
             </XmtpProvider>
+
             <Toaster richColors />
           </ConvexClientProvider>
         </ContextProvider>

@@ -58,6 +58,7 @@ export const updateConversation = mutation({
         peerInboxId: v.string(),
         messagePreview: v.string(),
         isFromSelf: v.boolean(),
+        messageTimestamp: v.number(),
     },
     handler: async (ctx, args) => {
         const user = await verifyUser(ctx, args.userAddress);
@@ -72,15 +73,71 @@ export const updateConversation = mutation({
         if (!conversation) return;
 
         await ctx.db.patch(conversation._id, {
-            lastMessageAt: Date.now(),
+            lastMessageAt: args.messageTimestamp,
             lastMessagePreview: args.messagePreview,
-            unreadCount: args.isFromSelf ? 0 : conversation.unreadCount + 1,
+            unreadCount: args.isFromSelf ? 0 : 1, // Boolean logic: 1 = Unread, 0 = Read
         });
     },
 });
 
+// Update unread count for background messages
+export const updateUnreadCount = mutation({
+    args: {
+        userAddress: v.string(),
+        peerInboxId: v.string(),
+        messagePreview: v.string(),
+        messageId: v.string(),
+        messageTimestamp: v.number(),
+    },
+    handler: async (ctx, args) => {
+        const user = await verifyUser(ctx, args.userAddress);
+
+        let conversation = await ctx.db
+            .query("conversations")
+            .withIndex("by_user_peer", (q) =>
+                q.eq("userId", user._id).eq("peerInboxId", args.peerInboxId)
+            )
+            .first();
+
+        if (conversation) {
+            // Idempotency check 1: Exact message ID match
+            if (conversation.lastMessageId === args.messageId) {
+                return;
+            }
+
+            // Idempotency check 2: Time-based strict ordering
+            // If the incoming message is older than or equal to the last processed message, ignore it.
+            // This prevents "Stream Replay" from incrementing counts.
+            if (conversation.lastMessageAt >= args.messageTimestamp) {
+                return;
+            }
+
+            await ctx.db.patch(conversation._id, {
+                lastMessageAt: args.messageTimestamp,
+                lastMessagePreview: args.messagePreview,
+                lastMessageId: args.messageId,
+                unreadCount: 1, // Boolean logic: 1 = Unread, 0 = Read
+            });
+        } else {
+            // Stranger Handling: Create missing conversation
+            await ctx.db.insert("conversations", {
+                userId: user._id,
+                peerInboxId: args.peerInboxId,
+                peerUserId: undefined,
+                lastMessageAt: args.messageTimestamp,
+                lastMessagePreview: args.messagePreview,
+                lastMessageId: args.messageId,
+                unreadCount: 1,
+                isMuted: false,
+            });
+        }
+    },
+});
+
+
 // Mark conversation as read
 export const markAsRead = mutation({
+
     args: {
         userAddress: v.string(),
         peerInboxId: v.string(),
@@ -207,5 +264,23 @@ export const getConversationByInboxId = query({
         }
 
         return { ...conversation, peerUser };
+    },
+});
+
+// Get total unread count
+export const getTotalUnreadCount = query({
+    args: { userAddress: v.string() },
+    handler: async (ctx, args) => {
+        const user = await verifyUser(ctx, args.userAddress);
+
+        const conversations = await ctx.db
+            .query("conversations")
+            .withIndex("by_user", (q) => q.eq("userId", user._id))
+            .collect();
+
+        // Boolean logic: Count how many conversations have unreadCount > 0
+        const unreadConversations = conversations.filter((c) => c.unreadCount > 0).length;
+
+        return unreadConversations;
     },
 });

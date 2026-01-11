@@ -23,8 +23,10 @@ export default defineSchema({
     peerUserId: v.optional(v.id("users")), // App user ID if they're a user
     lastMessageAt: v.number(),
     lastMessagePreview: v.optional(v.string()),
+    lastMessageId: v.optional(v.string()), // Added for idempotency
     lastReadMessageId: v.optional(v.string()), // XMTP message ID
     unreadCount: v.number(),
+
     isMuted: v.boolean(),
   })
     .index("by_user", ["userId"])

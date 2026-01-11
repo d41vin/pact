@@ -19,10 +19,10 @@ export function BottomNav() {
   const router = useRouter();
   const { address, isConnected } = useAppKitAccount();
 
-  // Fetch user data from Convex using the connected wallet address
   const user = useQuery(api.users.getUser, {
     userAddress: address || "",
   });
+
 
   const getActiveTab = () => {
     // Updated to handle dynamic profile routes
@@ -95,6 +95,7 @@ export function BottomNav() {
                     <Icon className="h-5 w-5" />
                     <span className="text-[11px] font-medium">{tab.label}</span>
                   </div>
+
                 </button>
               );
             })}
