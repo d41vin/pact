@@ -7,6 +7,7 @@ import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { useAppKitAccount } from "@reown/appkit/react";
 import { useUsernameValidation } from "@/hooks/useUsernameValidation";
+import { useXmtpClient } from "@/hooks/use-xmtp-client";
 
 // Form Validation
 import { useForm } from "react-hook-form";
@@ -36,7 +37,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Spinner } from "@/components/ui/spinner";
 import { toast } from "sonner";
-import { UserRound, CheckCircle2, Loader2 } from "lucide-react";
+import { UserRound, CheckCircle2, Loader2, Lock, ShieldCheck, Wallet } from "lucide-react";
 
 // Validation schema
 const formSchema = z.object({
@@ -64,6 +65,9 @@ export default function OnboardingPage() {
   const router = useRouter();
   const { address, isConnected, status, embeddedWalletInfo } =
     useAppKitAccount();
+  const { initializeClient, isInitializing } = useXmtpClient();
+
+  const [signupStep, setSignupStep] = useState<"profile" | "messaging">("profile");
 
   // Check for existing user
   const user = useQuery(api.users.getUser, {
@@ -140,11 +144,26 @@ export default function OnboardingPage() {
       });
 
       toast.success("Profile created successfully!");
-      router.push("/home");
+      // Transition to messaging step instead of redirecting immediately
+      setSignupStep("messaging");
     } catch (error) {
       console.error("Onboarding failed", error);
       toast.error("Failed to create profile. Please try again.");
     }
+  };
+
+  const handleEnableMessaging = async () => {
+    try {
+      await initializeClient();
+      router.push("/home");
+    } catch (error) {
+      // Error is handled by the provider/toast mostly, but we can log
+      console.error("Messaging init failed", error);
+    }
+  };
+
+  const handleSkip = () => {
+    router.push("/home");
   };
 
   // Loading state
@@ -161,11 +180,87 @@ export default function OnboardingPage() {
     return null;
   }
 
+  // Messaging Step
+  if (signupStep === "messaging") {
+    // Check if using embedded wallet (likely Social Login)
+    // NOTE: This logic assumes embeddedWalletInfo presence means Social Login / non-EOA restriction.
+    // Adjust if AppKit behavior differs.
+    const isSocialLogin = !!embeddedWalletInfo;
+
+    return (
+      <main className="flex min-h-screen flex-col items-center justify-center bg-gray-50 p-4 dark:bg-gray-950">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-50">
+              {isSocialLogin ? (
+                <Wallet className="h-8 w-8 text-blue-500" />
+              ) : (
+                <ShieldCheck className="h-8 w-8 text-blue-500" />
+              )}
+            </div>
+            <CardTitle>
+              {isSocialLogin ? "Messaging Requires a Wallet" : "Enable Messaging"}
+            </CardTitle>
+            <CardDescription className="pt-2">
+              {isSocialLogin
+                ? "Secure messaging uses wallet signatures. You can enable messaging later by connecting a compatible wallet."
+                : "Pact uses secure, wallet-based messaging. Enabling messaging lets friends message you right away."}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {!isSocialLogin && (
+              <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-4 text-sm text-zinc-600">
+                <div className="flex items-start gap-3">
+                  <Lock className="mt-0.5 h-4 w-4 shrink-0 text-zinc-400" />
+                  <p>Requires a one-time signature. No gas fees.</p>
+                </div>
+              </div>
+            )}
+          </CardContent>
+          <CardFooter className="flex-col gap-3">
+            {isSocialLogin ? (
+              <Button onClick={handleSkip} className="w-full">
+                Continue
+              </Button>
+            ) : (
+              <>
+                <Button
+                  onClick={handleEnableMessaging}
+                  className="w-full"
+                  disabled={isInitializing}
+                >
+                  {isInitializing ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Setting up secure messaging...
+                    </>
+                  ) : (
+                    "Enable Messaging"
+                  )}
+                </Button>
+                <Button
+                  variant="ghost"
+                  onClick={handleSkip}
+                  className="w-full"
+                  disabled={isInitializing}
+                >
+                  Skip for now
+                </Button>
+              </>
+            )}
+          </CardFooter>
+        </Card>
+      </main>
+    );
+  }
+
+  // Profile Step (Existing UI)
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-gray-50 p-4 dark:bg-gray-950">
       <Card className="w-full max-w-md">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
+            {/* ... Existing Card Content ... */}
             <CardHeader>
               <CardTitle>Welcome to Pact</CardTitle>
               <CardDescription>
