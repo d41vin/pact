@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Client, ConsentState, ContentTypeId, type DecodedMessage } from "@xmtp/browser-sdk";
+import { Client, ConsentState, ContentTypeId, type DecodedMessage, type Conversation } from "@xmtp/browser-sdk";
 import { ContentTypeReaction, type Reaction } from "@xmtp/content-type-reaction";
 
 import { useMutation, useQuery } from "convex/react";
@@ -24,7 +24,7 @@ interface Message {
 }
 
 
-export function useMessages(client: Client | null, peerInboxId: string | null) {
+export function useMessages(client: Client | null, peerInboxId: string | null, existingConversation?: Conversation) {
     const [messages, setMessages] = useState<Message[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isSending, setIsSending] = useState(false);
@@ -38,7 +38,7 @@ export function useMessages(client: Client | null, peerInboxId: string | null) {
     // Fetch conversation metadata from Convex to get the peer's address in case we need it
     const conversationMetadata = useQuery(
         api.conversations.getConversationByInboxId,
-        address && peerInboxId ? { userAddress: address, peerInboxId: cleanInboxId(peerInboxId) } : "skip"
+        address && peerInboxId && !existingConversation ? { userAddress: address, peerInboxId: cleanInboxId(peerInboxId) } : "skip" // Skip if we have the conversation
     );
 
 
@@ -49,6 +49,8 @@ export function useMessages(client: Client | null, peerInboxId: string | null) {
 
     // Helper to get or sync DM conversation
     const getOrSyncDm = useCallback(async (id: string) => {
+        if (existingConversation) return existingConversation; // Return existing if provided
+
         if (!client) return null;
 
         const dmId = cleanInboxId(id);
@@ -80,11 +82,11 @@ export function useMessages(client: Client | null, peerInboxId: string | null) {
 
 
         return dm;
-    }, [client, peerAddress]);
+    }, [client, peerAddress, existingConversation]);
 
     // Fetch message history and set up streaming
     useEffect(() => {
-        if (!client || !peerInboxId || !address) {
+        if (!client || (!peerInboxId && !existingConversation) || !address) {
             setIsLoading(false);
             return;
         }
@@ -95,7 +97,7 @@ export function useMessages(client: Client | null, peerInboxId: string | null) {
             try {
                 setIsLoading(true);
 
-                const dmId = cleanInboxId(peerInboxId);
+                const dmId = peerInboxId ? cleanInboxId(peerInboxId) : "group"; // Fallback ID for logging
                 console.log(`useMessages: Setting up messaging for ${dmId}...`);
                 let dm = await getOrSyncDm(dmId);
 
@@ -297,8 +299,8 @@ export function useMessages(client: Client | null, peerInboxId: string | null) {
         };
 
         // Only setup if we have the metadata (so we have the fallback address if needed)
-        // We check this inside the effect now, but we use a ref or derived boolean to control execution
-        if (conversationMetadata !== undefined) {
+        // OR if we have an existingConversation provided explicitly
+        if (conversationMetadata !== undefined || existingConversation) {
             setupMessaging();
         }
 
@@ -308,11 +310,7 @@ export function useMessages(client: Client | null, peerInboxId: string | null) {
                 streamCleanup();
             }
         };
-        // Removed `conversationMetadata` from dependencies to prevent re-fetching on timestamp updates
-        // We only care if `peerInboxId` changes or if we initially get metadata.
-        // `updateConversation` and `markAsRead` are stable.
-        // `getOrSyncDm` uses `peerAddress` which is stable (string).
-    }, [client, peerInboxId, address, updateConversation, markAsRead, conversationMetadata !== undefined, getOrSyncDm]);
+    }, [client, peerInboxId, address, updateConversation, markAsRead, conversationMetadata !== undefined, getOrSyncDm, existingConversation]);
 
     // Send message
     const sendMessage = useCallback(

@@ -301,6 +301,7 @@ export default defineSchema({
     imageType: v.union(v.literal("emoji"), v.literal("image")),
     accentColor: v.string(),
     creatorId: v.id("users"),
+    xmtpTopic: v.optional(v.string()), // XMTP conversation ID (topic)
     privacy: v.union(v.literal("public"), v.literal("private")),
     joinMethod: v.union(
       v.literal("request"),

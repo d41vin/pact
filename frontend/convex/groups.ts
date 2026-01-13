@@ -426,6 +426,7 @@ export const updateGroup = mutation({
     imageType: v.optional(v.union(v.literal("emoji"), v.literal("image"))),
     accentColor: v.optional(v.string()),
     privacy: v.optional(v.union(v.literal("public"), v.literal("private"))),
+    xmtpTopic: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const user = await verifyUser(ctx, args.userAddress);
@@ -442,6 +443,7 @@ export const updateGroup = mutation({
     if (args.imageType) updates.imageType = args.imageType;
     if (args.accentColor) updates.accentColor = args.accentColor;
     if (args.privacy) updates.privacy = args.privacy;
+    if (args.xmtpTopic) updates.xmtpTopic = args.xmtpTopic;
 
     await ctx.db.patch(args.groupId, updates);
 

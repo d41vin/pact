@@ -25,15 +25,16 @@ interface MessageBubbleProps {
     reactions?: Record<string, number>;
 
     showTimestamp?: boolean;
+    senderName?: string;
     onReact?: (messageId: string, emoji: string) => void;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    peerUser?: any;
+    peerUser?: unknown;
 }
 
 
 export default function MessageBubble({
     message,
     showTimestamp = true,
+    senderName,
     onReact,
     peerUser,
 }: MessageBubbleProps) {
@@ -69,6 +70,11 @@ export default function MessageBubble({
                     )}
                 >
                     <div className="flex max-w-[75%] flex-col gap-1">
+                        {!message.isFromSelf && senderName && (
+                            <span className="ml-4 text-xs font-medium text-zinc-500">
+                                {senderName}
+                            </span>
+                        )}
                         <div
                             className={cn(
                                 "rounded-2xl px-4 py-2",
